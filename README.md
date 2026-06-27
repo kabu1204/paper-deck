@@ -20,6 +20,7 @@ paper.pdf  ──MinerU──▶  markdown + figures  ──LLM──▶  index.
 
 ```
 generate.py                  # PDF -> index.qmd pipeline (MinerU + LLM + assembly)
+modal_mineru.py              # self-hosted MinerU backend on Modal GPU VMs (optional)
 migrate.py                   # one-time batch migration of historical .md decks
 index.qmd                    # homepage: Quarto listing of all papers
 _quarto.yml                  # site config (theme: flatly, font: Lora)
@@ -53,7 +54,7 @@ Every generated article follows a fixed structure:
 
 - Python 3.11+
 - [Quarto](https://quarto.org/) 1.9+
-- A MinerU API token (from <https://mineru.net>)
+- A MinerU API token (from <https://mineru.net>) **or** a Modal account for self-hosted parsing
 - An LLM endpoint — either an OpenAI-compatible API or a Google Gemini API key
 
 ### Install Python dependencies
@@ -63,6 +64,13 @@ pip install openai requests pyyaml Pillow google-genai
 ```
 
 (`google-genai` is only needed for the Gemini backend.)
+
+For the **Modal MinerU backend** (optional), also install:
+
+```bash
+pip install modal
+modal setup   # authenticates with your Modal account
+```
 
 ### Configure environment
 
@@ -85,6 +93,10 @@ GOOGLE_API_MODEL=gemini-2.5-flash
 
 # --- Optional: force a backend when both keys are present ---
 # LLM_BACKEND=google
+
+# --- Optional: self-hosted MinerU on Modal GPU VMs ---
+# MINERU_BACKEND=modal       # "api" (default) or "modal"
+# MINERU_DPI=300             # render DPI (modal only; api is fixed at 200)
 ```
 
 **Backend selection:** if `GOOGLE_API_KEY` is set, the Gemini backend is used; otherwise the OpenAI-compatible endpoint. Set `LLM_BACKEND=openai` or `LLM_BACKEND=google` to override. Gemini is natively multimodal, so figure images are auto-attached (vision) for the google backend; for OpenAI, set `MODEL_SUPPORTS_VISION=true` if the model supports it.
@@ -140,6 +152,17 @@ Push to `master`. The GitHub Actions workflow (`.github/workflows/publish.yml`) 
 ## MinerU cache
 
 MinerU parse results are cached under `.mineru_cache/<sha256>/` keyed by the PDF's SHA-256. Re-runs (including `--regenerate`) skip the slow API call on cache hit. The cache auto-invalidates when `MINERU_MODEL` or `MINERU_LANGUAGE` changes. Use `--refresh-cache` to force a fresh parse.
+
+## MinerU backends
+
+Two PDF parsing backends are supported, selected via `MINERU_BACKEND`:
+
+| Backend | `MINERU_BACKEND` | Description |
+|---|---|---|
+| MinerU API (default) | `api` | Uses the hosted [mineru.net](https://mineru.net) API. Requires `MINERU_API_TOKEN`. DPI is fixed at 200. |
+| Modal (self-hosted) | `modal` | Runs MinerU `vlm-engine` on Modal GPU VMs (L4). Requires `pip install modal` + `modal setup`. Supports custom DPI via `MINERU_DPI`. Models are baked into the image at build time for zero cold-start inference cost. See `modal_mineru.py` for details. |
+
+Both backends produce the same output structure (`full.md`, `images/`, `content_list.json`) and are cache-compatible. The Modal backend is useful when you need higher DPI (e.g. `MINERU_DPI=300`) for better figure resolution, which the hosted API does not expose.
 
 ## License
 

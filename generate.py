@@ -247,6 +247,15 @@ def _persist_to_cache(tmp: MinerUResult, cache_dir: Path, meta_path: Path,
     for p in tmp.work_dir.iterdir():
         shutil.move(str(p), str(cache_dir / p.name))
     shutil.rmtree(tmp.work_dir, ignore_errors=True)
+    # MinerU names files with a UUID prefix (e.g. <uuid>_content_list.json);
+    # normalize to the canonical names MinerUResult expects.
+    for pattern, target in [("*_content_list.json", "content_list.json"),
+                            ("*_content_list_v2.json", "content_list_v2.json")]:
+        if (cache_dir / target).exists():
+            continue
+        for p in cache_dir.glob(pattern):
+            (cache_dir / target).symlink_to(p.name)
+            break
     meta = {
         "sha": sha,
         "pdf_name": pdf_path.name,
@@ -307,7 +316,7 @@ def build_figure_catalog(mr: MinerUResult) -> list[Figure]:
         blocks = []
 
     def text_of(block: dict) -> str:
-        for key in ("text", "img_caption", "caption"):
+        for key in ("text", "img_caption", "image_caption", "chart_caption", "caption"):
             val = block.get(key)
             if isinstance(val, str) and val.strip():
                 return val.strip()
@@ -321,7 +330,7 @@ def build_figure_catalog(mr: MinerUResult) -> list[Figure]:
 
     for i, block in enumerate(blocks):
         btype = str(block.get("type", "")).lower()
-        if btype != "image":
+        if btype not in ("image", "chart"):
             continue
         img_rel = (block.get("img_path") or block.get("img_url")
                    or block.get("img_name") or block.get("path") or "")

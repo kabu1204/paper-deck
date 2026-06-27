@@ -157,6 +157,11 @@ def parse(pdf_path: Path, *, use_cache: bool = True, dpi: int = 200,
     if input_cl.exists() and not full_cl.exists():
         shutil.move(str(input_cl), str(full_cl))
 
+    input_cl_v2 = cache_dir / "input_content_list_v2.json"
+    full_cl_v2 = cache_dir / "content_list_v2.json"
+    if input_cl_v2.exists() and not full_cl_v2.exists():
+        shutil.move(str(input_cl_v2), str(full_cl_v2))
+
     meta = {
         "sha": sha,
         "pdf_name": pdf_path.name,
