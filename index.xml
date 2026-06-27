@@ -14,7 +14,7 @@
 <item>
   <title>MARLIN: Mixed-Precision Auto-Regressive Parallel Inference on Large Language Models</title>
   <dc:creator>Elias Frantar, Roberto L. Castro, Jiale Chen, Torsten Hoefler, Dan Alistarh</dc:creator>
-  <link>https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/</link>
+  <link>https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/</link>
   <description><![CDATA[ 
 
 
@@ -22,239 +22,238 @@
 
 <section id="background-motivation" class="level1">
 <h1>Background &amp; Motivation</h1>
-<section id="llm-inference-memory-bottleneck" class="level2">
-<h2 class="anchored" data-anchor-id="llm-inference-memory-bottleneck">LLM Inference &amp; Memory Bottleneck</h2>
+<section id="llm-generative-inference" class="level2">
+<h2 class="anchored" data-anchor-id="llm-generative-inference">LLM Generative Inference</h2>
 <ul>
-<li>Generative LLM inference (token-by-token) is heavily memory-bound.</li>
-<li>The cost of reading LLM weights from memory dwarfs the arithmetic operations.</li>
-<li>Modern GPUs (e.g., Ampere) have high FLOP-to-byte ratios (100-200 for FP16).</li>
+<li>Large Language Models (LLMs) excel at generative tasks, predicting the next token based on a cached context.</li>
+<li>Generative inference is heavily memory-bound on modern GPUs.</li>
+<li>The time required to read LLM weights from memory completely dwarfs the time spent on arithmetic operations.</li>
 </ul>
 </section>
-<section id="weight-only-quantization" class="level2">
-<h2 class="anchored" data-anchor-id="weight-only-quantization">Weight-Only Quantization</h2>
+<section id="weight-quantization" class="level2">
+<h2 class="anchored" data-anchor-id="weight-quantization">Weight Quantization</h2>
 <ul>
-<li>Compresses network weights (e.g., to 4-bit INT4) while keeping inputs in FP16.</li>
-<li>Reduces memory movement, yielding substantial practical speedups.</li>
-<li>Weights are dynamically decompressed in registers immediately before multiplication.</li>
+<li>Compressing network weights (e.g., from 16-bit floats to 4-bit integers) reduces memory movement.</li>
+<li>Weights are loaded from GPU memory in a quantized format and dynamically decompressed in registers before multiplication.</li>
+<li>This mixed-precision approach yields substantial speedups for single-user (batch size 1) inference.</li>
 </ul>
 </section>
 <section id="the-batched-inference-challenge" class="level2">
 <h2 class="anchored" data-anchor-id="the-batched-inference-challenge">The Batched Inference Challenge</h2>
 <ul>
-<li>Existing mixed-precision kernels lose their speedup in batched inference (multiple tokens in parallel).</li>
-<li>Batched scenarios have significantly higher arithmetic intensity.</li>
-<li>It is difficult to fully hide the increased computations behind the reduced memory movement.</li>
+<li>Existing mixed-precision implementations lose their speedup in batched inference (generating multiple tokens in parallel).</li>
+<li>Batched scenarios have significantly higher arithmetic intensity, making it harder to hide computations behind reduced memory movement.</li>
+<li>However, modern GPUs (like NVIDIA Ampere) have massive FLOP-to-byte ratios (100-200 for FP16).</li>
+<li>Theoretically, reducing weight precision to 4 bits should still yield near-optimal 4× speedups for batch sizes up to 16-32.</li>
 </ul>
 </section>
-<section id="modern-gpu-architecture-ampere" class="level2">
-<h2 class="anchored" data-anchor-id="modern-gpu-architecture-ampere">Modern GPU Architecture (Ampere)</h2>
-<ul>
-<li>Streaming Multiprocessors (SMs) share Global Memory (GMEM) and an L2 cache.</li>
-<li>Tensor Core Units (TCUs) execute matrix multiply-and-accumulate (MMA) operations efficiently.</li>
-<li>Ampere TCUs support fine-grained 2:4 structured sparsity for additional acceleration.</li>
-</ul>
-</section>
-<section id="ampere-asynchronous-memory-access" class="level2">
-<h2 class="anchored" data-anchor-id="ampere-asynchronous-memory-access">Ampere Asynchronous Memory Access</h2>
+<section id="ampere-gpu-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="ampere-gpu-architecture">Ampere GPU Architecture</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Ampere introduces asynchronous copy instructions (<code>cp.async</code>).</li>
-<li>Loads data directly from GMEM to Shared Memory (SMEM), bypassing registers.</li>
-<li>Saves SM internal bandwidth and allows L1 cache bypass for better efficiency.</li>
-</ul>
-</section>
-<section id="motivation-for-marlin" class="level2">
-<h2 class="anchored" data-anchor-id="motivation-for-marlin">Motivation for MARLIN</h2>
-<ul>
-<li>Even at batch sizes of 16-32, 4-bit quantized inference should theoretically remain memory-bound.</li>
-<li>Goal: Create a kernel that achieves near-optimal 4x speedup for batched inference.</li>
-<li>Requires maximizing both memory loading bandwidth and compute resources simultaneously.</li>
-</ul>
-</section>
-</section>
-<section id="design" class="level1">
-<h1>Design</h1>
-<section id="marlin-core-concept" class="level2">
-<h2 class="anchored" data-anchor-id="marlin-core-concept">MARLIN Core Concept</h2>
-<ul>
-<li>MARLIN: Mixed-precision Auto-Regressive LINear kernel.</li>
-<li>Combines advanced task scheduling, partitioning, pipelining, and bespoke quantization support.</li>
-<li>Specifically targeted at maximizing NVIDIA Ampere GPU capabilities.</li>
-</ul>
-</section>
-<section id="matrix-multiplication-hierarchy" class="level2">
-<h2 class="anchored" data-anchor-id="matrix-multiplication-hierarchy">Matrix Multiplication Hierarchy</h2>
-<ul>
-<li>SM Level: Output matrix is partitioned into blocks and distributed across independent SMs.</li>
-<li>Warp Level: SM blocks are partitioned across warps, using SMEM for fast repeated access.</li>
-<li>Tensor Core Level: Warps sequentially accumulate small matrix chunks in registers.</li>
+<li>Tensor Core Units (TCUs) deliver up to 16× more performance on FP16 than standard CUDA cores.</li>
+<li>Ampere introduces Sparse TCUs to handle 2:4 structured sparsity, doubling throughput.</li>
+<li>Ampere also introduces asynchronous copy instructions, allowing data to be loaded directly from global memory to shared memory, bypassing intermediate registers.</li>
 </ul>
 </section>
 <section id="mixed-precision-challenges" class="level2">
 <h2 class="anchored" data-anchor-id="mixed-precision-challenges">Mixed-Precision Challenges</h2>
 <ul>
-<li>Must ensure that loading quantized weights remains the primary runtime bottleneck.</li>
-<li>Requires extremely careful overlapping of memory loads and compute operations.</li>
-<li>Partitioning constraints severely limit parallelization options for medium batch sizes.</li>
+<li>Parallelization must be carefully configured so that loading quantized weights remains the bottleneck, not reloading full-precision activations.</li>
+<li>The cost of matrix multiplication computations at medium batch sizes approaches memory loading costs, requiring extreme overlapping.</li>
+<li>Partitioning constraints limit parallelization options, making it difficult to fully utilize all Streaming Multiprocessors (SMs).</li>
 </ul>
 </section>
-<section id="maximizing-memory-bandwidth" class="level2">
-<h2 class="anchored" data-anchor-id="maximizing-memory-bandwidth">Maximizing Memory Bandwidth</h2>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="marlin-overview" class="level2">
+<h2 class="anchored" data-anchor-id="marlin-overview">MARLIN Overview</h2>
 <ul>
-<li>Utilizes the widest possible memory loads (128 bits / 16 bytes per thread).</li>
-<li>Weights are preprocessed offline into contiguous memory layouts for optimal fetching.</li>
-<li>Uses <code>evict_first</code> cache hints to prevent one-time weight loads from polluting the L2 cache.</li>
+<li>MARLIN (Mixed-precision Auto-Regressive LINear) is a highly optimized GPU kernel for batched LLM inference.</li>
+<li>It targets matrix multiplications where activations are in FP16 and weights are symmetrically quantized to INT4.</li>
+<li>Combines asynchronous memory access, complex task scheduling, pipelining, and bespoke quantization support.</li>
+</ul>
+</section>
+<section id="maximizing-loading-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="maximizing-loading-bandwidth">Maximizing Loading Bandwidth</h2>
+<ul>
+<li>Utilizes the widest possible memory loads (128 bits = 16 bytes per thread).</li>
+<li>Weights are preprocessed offline and reshuffled into contiguous memory layouts to ensure optimal cache-line reads.</li>
+<li>Uses the <code>evict_first</code> cache hint to prevent single-use weights from polluting the L2 cache and evicting reusable activation data.</li>
 </ul>
 </section>
 <section id="memory-load-pipelining" class="level2">
 <h2 class="anchored" data-anchor-id="memory-load-pipelining">Memory Load Pipelining</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Fully overlaps memory loading and Tensor Core math.</li>
-<li>Uses <code>cp.async</code> to prefetch blocks multiple steps ahead (pipeline depth P=4).</li>
-<li>Double buffering hides latency and allows smooth loop unrolling without dynamic overhead.</li>
+<li>Fully overlaps memory loading and Tensor Core math using asynchronous copies (<code>cp.async</code>).</li>
+<li>Employs a pipeline depth of 4 to completely hide latency while fitting within shared memory limits.</li>
+<li>The even pipeline depth allows for smooth loop unrolling, making all shared memory addressing completely static and avoiding slow dynamic index calculations.</li>
 </ul>
 </section>
-<section id="shared-memory-layouts" class="level2">
-<h2 class="anchored" data-anchor-id="shared-memory-layouts">Shared Memory Layouts</h2>
+<section id="shared-memory-warp-layout" class="level2">
+<h2 class="anchored" data-anchor-id="shared-memory-warp-layout">Shared Memory &amp; Warp Layout</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Requires careful layout to avoid bank conflicts during <code>ldmatrix</code> instructions.</li>
-<li>Uses XOR-based index transformations to distribute 16-byte vectors across memory banks.</li>
-<li>Index calculations are precomputed in registers to avoid slow dynamic address generation.</li>
-</ul>
-</section>
-<section id="warp-layout-reduction" class="level2">
-<h2 class="anchored" data-anchor-id="warp-layout-reduction">Warp Layout &amp; Reduction</h2>
-<ul>
-<li>Sub-tile width is fixed to 64 to avoid sequential dependency stalls in Tensor Cores.</li>
-<li>Multiple warps accumulate partial results of the same output tile directly in registers.</li>
-<li>Results are eventually combined using a logarithmic parallel reduction in SMEM.</li>
+<li>Uses XOR-based index transformations to store activation tiles in shared memory without bank conflicts.</li>
+<li>Sub-divides computation across 4-8 warps to maximize latency hiding and Tensor Core throughput.</li>
+<li>Multiple warps accumulate partial results of the same output tile in registers, which are later merged via a fast logarithmic parallel reduction in shared memory.</li>
 </ul>
 </section>
 <section id="efficient-dequantization" class="level2">
 <h2 class="anchored" data-anchor-id="efficient-dequantization">Efficient Dequantization</h2>
 <ul>
-<li>Avoids slow native type-casts from INT4 to FP16.</li>
-<li>Uses binary manipulation (masking, bitwise OR, subtraction) to convert types efficiently.</li>
-<li>Dequantizes two INT4s packed in an INT32 simultaneously for parallel decoding.</li>
+<li>Avoids slow, naive type-casts from INT4 to FP16.</li>
+<li>Uses optimized bitwise manipulations (AND, OR, subtraction) to dequantize two INT4 values simultaneously within a single 32-bit register.</li>
+<li>Weights are stored interleaved (e.g., 64207531) to power parallel decoding directly into the layout required by Tensor Cores.</li>
 </ul>
 </section>
 <section id="striped-partitioning" class="level2">
 <h2 class="anchored" data-anchor-id="striped-partitioning">Striped Partitioning</h2>
-<ul>
-<li>Standard partitioning causes wave quantization and heavy global reduction overheads.</li>
-<li>MARLIN uses a “striped” scheme where SMs process tiles column-wise.</li>
-<li>Stripes can span multiple columns, ensuring uniform distribution across SMs with minimal sync.</li>
-</ul>
-</section>
-<section id="sparse-marlin-24-sparsity" class="level2">
-<h2 class="anchored" data-anchor-id="sparse-marlin-24-sparsity">Sparse-MARLIN: 2:4 Sparsity</h2>
-<ul>
-<li>Extends MARLIN to support Ampere’s Sparse Tensor Cores (SPTCs).</li>
-<li>Executes 50% sparse matrices for further FLOP/Byte ratio improvements.</li>
-<li>Reformulates matrix multiplication to meet strict <code>mma.sp</code> instruction constraints.</li>
-</ul>
-</section>
-<section id="sparse-marlin-non-zero-values-layout" class="level2">
-<h2 class="anchored" data-anchor-id="sparse-marlin-non-zero-values-layout">Sparse-MARLIN: Non-Zero Values Layout</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Compresses the 4-bit quantized matrix by half (N x K/2).</li>
-<li>Packs 8 elements into a 32-bit value for dense memory loading.</li>
-<li>Reshuffles tiles offline to ensure contiguous 128-bit memory accesses per thread.</li>
+<li>Standard partitioning across the output dimension often leaves SMs underutilized for real-world matrix shapes (wave quantization).</li>
+<li>MARLIN uses a “striped” partitioning scheme where tiles are assigned column-wise, allowing stripes to span across multiple columns.</li>
+<li>Ensures a uniform distribution of work across all SMs while minimizing the overhead of global reduction steps.</li>
 </ul>
 </section>
-<section id="sparse-marlin-metadata-indices-layout" class="level2">
-<h2 class="anchored" data-anchor-id="sparse-marlin-metadata-indices-layout">Sparse-MARLIN: Metadata Indices Layout</h2>
+<section id="sparse-marlin-extension" class="level2">
+<h2 class="anchored" data-anchor-id="sparse-marlin-extension">Sparse-MARLIN Extension</h2>
+<ul>
+<li>Integrates 2:4 structured sparsity on top of 4-bit quantization to further improve FLOPS/Byte ratios.</li>
+<li>Reformulates the matrix multiplication <img src="https://latex.codecogs.com/png.latex?A%20%5Ctimes%20B"> as <img src="https://latex.codecogs.com/png.latex?(B%5ET%20A%5ET)%5ET"> to satisfy the hardware constraints of Sparse Tensor Cores (which require the sparse matrix to be the left-hand operand).</li>
+<li>Transposes the activation matrix on-the-fly in shared memory without performance degradation.</li>
+</ul>
+</section>
+<section id="sparse-data-layouts" class="level2">
+<h2 class="anchored" data-anchor-id="sparse-data-layouts">Sparse Data Layouts</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig8.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Encodes 2:4 sparsity indices (0-3) using 2 bits per element.</li>
-<li>Reorders rows to allow 128-bit loads from GMEM to SMEM.</li>
-<li>Reshuffles data to distribute metadata across threads bank-conflict free via <code>ldmatrix</code>.</li>
+<li>Compresses 8 non-zero 4-bit elements into a single 32-bit value for maximum memory efficiency.</li>
+<li>Reshuffles 2-bit encoded metadata indices offline to ensure conflict-free 128-bit loads from global memory.</li>
 </ul>
 </section>
 </section>
 <section id="evaluation" class="level1">
 <h1>Evaluation</h1>
-<section id="experimental-setup" class="level2">
-<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
+<section id="kernel-peak-performance" class="level2">
+<h2 class="anchored" data-anchor-id="kernel-peak-performance">Kernel Peak Performance</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Hardware: NVIDIA A10, RTX 3090, RTX A6000, and A100 GPUs.</li>
-<li>Models: Llama-2 (7B, 13B, 70B), Falcon-180B, Yi-34B.</li>
-<li>Baselines: PyTorch nightly, AWQ, ExLlamaV2, bitsandbytes.</li>
+<li>Evaluated on an NVIDIA A10 GPU using a large <img src="https://latex.codecogs.com/png.latex?72k%20%5Ctimes%2018k"> matrix to test peak capabilities.</li>
+<li>MARLIN delivers near-ideal ~3.9× speedups for batch sizes up to 16-32.</li>
+<li>Significantly outperforms existing kernels (PyTorch, AWQ, ExLlamaV2, bitsandbytes), which rapidly degrade as batch size increases beyond 1.</li>
 </ul>
 </section>
-<section id="kernel-performance-vs.-batch-size" class="level2">
-<h2 class="anchored" data-anchor-id="kernel-performance-vs.-batch-size">Kernel Performance vs.&nbsp;Batch Size</h2>
+<section id="performance-on-real-layer-shapes" class="level2">
+<h2 class="anchored" data-anchor-id="performance-on-real-layer-shapes">Performance on Real Layer Shapes</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig10.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Existing kernels degrade quickly as batch size increases beyond 1.</li>
-<li>MARLIN delivers near-ideal 3.87x speedup up to batch sizes of 16-32.</li>
-<li>Performance gracefully tails off as the regime shifts from memory-bound to compute-bound.</li>
+<li>Maintains strong performance across actual linear layer shapes from LLaMA and Falcon models.</li>
+<li>Commodity GPUs (like the RTX 3090) show higher relative speedups than flagship GPUs (like the A100), as the latter’s massive bandwidth makes pipeline overheads relatively larger for small matrices.</li>
 </ul>
 </section>
-<section id="performance-across-real-layer-shapes" class="level2">
-<h2 class="anchored" data-anchor-id="performance-across-real-layer-shapes">Performance Across Real Layer Shapes</h2>
+<section id="sustained-performance-large-inputs" class="level2">
+<h2 class="anchored" data-anchor-id="sustained-performance-large-inputs">Sustained Performance &amp; Large Inputs</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig11.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Maintains strong speedups (3.4x - 4.2x) on commodity GPUs (A10, RTX 3090).</li>
-<li>Slightly lower relative speedups on A100 due to its massive bandwidth and compute overheads.</li>
-<li>Sustains optimal performance even under reduced GPU clock speeds.</li>
+<li>Under locked base GPU clocks (sustained workloads), MARLIN maintains virtually optimal performance, whereas prior kernels suffer.</li>
+<li>For large prefill inputs (batch sizes up to 1024), MARLIN performs nearly identically to an uncompressed compute-bound matrix multiplication.</li>
 </ul>
 </section>
 <section id="roofline-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="roofline-analysis">Roofline Analysis</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig12.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Confirms batch sizes &lt; 64 are memory-bound, while larger sizes are compute-bound.</li>
-<li>Achieves strong hardware utilization across all matrix sizes and arithmetic intensities.</li>
-<li>Best hardware utilization is observed on larger matrices.</li>
+<li>Confirms that batch sizes smaller than 64 are memory-bound, while larger batch sizes transition to compute-bound.</li>
+<li>MARLIN achieves strong hardware utilization across all matrix sizes and arithmetic intensities.</li>
 </ul>
 </section>
 <section id="ablation-study" class="level2">
 <h2 class="anchored" data-anchor-id="ablation-study">Ablation Study</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig13.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Removing <code>evict_first</code> L2 cache hints degrades performance.</li>
-<li>Reducing pipeline depth (P=2) fails to hide memory latency effectively.</li>
-<li>Removing XOR-based SMEM layouts introduces severe bank conflicts.</li>
-<li>Combined removal of these optimizations degrades performance by up to 1x.</li>
+<li>Removing L2 cache hints, reducing pipeline depth, or disabling XOR conflict resolution degrades performance.</li>
+<li>Neglecting these optimizations combined drops performance by up to 1×, particularly in the compute-bound regime.</li>
 </ul>
 </section>
-<section id="sparse-marlin-kernel-performance" class="level2">
-<h2 class="anchored" data-anchor-id="sparse-marlin-kernel-performance">Sparse-MARLIN Kernel Performance</h2>
+<section id="sparse-marlin-peak-performance" class="level2">
+<h2 class="anchored" data-anchor-id="sparse-marlin-peak-performance">Sparse-MARLIN Peak Performance</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig14.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Provides significant additional speedups over dense MARLIN.</li>
-<li>Achieves up to 5.2x speedup at small batch sizes (vs.&nbsp;3.9x for dense).</li>
-<li>Maintains superiority over all open-source kernels across all batch sizes.</li>
+<li>Sparse-MARLIN provides additional speedups over the dense MARLIN variant, reaching up to ~5.2× speedup at low batch sizes.</li>
+<li>Validates the extensibility of the MARLIN kernel design to other advanced compression formats.</li>
 </ul>
 </section>
-<section id="end-to-end-generation-speedup-vllm" class="level2">
-<h2 class="anchored" data-anchor-id="end-to-end-generation-speedup-vllm">End-to-End Generation Speedup (vLLM)</h2>
+<section id="end-to-end-vllm-integration" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-vllm-integration">End-to-End vLLM Integration</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig15.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Integrated into the vLLM serving engine for full-model benchmarks.</li>
-<li>MARLIN achieves up to 2.8x end-to-end speedup over vLLM’s FP16 baseline at batch size 16.</li>
-<li>Sparse-MARLIN provides an additional 1.2x speedup on top of MARLIN.</li>
+<li>Integrated into the vLLM serving engine and tested with Llama-2-7B on an NVIDIA A10.</li>
+<li>MARLIN achieves up to a 3× speedup in generation time compared to the FP16 baseline.</li>
+<li>Sparse-MARLIN provides an additional 1.2× end-to-end speedup on top of dense MARLIN.</li>
 </ul>
 </section>
-<section id="end-to-end-serving-latency-tpot" class="level2">
-<h2 class="anchored" data-anchor-id="end-to-end-serving-latency-tpot">End-to-End Serving Latency (TPOT)</h2>
+<section id="serving-benchmark-tpot" class="level2">
+<h2 class="anchored" data-anchor-id="serving-benchmark-tpot">Serving Benchmark (TPOT)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig16.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
 <ul>
-<li>Evaluated Time Per Output Token (TPOT) under varying Queries Per Second (QPS).</li>
-<li>MARLIN reduces latency by ~2.8x compared to the FP16 baseline.</li>
-<li>Sparse-MARLIN reduces latency by ~3.3x, remaining stable across different QPS loads.</li>
+<li>Evaluated in a simulated server-client setting measuring Time Per Output Token (TPOT).</li>
+<li>MARLIN reduces latency by ~2.8× across various querying intensities (Queries Per Second).</li>
+<li>Sparse-MARLIN reduces latency by ~3.3×, proving highly effective for practical, high-throughput LLM serving.</li>
 </ul>
 
 
@@ -266,10 +265,9 @@
   <category>inference</category>
   <category>quantization</category>
   <category>gpu</category>
-  <category>parallelism</category>
-  <guid>https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/</guid>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/</guid>
   <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig2.png" medium="image" type="image/png" height="112" width="144"/>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin/assets/fig2.png" medium="image" type="image/png" height="70" width="144"/>
 </item>
 <item>
   <title>Jenga: Effective Memory Management for Serving LLM with Heterogeneity</title>
