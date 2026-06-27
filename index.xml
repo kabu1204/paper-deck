@@ -10,7 +10,267 @@
 <atom:link href="https://kabu1204.github.io/paper-deck/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.9.38</generator>
-<lastBuildDate>Sun, 21 Jun 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 27 Jun 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>MARLIN: Mixed-Precision Auto-Regressive Parallel Inference on Large Language Models</title>
+  <dc:creator>Elias Frantar, Roberto L. Castro, Jiale Chen, Torsten Hoefler, Dan Alistarh</dc:creator>
+  <link>https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="llm-inference-memory-bottleneck" class="level2">
+<h2 class="anchored" data-anchor-id="llm-inference-memory-bottleneck">LLM Inference &amp; Memory Bottleneck</h2>
+<ul>
+<li>Generative LLM inference (token-by-token) is heavily memory-bound.</li>
+<li>The cost of reading LLM weights from memory dwarfs the arithmetic operations.</li>
+<li>Modern GPUs (e.g., Ampere) have high FLOP-to-byte ratios (100-200 for FP16).</li>
+</ul>
+</section>
+<section id="weight-only-quantization" class="level2">
+<h2 class="anchored" data-anchor-id="weight-only-quantization">Weight-Only Quantization</h2>
+<ul>
+<li>Compresses network weights (e.g., to 4-bit INT4) while keeping inputs in FP16.</li>
+<li>Reduces memory movement, yielding substantial practical speedups.</li>
+<li>Weights are dynamically decompressed in registers immediately before multiplication.</li>
+</ul>
+</section>
+<section id="the-batched-inference-challenge" class="level2">
+<h2 class="anchored" data-anchor-id="the-batched-inference-challenge">The Batched Inference Challenge</h2>
+<ul>
+<li>Existing mixed-precision kernels lose their speedup in batched inference (multiple tokens in parallel).</li>
+<li>Batched scenarios have significantly higher arithmetic intensity.</li>
+<li>It is difficult to fully hide the increased computations behind the reduced memory movement.</li>
+</ul>
+</section>
+<section id="modern-gpu-architecture-ampere" class="level2">
+<h2 class="anchored" data-anchor-id="modern-gpu-architecture-ampere">Modern GPU Architecture (Ampere)</h2>
+<ul>
+<li>Streaming Multiprocessors (SMs) share Global Memory (GMEM) and an L2 cache.</li>
+<li>Tensor Core Units (TCUs) execute matrix multiply-and-accumulate (MMA) operations efficiently.</li>
+<li>Ampere TCUs support fine-grained 2:4 structured sparsity for additional acceleration.</li>
+</ul>
+</section>
+<section id="ampere-asynchronous-memory-access" class="level2">
+<h2 class="anchored" data-anchor-id="ampere-asynchronous-memory-access">Ampere Asynchronous Memory Access</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Ampere introduces asynchronous copy instructions (<code>cp.async</code>).</li>
+<li>Loads data directly from GMEM to Shared Memory (SMEM), bypassing registers.</li>
+<li>Saves SM internal bandwidth and allows L1 cache bypass for better efficiency.</li>
+</ul>
+</section>
+<section id="motivation-for-marlin" class="level2">
+<h2 class="anchored" data-anchor-id="motivation-for-marlin">Motivation for MARLIN</h2>
+<ul>
+<li>Even at batch sizes of 16-32, 4-bit quantized inference should theoretically remain memory-bound.</li>
+<li>Goal: Create a kernel that achieves near-optimal 4x speedup for batched inference.</li>
+<li>Requires maximizing both memory loading bandwidth and compute resources simultaneously.</li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="marlin-core-concept" class="level2">
+<h2 class="anchored" data-anchor-id="marlin-core-concept">MARLIN Core Concept</h2>
+<ul>
+<li>MARLIN: Mixed-precision Auto-Regressive LINear kernel.</li>
+<li>Combines advanced task scheduling, partitioning, pipelining, and bespoke quantization support.</li>
+<li>Specifically targeted at maximizing NVIDIA Ampere GPU capabilities.</li>
+</ul>
+</section>
+<section id="matrix-multiplication-hierarchy" class="level2">
+<h2 class="anchored" data-anchor-id="matrix-multiplication-hierarchy">Matrix Multiplication Hierarchy</h2>
+<ul>
+<li>SM Level: Output matrix is partitioned into blocks and distributed across independent SMs.</li>
+<li>Warp Level: SM blocks are partitioned across warps, using SMEM for fast repeated access.</li>
+<li>Tensor Core Level: Warps sequentially accumulate small matrix chunks in registers.</li>
+</ul>
+</section>
+<section id="mixed-precision-challenges" class="level2">
+<h2 class="anchored" data-anchor-id="mixed-precision-challenges">Mixed-Precision Challenges</h2>
+<ul>
+<li>Must ensure that loading quantized weights remains the primary runtime bottleneck.</li>
+<li>Requires extremely careful overlapping of memory loads and compute operations.</li>
+<li>Partitioning constraints severely limit parallelization options for medium batch sizes.</li>
+</ul>
+</section>
+<section id="maximizing-memory-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="maximizing-memory-bandwidth">Maximizing Memory Bandwidth</h2>
+<ul>
+<li>Utilizes the widest possible memory loads (128 bits / 16 bytes per thread).</li>
+<li>Weights are preprocessed offline into contiguous memory layouts for optimal fetching.</li>
+<li>Uses <code>evict_first</code> cache hints to prevent one-time weight loads from polluting the L2 cache.</li>
+</ul>
+</section>
+<section id="memory-load-pipelining" class="level2">
+<h2 class="anchored" data-anchor-id="memory-load-pipelining">Memory Load Pipelining</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Fully overlaps memory loading and Tensor Core math.</li>
+<li>Uses <code>cp.async</code> to prefetch blocks multiple steps ahead (pipeline depth P=4).</li>
+<li>Double buffering hides latency and allows smooth loop unrolling without dynamic overhead.</li>
+</ul>
+</section>
+<section id="shared-memory-layouts" class="level2">
+<h2 class="anchored" data-anchor-id="shared-memory-layouts">Shared Memory Layouts</h2>
+<ul>
+<li>Requires careful layout to avoid bank conflicts during <code>ldmatrix</code> instructions.</li>
+<li>Uses XOR-based index transformations to distribute 16-byte vectors across memory banks.</li>
+<li>Index calculations are precomputed in registers to avoid slow dynamic address generation.</li>
+</ul>
+</section>
+<section id="warp-layout-reduction" class="level2">
+<h2 class="anchored" data-anchor-id="warp-layout-reduction">Warp Layout &amp; Reduction</h2>
+<ul>
+<li>Sub-tile width is fixed to 64 to avoid sequential dependency stalls in Tensor Cores.</li>
+<li>Multiple warps accumulate partial results of the same output tile directly in registers.</li>
+<li>Results are eventually combined using a logarithmic parallel reduction in SMEM.</li>
+</ul>
+</section>
+<section id="efficient-dequantization" class="level2">
+<h2 class="anchored" data-anchor-id="efficient-dequantization">Efficient Dequantization</h2>
+<ul>
+<li>Avoids slow native type-casts from INT4 to FP16.</li>
+<li>Uses binary manipulation (masking, bitwise OR, subtraction) to convert types efficiently.</li>
+<li>Dequantizes two INT4s packed in an INT32 simultaneously for parallel decoding.</li>
+</ul>
+</section>
+<section id="striped-partitioning" class="level2">
+<h2 class="anchored" data-anchor-id="striped-partitioning">Striped Partitioning</h2>
+<ul>
+<li>Standard partitioning causes wave quantization and heavy global reduction overheads.</li>
+<li>MARLIN uses a “striped” scheme where SMs process tiles column-wise.</li>
+<li>Stripes can span multiple columns, ensuring uniform distribution across SMs with minimal sync.</li>
+</ul>
+</section>
+<section id="sparse-marlin-24-sparsity" class="level2">
+<h2 class="anchored" data-anchor-id="sparse-marlin-24-sparsity">Sparse-MARLIN: 2:4 Sparsity</h2>
+<ul>
+<li>Extends MARLIN to support Ampere’s Sparse Tensor Cores (SPTCs).</li>
+<li>Executes 50% sparse matrices for further FLOP/Byte ratio improvements.</li>
+<li>Reformulates matrix multiplication to meet strict <code>mma.sp</code> instruction constraints.</li>
+</ul>
+</section>
+<section id="sparse-marlin-non-zero-values-layout" class="level2">
+<h2 class="anchored" data-anchor-id="sparse-marlin-non-zero-values-layout">Sparse-MARLIN: Non-Zero Values Layout</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Compresses the 4-bit quantized matrix by half (N x K/2).</li>
+<li>Packs 8 elements into a 32-bit value for dense memory loading.</li>
+<li>Reshuffles tiles offline to ensure contiguous 128-bit memory accesses per thread.</li>
+</ul>
+</section>
+<section id="sparse-marlin-metadata-indices-layout" class="level2">
+<h2 class="anchored" data-anchor-id="sparse-marlin-metadata-indices-layout">Sparse-MARLIN: Metadata Indices Layout</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Encodes 2:4 sparsity indices (0-3) using 2 bits per element.</li>
+<li>Reorders rows to allow 128-bit loads from GMEM to SMEM.</li>
+<li>Reshuffles data to distribute metadata across threads bank-conflict free via <code>ldmatrix</code>.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="experimental-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
+<ul>
+<li>Hardware: NVIDIA A10, RTX 3090, RTX A6000, and A100 GPUs.</li>
+<li>Models: Llama-2 (7B, 13B, 70B), Falcon-180B, Yi-34B.</li>
+<li>Baselines: PyTorch nightly, AWQ, ExLlamaV2, bitsandbytes.</li>
+</ul>
+</section>
+<section id="kernel-performance-vs.-batch-size" class="level2">
+<h2 class="anchored" data-anchor-id="kernel-performance-vs.-batch-size">Kernel Performance vs.&nbsp;Batch Size</h2>
+<ul>
+<li>Existing kernels degrade quickly as batch size increases beyond 1.</li>
+<li>MARLIN delivers near-ideal 3.87x speedup up to batch sizes of 16-32.</li>
+<li>Performance gracefully tails off as the regime shifts from memory-bound to compute-bound.</li>
+</ul>
+</section>
+<section id="performance-across-real-layer-shapes" class="level2">
+<h2 class="anchored" data-anchor-id="performance-across-real-layer-shapes">Performance Across Real Layer Shapes</h2>
+<ul>
+<li>Maintains strong speedups (3.4x - 4.2x) on commodity GPUs (A10, RTX 3090).</li>
+<li>Slightly lower relative speedups on A100 due to its massive bandwidth and compute overheads.</li>
+<li>Sustains optimal performance even under reduced GPU clock speeds.</li>
+</ul>
+</section>
+<section id="roofline-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="roofline-analysis">Roofline Analysis</h2>
+<ul>
+<li>Confirms batch sizes &lt; 64 are memory-bound, while larger sizes are compute-bound.</li>
+<li>Achieves strong hardware utilization across all matrix sizes and arithmetic intensities.</li>
+<li>Best hardware utilization is observed on larger matrices.</li>
+</ul>
+</section>
+<section id="ablation-study" class="level2">
+<h2 class="anchored" data-anchor-id="ablation-study">Ablation Study</h2>
+<ul>
+<li>Removing <code>evict_first</code> L2 cache hints degrades performance.</li>
+<li>Reducing pipeline depth (P=2) fails to hide memory latency effectively.</li>
+<li>Removing XOR-based SMEM layouts introduces severe bank conflicts.</li>
+<li>Combined removal of these optimizations degrades performance by up to 1x.</li>
+</ul>
+</section>
+<section id="sparse-marlin-kernel-performance" class="level2">
+<h2 class="anchored" data-anchor-id="sparse-marlin-kernel-performance">Sparse-MARLIN Kernel Performance</h2>
+<ul>
+<li>Provides significant additional speedups over dense MARLIN.</li>
+<li>Achieves up to 5.2x speedup at small batch sizes (vs.&nbsp;3.9x for dense).</li>
+<li>Maintains superiority over all open-source kernels across all batch sizes.</li>
+</ul>
+</section>
+<section id="end-to-end-generation-speedup-vllm" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-generation-speedup-vllm">End-to-End Generation Speedup (vLLM)</h2>
+<ul>
+<li>Integrated into the vLLM serving engine for full-model benchmarks.</li>
+<li>MARLIN achieves up to 2.8x end-to-end speedup over vLLM’s FP16 baseline at batch size 16.</li>
+<li>Sparse-MARLIN provides an additional 1.2x speedup on top of MARLIN.</li>
+</ul>
+</section>
+<section id="end-to-end-serving-latency-tpot" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-serving-latency-tpot">End-to-End Serving Latency (TPOT)</h2>
+<ul>
+<li>Evaluated Time Per Output Token (TPOT) under varying Queries Per Second (QPS).</li>
+<li>MARLIN reduces latency by ~2.8x compared to the FP16 baseline.</li>
+<li>Sparse-MARLIN reduces latency by ~3.3x, remaining stable across different QPS loads.</li>
+</ul>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>llm</category>
+  <category>inference</category>
+  <category>quantization</category>
+  <category>gpu</category>
+  <category>parallelism</category>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/</guid>
+  <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2026-06-27-marlin-mixed-precision-inference/assets/fig2.png" medium="image" type="image/png" height="112" width="144"/>
+</item>
 <item>
   <title>Jenga: Effective Memory Management for Serving LLM with Heterogeneity</title>
   <dc:creator>Chen Zhang, Kuntai Du, Shu Liu, Woosuk Kwon, Xiangxi Mo, Yufeng Wang, Xiaoxuan Liu, Kaichao You, Zhuohan Li, Mingsheng Long, Jidong Zhai, Joseph Gonzalez, Ion Stoica</dc:creator>
@@ -4564,238 +4824,6 @@
   <guid>https://kabu1204.github.io/paper-deck/papers/2025-05-30-ariadne/</guid>
   <pubDate>Fri, 30 May 2025 00:00:00 GMT</pubDate>
   <media:content url="https://kabu1204.github.io/paper-deck/papers/2025-05-30-ariadne/assets/image.png" medium="image" type="image/png" height="44" width="144"/>
-</item>
-<item>
-  <title>FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</title>
-  <dc:creator>Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré</dc:creator>
-  <link>https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="background-motivation" class="level1">
-<h1>Background &amp; Motivation</h1>
-<section id="transformers-powerful-but-costly" class="level2">
-<h2 class="anchored" data-anchor-id="transformers-powerful-but-costly">Transformers: Powerful but Costly</h2>
-<ul>
-<li>Self-attention mechanism is quadratic in sequence length <img src="https://latex.codecogs.com/png.latex?N">:
-<ul>
-<li>O(<img src="https://latex.codecogs.com/png.latex?N%5E2">) time complexity</li>
-<li>O(<img src="https://latex.codecogs.com/png.latex?N%5E2">) memory complexity</li>
-</ul></li>
-<li>This limits their ability to process long sequences.</li>
-</ul>
-</section>
-<section id="approximate-attention-a-common-approach" class="level2">
-<h2 class="anchored" data-anchor-id="approximate-attention-a-common-approach">Approximate Attention: A Common Approach</h2>
-<ul>
-<li>Methods like sparse or low-rank attention aim to reduce complexity to linear/near-linear.</li>
-<li><strong>Focus primarily on reducing FLOPs (computation).</strong></li>
-<li><strong>Problem</strong>: Often don’t achieve significant wall-clock speedup and haven’t seen wide adoption.</li>
-</ul>
-</section>
-<section id="the-missing-principle-io-awareness" class="level2">
-<h2 class="anchored" data-anchor-id="the-missing-principle-io-awareness">The Missing Principle: IO-Awareness</h2>
-<ul>
-<li>Existing methods often ignore memory access (IO) overheads.</li>
-<li><strong>GPU Memory Hierarchy</strong>:
-<ul>
-<li>Small, very fast on-chip SRAM.</li>
-<li>Large, but much slower HBM.</li>
-</ul></li>
-<li>Many deep learning operations are <strong>memory-bound</strong>: speed is limited by HBM bandwidth, not compute TOPS.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-</section>
-<section id="standard-attention-high-io-cost" class="level2">
-<h2 class="anchored" data-anchor-id="standard-attention-high-io-cost">Standard Attention: High IO Cost</h2>
-<ul>
-<li>Standard attention materializes the large N×N attention matrix (S) and probability matrix (P) in slow HBM.</li>
-<li>Involves many reads/writes between HBM and SRAM.</li>
-<li>This IO is a major bottleneck.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-</section>
-<section id="motivation" class="level2">
-<h2 class="anchored" data-anchor-id="motivation">Motivation</h2>
-<ul>
-<li><strong>IO-awareness is crucial</strong> for speeding up attention.</li>
-<li><strong>Goal</strong>: Develop an <em>exact</em> attention algorithm that is:
-<ul>
-<li>Faster in wall-clock time.</li>
-<li>More memory-efficient.</li>
-<li><strong>Achieved by minimizing HBM reads/writes</strong>, without sacrificing model quality.</li>
-</ul></li>
-</ul>
-</section>
-</section>
-<section id="system-design-of-flashattention" class="level1">
-<h1>System Design of FlashAttention</h1>
-<section id="core-idea" class="level2">
-<h2 class="anchored" data-anchor-id="core-idea">Core Idea</h2>
-<ul>
-<li>Compute exact attention with far fewer memory accesses.</li>
-<li>Avoid reading/writing the full <img src="https://latex.codecogs.com/png.latex?N%20%5Ctimes%20N"> attention matrix to/from HBM.</li>
-<li>Leverage fast on-chip SRAM for intermediate computations.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-</section>
-<section id="tiling-forward-pass" class="level2">
-<h2 class="anchored" data-anchor-id="tiling-forward-pass">Tiling (Forward Pass)</h2>
-<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cmathbf%7BS%7D=%5Cmathbf%7BQ%7D%20%5Cmathbf%7BK%7D%5E%7B%5Ctop%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7BN%20%5Ctimes%20N%7D,%20%5Cquad%20%5Cmathbf%7BP%7D=%5Coperatorname%7Bsoftmax%7D(%5Cmathbf%7BS%7D)%20%5Cin%20%5Cmathbb%7BR%7D%5E%7BN%20%5Ctimes%20N%7D,%20%5Cquad%20%5Cmathbf%7BO%7D=%5Cmathbf%7BP%20V%7D%20%5Cin%20%5Cmathbb%7BR%7D%5E%7BN%20%5Ctimes%20d%7D,%0A"></p>
-<ul>
-<li>Split Q, K, V inputs into blocks.</li>
-<li>Load blocks of K and V from HBM to fast SRAM.</li>
-<li>For each (K, V) block, loop through blocks of Q (loaded to SRAM).</li>
-<li>Compute attention output for these blocks <em>within SRAM</em>.</li>
-<li><strong>Online Softmax</strong>:
-<ul>
-<li>Compute softmax incrementally using running statistics (max, sum of exponentials).</li>
-<li>Avoids materializing the full S matrix.</li>
-<li>Correctly combines results from different blocks.</li>
-</ul></li>
-<li>Write final output O back to HBM.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-</section>
-<section id="recomputation-backward-propogation" class="level2">
-<h2 class="anchored" data-anchor-id="recomputation-backward-propogation">Recomputation (Backward Propogation)</h2>
-<ul>
-<li><strong>Problem</strong>: Backward pass typically needs the <img src="https://latex.codecogs.com/png.latex?N%20%5Ctimes%20N"> attention matrix P.</li>
-<li><strong>Solution</strong>: Don’t store P from the forward pass.
-<ul>
-<li>Store only the output O and softmax normalization statistics (m, l) (O(N) memory).</li>
-<li>Recompute necessary blocks of S and P on-the-fly in SRAM during backward pass.</li>
-</ul></li>
-<li><strong>Benefit</strong>:
-<ul>
-<li>Increases FLOPs slightly.</li>
-<li>Massively reduces HBM access (reading P).</li>
-<li>Results in a faster backward pass and linear memory usage.</li>
-</ul></li>
-</ul>
-</section>
-<section id="kernel-fusion" class="level2">
-<h2 class="anchored" data-anchor-id="kernel-fusion">Kernel Fusion</h2>
-<ul>
-<li>All attention operations (matrix multiply, softmax, optional masking, dropout) are fused into a single CUDA kernel.</li>
-<li>This loads inputs from HBM once, performs all computations in SRAM, and writes results to HBM once per block.</li>
-<li>Minimizes repeated HBM reads/writes of intermediate data.</li>
-</ul>
-</section>
-<section id="io-complexity-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="io-complexity-analysis">IO Complexity Analysis</h2>
-<ul>
-<li><strong>Standard Attention</strong>: Ω(Nd + N²) HBM accesses.</li>
-<li><strong>FlashAttention</strong>: O(N²d²M⁻¹) HBM accesses.
-<ul>
-<li>(d = head dimension, M = SRAM size)</li>
-</ul></li>
-<li>FlashAttention requires significantly fewer HBM accesses (e.g., up to 9x fewer).</li>
-<li>Proven optimal for a range of SRAM sizes.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-5.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-</section>
-<section id="extension-block-sparse-flashattention" class="level2">
-<h2 class="anchored" data-anchor-id="extension-block-sparse-flashattention">Extension: Block-Sparse FlashAttention</h2>
-<ul>
-<li>Apply tiling and recomputation principles to block-sparse attention.</li>
-<li>Only compute attention for pre-defined non-zero blocks.</li>
-<li>Further reduces HBM accesses and computation.</li>
-<li>Enables scaling to even longer sequences (e.g., 64k).</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-4.png" class="img-fluid figure-img"></p>
-<figcaption>seq length 1024, head dim 64, 16 heads, batch size 64</figcaption>
-</figure>
-</div>
-</section>
-</section>
-<section id="evaluation" class="level1">
-<h1>Evaluation</h1>
-<section id="faster-model-training" class="level2">
-<h2 class="anchored" data-anchor-id="faster-model-training">Faster Model Training</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-6.png" class="img-fluid figure-img"></p>
-<figcaption>8x A100 GPUs</figcaption>
-</figure>
-</div>
-<ul>
-<li><strong>GPT-2 (Context Length 1K)</strong>: 3x speedup vs.&nbsp;HuggingFace, 1.8x vs.&nbsp;Megatron-LM.</li>
-</ul>
-</section>
-<section id="higher-quality-models-with-longer-context" class="level2">
-<h2 class="anchored" data-anchor-id="higher-quality-models-with-longer-context">Higher Quality Models with Longer Context</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-7.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-</section>
-<section id="benchmarking-attention-runtime" class="level2">
-<h2 class="anchored" data-anchor-id="benchmarking-attention-runtime">Benchmarking Attention: Runtime</h2>
-<ul>
-<li>FlashAttention up to 3x faster than standard PyTorch exact attention.</li>
-<li>Faster than many approximate attention methods for common sequence lengths.</li>
-<li>Block-sparse FlashAttention is faster than all existing approximate attention methods.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-8.png" class="img-fluid figure-img"></p>
-<figcaption>Left: Fwd+Bwd; Right: Fwd</figcaption>
-</figure>
-</div>
-</section>
-<section id="benchmarking-attention-memory-footprint" class="level2">
-<h2 class="anchored" data-anchor-id="benchmarking-attention-memory-footprint">Benchmarking Attention: Memory Footprint</h2>
-<ul>
-<li>FlashAttention memory scales linearly with sequence length O(<img src="https://latex.codecogs.com/png.latex?N">).</li>
-<li>Up to 20x more memory-efficient than exact attention baselines.</li>
-<li>More memory-efficient than most approximate attention baselines.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image-8.png" class="img-fluid figure-img"></p>
-<figcaption>Left: Fwd+Bwd; Right: Fwd</figcaption>
-</figure>
-</div>
-
-
-</section>
-</section>
-
- ]]></description>
-  <category>gpu</category>
-  <category>llm</category>
-  <category>attention</category>
-  <category>memory</category>
-  <category>systems</category>
-  <guid>https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/</guid>
-  <pubDate>Fri, 09 May 2025 00:00:00 GMT</pubDate>
-  <media:content url="https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/assets/image.png" medium="image" type="image/png" height="109" width="144"/>
 </item>
 </channel>
 </rss>
