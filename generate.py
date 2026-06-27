@@ -25,6 +25,10 @@ override. The OpenAI backend reads OPENAI_BASE_URL + OPENAI_API_KEY + MODEL; the
 Google backend reads GOOGLE_API_BASE_URL + GOOGLE_API_KEY + GOOGLE_API_MODEL.
 Gemini models are natively multimodal, so vision (attaching figures as images)
 is auto-enabled for the google backend.
+
+MinerU backend (experimental): set MINERU_BACKEND=modal to use Modal GPU VMs
+for PDF parsing (supports custom DPI via MINERU_DPI). Defaults to mineru.net API.
+See modal_mineru.py for setup and usage.
 """
 from __future__ import annotations
 
@@ -96,6 +100,10 @@ SUPPORTS_STRICT_SCHEMA = os.environ.get("MODEL_SUPPORTS_STRICT_JSON_SCHEMA", "fa
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 GOOGLE_API_BASE_URL = os.environ.get("GOOGLE_API_BASE_URL") or None
 GOOGLE_API_MODEL = os.environ.get("GOOGLE_API_MODEL", "")
+
+# MinerU backend selection: "api" (mineru.net, default) or "modal" (Modal GPU VM)
+MINERU_BACKEND = (os.environ.get("MINERU_BACKEND") or "api").strip().lower()
+MINERU_DPI = int(os.environ.get("MINERU_DPI", "200"))
 
 # LLM backend selection: an explicit LLM_BACKEND (openai|google) wins; otherwise
 # auto-detect by which API key is present. Gemini models are natively multimodal,
@@ -984,7 +992,11 @@ def find_existing_folder(slug: str) -> Path | None:
 def process_pdf(pdf_path: Path, *, regenerate_dir: Path | None,
                 force: bool, use_cache: bool = True) -> Path | None:
     print(f"\n>>> processing {pdf_path}")
-    mr = mineru_parse(pdf_path, use_cache=use_cache)
+    if MINERU_BACKEND == "modal":
+        from modal_mineru import parse as mineru_parse_modal
+        mr = mineru_parse_modal(pdf_path, use_cache=use_cache, dpi=MINERU_DPI)
+    else:
+        mr = mineru_parse(pdf_path, use_cache=use_cache)
     paper_md = mr.full_md.read_text(encoding="utf-8") if mr.full_md.exists() else ""
     if not paper_md:
         die("mineru produced empty full.md")
