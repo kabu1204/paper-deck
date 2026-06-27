@@ -1,0 +1,33 @@
+/* Venue tag — the `subtitle` frontmatter field (venue + year) restyled as a
+   badge on both the article title block and the listing cards. Only renders
+   when the paper states a venue; empty subtitles are omitted by generate.py. */
+
+/* Article page: title-block subtitle */
+.subtitle.lead {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background-color: #2780e3;
+  padding: 0.25em 0.75em;
+  border-radius: 1rem;
+  margin-bottom: 1.2rem;
+  line-height: 1.4;
+}
+
+/* Listing card: subtitle field */
+.listing-subtitle {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background-color: #2780e3;
+  padding: 0.18em 0.6em;
+  border-radius: 1rem;
+  margin: 0.15rem 0 0.35rem 0;
+  line-height: 1.4;
+}

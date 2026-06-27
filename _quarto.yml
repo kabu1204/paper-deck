@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - "papers/**/*.qmd"
+
+website:
+  title: "Weekly Paper Sharing"
+  navbar:
+    left:
+      - href: index.qmd
+        text: All Papers
+  page-footer:
+    center: "Source on [GitHub](https://github.com/yourname/paper-sharing)"
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: false
