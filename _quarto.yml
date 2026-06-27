@@ -7,12 +7,13 @@ project:
 
 website:
   title: "Weekly Paper Sharing"
+  site-url: https://kabu1204.github.io/paper-deck/
   navbar:
     left:
       - href: index.qmd
         text: All Papers
   page-footer:
-    center: "Source on [GitHub](https://github.com/yourname/paper-sharing)"
+    center: "Source on [GitHub](https://github.com/kabu1204/paper-deck)"
 
 format:
   html:

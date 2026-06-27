@@ -1,0 +1,34 @@
+name: Publish
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'papers/**'
+      - 'examples/**'
+      - '_quarto.yml'
+      - 'index.qmd'
+      - 'styles.css'
+      - '.github/workflows/publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tinytex: false    # [future] enable when beamer is turned on (M5)
+
+      - name: Render & Publish to gh-pages
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+          target: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
