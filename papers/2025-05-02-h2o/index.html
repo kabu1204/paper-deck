@@ -45,7 +45,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-bba5ebae505b5c03f3f0d8040a416a6b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -208,7 +208,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="the-kv-cache-memory-bottleneck" class="level2">
 <h2 class="anchored" data-anchor-id="the-kv-cache-memory-bottleneck">The KV Cache Memory Bottleneck</h2>
-<p><a href="assets/image-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="assets/image-1.png" class="img-fluid" style="width:70.0%"></a></p>
+<p><a href="assets/image-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="assets/image-1.png" class="img-fluid"></a></p>
 <ul>
 <li><strong>KV Cache size scales linearly with sequence length and batch size.</strong></li>
 <li>Can exceed GPU memory, even more than model parameters.
@@ -228,7 +228,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="key-observation-attention-sparsity" class="level2">
 <h2 class="anchored" data-anchor-id="key-observation-attention-sparsity">Key Observation: Attention Sparsity</h2>
-<p><a href="assets/image-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="assets/image-2.png" class="img-fluid" style="width:50.0%"></a></p>
+<p><a href="assets/image-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="assets/image-2.png" class="img-fluid"></a></p>
 <ul>
 <li>LLM attention matrices are highly sparse (&gt;95%) during inference.
 <ul>
@@ -239,7 +239,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="key-observation-heavy-hitters-h₂" class="level2">
 <h2 class="anchored" data-anchor-id="key-observation-heavy-hitters-h₂">Key Observation: Heavy Hitters (H₂)</h2>
-<p><a href="assets/image-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="assets/image-3.png" class="img-fluid" style="width:70.0%"></a></p>
+<p><a href="assets/image-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="assets/image-3.png" class="img-fluid"></a></p>
 <ul>
 <li>Accumulated attention scores follow a power-law distribution.</li>
 <li>A small subset of tokens (“Heavy Hitters” - H₂) contributes most value.</li>
@@ -248,7 +248,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="key-observation-importance-of-h₂" class="level2">
 <h2 class="anchored" data-anchor-id="key-observation-importance-of-h₂">Key Observation: Importance of H₂</h2>
-<p><a href="assets/image-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="assets/image-4.png" class="img-fluid" style="width:70.0%"></a></p>
+<p><a href="assets/image-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="assets/image-4.png" class="img-fluid"></a></p>
 <ul>
 <li>Removing H₂ tokens drastically drops performance.</li>
 <li>Retaining H₂ + recent tokens maintains accuracy effectively.</li>
@@ -256,7 +256,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="key-observation-local-calculation-is-sufficient" class="level2">
 <h2 class="anchored" data-anchor-id="key-observation-local-calculation-is-sufficient">Key Observation: Local Calculation is Sufficient</h2>
-<p><a href="assets/image-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="assets/image-5.png" class="img-fluid" style="width:50.0%"></a></p>
+<p><a href="assets/image-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="assets/image-5.png" class="img-fluid"></a></p>
 <ul>
 <li>Calculating H₂ importance using only <em>local</em> statistics (past attention) is as effective as using global (future) information.</li>
 <li>Makes a practical, low-cost eviction policy feasible.</li>
@@ -284,7 +284,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="h₂o-eviction-policy" class="level2">
 <h2 class="anchored" data-anchor-id="h₂o-eviction-policy">H₂O: Eviction Policy</h2>
-<p><a href="assets/image-6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="assets/image-6.png" class="img-fluid" style="width:35.0%"></a></p>
+<p><a href="assets/image-6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="assets/image-6.png" class="img-fluid"></a></p>
 <ul>
 <li><strong>Score Calculation:</strong> At each step, update accumulated attention score for cached tokens based on current attention <code>oᵢ</code>.</li>
 <li><strong>Eviction:</strong> If cache is full, evict the token (excluding recent ones) with the <em>lowest</em> accumulated score.</li>
