@@ -1,3 +1,12 @@
+/* Load Lora (Quarto's mainfont sets --bs-body-font-family but doesn't inject
+   the Google Font loader under Bootswatch themes, which bake in their own
+   @import). Also add a serif fallback stack. */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  --bs-body-font-family: Lora, Georgia, "Times New Roman", serif;
+}
+
 /* Venue tag — the `subtitle` frontmatter field (venue + year) restyled as a
    badge on both the article title block and the listing cards. Only renders
    when the paper states a venue; empty subtitles are omitted by generate.py. */
