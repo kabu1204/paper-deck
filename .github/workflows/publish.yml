@@ -26,6 +26,23 @@ jobs:
         with:
           tinytex: false    # [future] enable when beamer is turned on (M5)
 
+      # quarto-actions/publish can push TO an existing gh-pages branch but
+      # will not create it. Bootstrap the branch on first run so the workflow
+      # is self-contained on fresh repos.
+      - name: Ensure gh-pages branch exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh api "repos/${{ github.repository }}/branches/gh-pages" >/dev/null 2>&1; then
+            echo "gh-pages already exists; nothing to do."
+          else
+            SHA=$(git rev-parse HEAD)
+            echo "Creating gh-pages from ${SHA:0:7} ..."
+            gh api "repos/${{ github.repository }}/git/refs" \
+              -f ref="refs/heads/gh-pages" -f sha="$SHA" >/dev/null
+            echo "gh-pages created."
+          fi
+
       - name: Render & Publish to gh-pages
         uses: quarto-dev/quarto-actions/publish@v2
         with:
