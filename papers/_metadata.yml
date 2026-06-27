@@ -1,5 +1,0 @@
-format:
-  html:
-    toc: true
-    number-sections: false
-    lightbox: true

@@ -1,0 +1,1338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Weekly Paper Sharing</title>
+<link>https://kabu1204.github.io/paper-deck/</link>
+<atom:link href="https://kabu1204.github.io/paper-deck/index.xml" rel="self" type="application/rss+xml"/>
+<description></description>
+<generator>quarto-1.9.38</generator>
+<lastBuildDate>Sat, 27 Jun 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge</title>
+  <dc:creator>Jianyu Wei, Shijie Cao, Ting Cao, Lingxiao Ma, Lei Wang, Yanyong Zhang, Mao Yang</dc:creator>
+  <link>https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="llm-on-edge-low-bit-quantization" class="level2">
+<h2 class="anchored" data-anchor-id="llm-on-edge-low-bit-quantization">LLM on Edge &amp; Low-Bit Quantization</h2>
+<ul>
+<li>Deploying LLMs on edge devices (smartphones, robotics) enhances privacy and reduces latency.</li>
+<li>Memory constraints necessitate low-bit weight quantization (4-bit, 2-bit, 1-bit).</li>
+<li>Activation quantization lags behind due to outliers, leading to asymmetric precision (e.g., W4A16, W1A8).</li>
+</ul>
+</section>
+<section id="the-mixed-precision-gemm-challenge" class="level2">
+<h2 class="anchored" data-anchor-id="the-mixed-precision-gemm-challenge">The Mixed-Precision GEMM Challenge</h2>
+<ul>
+<li>Current hardware lacks native support for mixed-precision matrix multiplication (mpGEMM).</li>
+<li>Existing systems resort to dequantizing low-bit weights to match high-precision activations.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig9.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig9.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li><ol type="a">
+<li>General practice: Dequantize weights, then perform high-precision Matmul.</li>
+</ol></li>
+<li><ol start="2" type="a">
+<li>T-MAC: Bit-serial decomposition, precompute tables, and perform table lookup + sum.</li>
+</ol></li>
+</ul>
+</section>
+<section id="limitations-of-dequantization" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-of-dequantization">Limitations of Dequantization</h2>
+<ul>
+<li>Dequantization overhead offsets the gains from bit-width reduction.</li>
+<li>Scaling down from 4-bit to 1-bit can actually <em>increase</em> latency in existing systems.</li>
+<li>Fails to fully capitalize on the reduced memory bandwidth requirements of low-bit weights.</li>
+</ul>
+</section>
+<section id="bit-width-diversity-development-cost" class="level2">
+<h2 class="anchored" data-anchor-id="bit-width-diversity-development-cost">Bit-Width Diversity &amp; Development Cost</h2>
+<ul>
+<li>Different deployment scenarios require different bit-widths (1-bit to 4-bit).</li>
+<li>Data layouts and kernels must be redesigned case-by-case for each mixed precision.</li>
+<li>A unified, scalable solution independent of hardware data types is urgently needed.</li>
+</ul>
+</section>
+<section id="lut-based-computation-gpu-vs-cpu" class="level2">
+<h2 class="anchored" data-anchor-id="lut-based-computation-gpu-vs-cpu">LUT-based Computation: GPU vs CPU</h2>
+<ul>
+<li>Lookup Table (LUT) methods precompute products to avoid costly multiply-accumulate operations.</li>
+<li>Explored on GPUs but suboptimal due to fixed architecture constraints (inadequate storage or slow access).</li>
+<li>LUT-based mpGEMM on CPUs remains uncharted territory, offering a promising path for edge deployment.</li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="t-mac-overview" class="level2">
+<h2 class="anchored" data-anchor-id="t-mac-overview">T-MAC Overview</h2>
+<ul>
+<li>T-MAC transforms data-type-centric multiplication to bit-wise table lookup.</li>
+<li>Provides a unified and scalable mpGEMM solution for any mixed bit-width.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Offline: Bit-serial decomposition of weights, tiling, and permutation.</li>
+<li>Online: Precompute LUT from activations, table look-up, and bit-serial aggregation.</li>
+</ul>
+</section>
+<section id="bit-serial-decomposition" class="level2">
+<h2 class="anchored" data-anchor-id="bit-serial-decomposition">Bit-Serial Decomposition</h2>
+<ul>
+<li>Multiplication is transformed into bit-wise calculation based on linear equivalent transformation.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Diverse weight layouts are reduced to a unified one-bit matrix layout.</li>
+<li>Enables linear scale-down of computation cost with bit-width reduction.</li>
+</ul>
+</section>
+<section id="lut-based-mpgemm-algorithm" class="level2">
+<h2 class="anchored" data-anchor-id="lut-based-mpgemm-algorithm">LUT-based mpGEMM Algorithm</h2>
+<ul>
+<li>A <img src="https://latex.codecogs.com/png.latex?b">-bit weight matrix is decomposed into <img src="https://latex.codecogs.com/png.latex?b"> one-bit matrices.</li>
+<li>For a group of <img src="https://latex.codecogs.com/png.latex?g"> bits, there are only <img src="https://latex.codecogs.com/png.latex?2%5Eg"> possible permutations.</li>
+<li>Activations are precomputed with all bit patterns and saved in a table.</li>
+<li>mpGEMM is reduced to table lookup and addition, eliminating multiplications.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig20.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig20.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Left: T-MAC unpacks indices, looks up tables, splits/converts, and aggregates.</li>
+<li>Right: General practice decodes weights and performs dot-product.</li>
+</ul>
+</section>
+<section id="challenges-of-lut-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="challenges-of-lut-implementation">Challenges of LUT Implementation</h2>
+<ul>
+<li><strong>Random Data Access:</strong> Tables are randomly accessed, requiring residence in fast on-chip memory (registers).</li>
+<li><strong>Enlarged On-Chip Memory:</strong> LUT size grows exponentially with group size <img src="https://latex.codecogs.com/png.latex?g">, and vector outputs require more temporary storage.</li>
+</ul>
+</section>
+<section id="lut-centric-data-layout" class="level2">
+<h2 class="anchored" data-anchor-id="lut-centric-data-layout">LUT-Centric Data Layout</h2>
+<ul>
+<li>Stores lookup tables in registers to accelerate random accesses.</li>
+<li>Leverages hardware-specific instructions (e.g., TBL on ARM, PSHUF on x86).</li>
+<li>Designs axis reordering and tiling to enhance data reuse and reduce memory pressure.</li>
+</ul>
+</section>
+<section id="axis-reordering-tiling" class="level2">
+<h2 class="anchored" data-anchor-id="axis-reordering-tiling">Axis Reordering &amp; Tiling</h2>
+<ul>
+<li><strong>Axis Reordering:</strong> Swaps loop order to temporal axis (<img src="https://latex.codecogs.com/png.latex?K">) first, maintaining a small lookup table <img src="https://latex.codecogs.com/png.latex?%5B1,%202%5Eg%5D"> instead of a massive one.</li>
+<li><strong>Tiling:</strong> Carefully considers tile sizes <img src="https://latex.codecogs.com/png.latex?N_%7Btn%7D,%20M_%7Btm%7D,%20K_%7Btk%7D"> to maximize lookup table reuse across the weight matrix.</li>
+</ul>
+</section>
+<section id="weight-permutation-interleaving" class="level2">
+<h2 class="anchored" data-anchor-id="weight-permutation-interleaving">Weight Permutation &amp; Interleaving</h2>
+<ul>
+<li><strong>Weight Permutation:</strong> Permutes weight matrix offline to align tile loads with sequential memory transactions, maximizing DRAM bandwidth.</li>
+<li><strong>Weight Interleaving:</strong> Reorders packed weights to eliminate backward reordering overhead during little-endian unpacking.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig11.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Interleaved weights can be unpacked sequentially using simple AND and SHR+AND operations.</li>
+</ul>
+</section>
+<section id="reducing-lut-storage-mirror-consolidation" class="level2">
+<h2 class="anchored" data-anchor-id="reducing-lut-storage-mirror-consolidation">Reducing LUT Storage: Mirror Consolidation</h2>
+<ul>
+<li>Exploits the symmetrical properties of table values (positive/negative pairs).</li>
+<li>Only half of the table values need to be explicitly stored; the rest are reconstructed by negation.</li>
+<li>Lossless compression that halves the table length and accelerates precomputation.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig18.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig18.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Mirror consolidation halves the table length; table quantization reduces the table width.</li>
+</ul>
+</section>
+<section id="reducing-lut-storage-table-quantization" class="level2">
+<h2 class="anchored" data-anchor-id="reducing-lut-storage-table-quantization">Reducing LUT Storage: Table Quantization</h2>
+<ul>
+<li>Quantizes table values (e.g., fp16 to int8) with a scaling factor to reduce table width.</li>
+<li>Uses finer granularity and dynamic quantization to minimize accuracy degradation.</li>
+<li>Combined with mirror consolidation, reduces storage footprint up to a quarter without accuracy loss.</li>
+</ul>
+</section>
+<section id="hardware-intrinsics-for-fast-lookup" class="level2">
+<h2 class="anchored" data-anchor-id="hardware-intrinsics-for-fast-lookup">Hardware Intrinsics for Fast Lookup</h2>
+<ul>
+<li>Utilizes 8-bit look-up instructions provided by ARM NEON and Intel AVX2.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>NEON’s 128-bit width perfectly accommodates <img src="https://latex.codecogs.com/png.latex?g=4"> tables.</li>
+<li>AVX2 duplicates tables to fill 256-bit registers for parallel lookups.</li>
+<li>Float16 tables are split into two 8-bit LUTs and recombined.</li>
+</ul>
+</section>
+<section id="fast-8-bit-aggregation" class="level2">
+<h2 class="anchored" data-anchor-id="fast-8-bit-aggregation">Fast 8-bit Aggregation</h2>
+<ul>
+<li>Aggregates look-up results in low bit (int8) before converting to higher precision (fp16).</li>
+<li>Uses <code>avg</code>/<code>rhadd</code> instructions to compute averages and minimize overflow without int16 conversion.</li>
+<li>Doubles throughput compared to int16 aggregation, offered as an optional optimization.</li>
+</ul>
+</section>
+<section id="bit-serial-linear-transformation" class="level2">
+<h2 class="anchored" data-anchor-id="bit-serial-linear-transformation">Bit-Serial Linear Transformation</h2>
+<ul>
+<li>Introduces a linear transformation <img src="https://latex.codecogs.com/png.latex?f(v_i)"> to bit values to speed up precomputation and reduce quantization error.</li>
+<li>Selects <img src="https://latex.codecogs.com/png.latex?s_0%20=%20-1"> and <img src="https://latex.codecogs.com/png.latex?s_1%20=%201"> to circumvent float-multiply instructions and minimize LUT entry differences.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig14.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig14.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Adjusts the decomposition of <img src="https://latex.codecogs.com/png.latex?W"> to incorporate the transformed values and bias terms.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="experimental-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
+<ul>
+<li><strong>Devices:</strong> Apple M2-Ultra, Raspberry Pi 5, Jetson AGX Orin, Surface Book 3.</li>
+<li><strong>Models:</strong> Llama-2 (1/2/3/4-bit) and BitNet (1-bit, 1.58-bit).</li>
+<li><strong>Baselines:</strong> State-of-the-art llama.cpp (dequantization-based kernels).</li>
+</ul>
+</section>
+<section id="mpgemv-kernel-performance" class="level2">
+<h2 class="anchored" data-anchor-id="mpgemv-kernel-performance">mpGEMV Kernel Performance</h2>
+<ul>
+<li>llama.cpp fails to gain speedup as bits decrease, even slowing down at 3-bit due to decoding overhead.</li>
+<li>T-MAC achieves linear speedup with bit reduction across all devices.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Single-threaded mpGEMV: Up to 11.2x speedup for 1-bit.</li>
+<li>Multi-threaded mpGEMV: Constrained by memory bandwidth but still achieves significant speedup (e.g., 4.0x at 2-bit).</li>
+</ul>
+</section>
+<section id="mpgemm-kernel-performance" class="level2">
+<h2 class="anchored" data-anchor-id="mpgemm-kernel-performance">mpGEMM Kernel Performance</h2>
+<ul>
+<li>Evaluated with a sequence length of 256 for multi-threading.</li>
+<li>T-MAC achieves maximum speedups of 4.0x, 5.3x, and 5.3x on RBP, Orin, and Surface for 2-bit.</li>
+<li>M2-Ultra benefits from AMX coprocessor, but T-MAC still achieves 2.0x speedup for 1-bit.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig16.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig16.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="end-to-end-inference-throughput" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-inference-throughput">End-to-End Inference Throughput</h2>
+<ul>
+<li>Integrated T-MAC kernels into llama.cpp for real-world model evaluation.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig13.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig13.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Single-threaded: Up to 6.7x speedup on Raspberry Pi 5.</li>
+<li>Multi-threaded: Peak of 71 tokens/sec on M2-Ultra and 11 tokens/sec on Raspberry Pi 5 for BitNet-3B.</li>
+</ul>
+</section>
+<section id="power-and-energy-consumption" class="level2">
+<h2 class="anchored" data-anchor-id="power-and-energy-consumption">Power and Energy Consumption</h2>
+<ul>
+<li>Measured on M2-Ultra using multi-threaded inference.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig7.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Power consumption reduced by 10.3% to 17.3% across models.</li>
+<li>Total energy consumption reduced by 20.6% to 61.2% due to combined power and latency gains.</li>
+</ul>
+</section>
+<section id="optimization-breakdown" class="level2">
+<h2 class="anchored" data-anchor-id="optimization-breakdown">Optimization Breakdown</h2>
+<ul>
+<li>Progressive application of optimizations on M2-Ultra multi-threaded GEMV.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig12.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig12.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li><strong>Table Quantization (TQ):</strong> Makes performance competitive with llama.cpp.</li>
+<li><strong>Tiling &amp; Permutation:</strong> Yields up to 1.45x and 1.39x speedups respectively.</li>
+<li><strong>Interleaving:</strong> Eliminates unpacking overhead, achieving 1.42x speedup.</li>
+</ul>
+</section>
+<section id="error-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="error-analysis">Error Analysis</h2>
+<ul>
+<li>Two error sources: table quantization (algorithmic) and fast aggregation (instruction execution).</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig8.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig8.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Table quantization introduces negligible NMSE difference compared to llama.cpp.</li>
+<li>Fast aggregation increases NMSE by 2.5x but is optional for latency-critical, accuracy-tolerant scenarios.</li>
+<li>End-to-end model quality (perplexity, accuracy) remains identical to llama.cpp without fast aggregation.</li>
+</ul>
+</section>
+<section id="cpu-vs-gpu-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="cpu-vs-gpu-comparison">CPU vs GPU Comparison</h2>
+<ul>
+<li>Compared T-MAC (CPU) with llama.cpp (GPU) on NVIDIA Jetson AGX Orin.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig19.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig19.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>T-MAC significantly outperforms GPU on W1A16 and achieves comparable performance on W2A16/W3A16.</li>
+<li>End-to-end: T-MAC (CPU) achieves 2.3x better energy efficiency than llama.cpp (GPU) despite slightly lower throughput.</li>
+</ul>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>llm</category>
+  <category>quantization</category>
+  <category>cpu</category>
+  <category>edge</category>
+  <category>inference</category>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/</guid>
+  <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/assets/fig2.png" medium="image" type="image/png" height="81" width="144"/>
+</item>
+<item>
+  <title>THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS</title>
+  <dc:creator>Benjamin F. Spector, Simran Arora, Aaryan Singhal, Arjun Parthasarathy, Daniel Y. Fu, Christopher Ré</dc:creator>
+  <link>https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="the-gpu-kernel-bottleneck" class="level2">
+<h2 class="anchored" data-anchor-id="the-gpu-kernel-bottleneck">The GPU Kernel Bottleneck</h2>
+<ul>
+<li>AI progress is bottlenecked by mapping architectures to GPU hardware.</li>
+<li>Hand-written custom kernels often fail to meet theoretical performance thresholds.</li>
+</ul>
+</section>
+<section id="the-cambrian-explosion-of-ai-architectures" class="level2">
+<h2 class="anchored" data-anchor-id="the-cambrian-explosion-of-ai-architectures">The Cambrian Explosion of AI Architectures</h2>
+<ul>
+<li>Rapid emergence of new ML architectures (Transformers, SSMs, linear attention).</li>
+<li>Kernel support lags; e.g., FlashAttention-2 took years to optimize for H100.</li>
+</ul>
+</section>
+<section id="specialized-matrix-multiply-units" class="level2">
+<h2 class="anchored" data-anchor-id="specialized-matrix-multiply-units">Specialized Matrix Multiply Units</h2>
+<ul>
+<li>Tensor cores provide 15-16x the FLOPs of general-purpose compute.</li>
+<li>High-performance frameworks must prioritize keeping tensor cores fully utilized.</li>
+</ul>
+</section>
+<section id="gpu-hierarchy-warps" class="level2">
+<h2 class="anchored" data-anchor-id="gpu-hierarchy-warps">GPU Hierarchy: Warps</h2>
+<ul>
+<li>Threads execute in groups of 32 (warps) on physical execution units.</li>
+<li>Memory layouts map logical data to physical threads; poor layouts cause bank conflicts.</li>
+</ul>
+</section>
+<section id="gpu-hierarchy-thread-blocks" class="level2">
+<h2 class="anchored" data-anchor-id="gpu-hierarchy-thread-blocks">GPU Hierarchy: Thread Blocks</h2>
+<ul>
+<li>Warps are grouped into blocks, sharing fast shared memory (SMEM).</li>
+<li>Higher occupancy (more warps per block) helps hide latencies but increases resource contention.</li>
+</ul>
+</section>
+<section id="gpu-hierarchy-grids" class="level2">
+<h2 class="anchored" data-anchor-id="gpu-hierarchy-grids">GPU Hierarchy: Grids</h2>
+<ul>
+<li>Grids launch multiple thread blocks across Streaming Multiprocessors (SMs).</li>
+<li>Blocks communicate via slow HBM, with L2 cache helping to reduce latency.</li>
+</ul>
+</section>
+<section id="the-cost-model-of-gpu-parallelism" class="level2">
+<h2 class="anchored" data-anchor-id="the-cost-model-of-gpu-parallelism">The Cost Model of GPU Parallelism</h2>
+<ul>
+<li>Execution time is the max of memory, compute, and overhead costs.</li>
+<li>Ideal performance requires perfect overlapping of memory loads, compute, and tensor core ops.</li>
+</ul>
+</section>
+<section id="existing-frameworks-cutlass-triton" class="level2">
+<h2 class="anchored" data-anchor-id="existing-frameworks-cutlass-triton">Existing Frameworks: CUTLASS &amp; Triton</h2>
+<ul>
+<li>CUTLASS offers high performance but relies on myriad nested C++ templates.</li>
+<li>Triton provides simpler interfaces but limits access to specialized hardware instructions.</li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="thunderkittens-overview" class="level2">
+<h2 class="anchored" data-anchor-id="thunderkittens-overview">ThunderKittens Overview</h2>
+<ul>
+<li>A framework using a small, opinionated set of abstractions for high-performance AI kernels.</li>
+<li>Maps directly to the three levels of the GPU hierarchy: warp, block, and grid.</li>
+</ul>
+</section>
+<section id="warp-parallelism-tile-data-structures" class="level2">
+<h2 class="anchored" data-anchor-id="warp-parallelism-tile-data-structures">Warp Parallelism: Tile Data Structures</h2>
+<ul>
+<li>Uses 16x16 matrix tiles as the basic data structure.</li>
+<li>Maximizes compatibility with tensor cores and hardware-accelerated instructions.</li>
+</ul>
+</section>
+<section id="warp-parallelism-pytorch-like-operations" class="level2">
+<h2 class="anchored" data-anchor-id="warp-parallelism-pytorch-like-operations">Warp Parallelism: PyTorch-like Operations</h2>
+<ul>
+<li>Provides familiar parallel compute primitives (e.g., mma, exp, cumsum).</li>
+<li>Enables static compile-time checking of layouts and operations to prevent bugs.</li>
+</ul>
+</section>
+<section id="managing-memory-layouts" class="level2">
+<h2 class="anchored" data-anchor-id="managing-memory-layouts">Managing Memory Layouts</h2>
+<ul>
+<li>Register tiles must match tensor core layouts; shared tiles need specific layouts for bulk copies.</li>
+<li>TK automatically assigns shared tile layouts to minimize bank conflicts based on size and type.</li>
+</ul>
+</section>
+<section id="shared-memory-bank-conflicts" class="level2">
+<h2 class="anchored" data-anchor-id="shared-memory-bank-conflicts">Shared Memory Bank Conflicts</h2>
+<ul>
+<li>Naive row-major layouts suffer severe bank conflicts when loading into tensor cores.</li>
+<li>TK uses swizzled layouts (32B, 64B, 128B) to eliminate conflicts while maintaining hardware support.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="block-parallelism-the-lcsf-template" class="level2">
+<h2 class="anchored" data-anchor-id="block-parallelism-the-lcsf-template">Block Parallelism: The LCSF Template</h2>
+<ul>
+<li>Generalized asynchronous template: Load, Compute, Store, Finish.</li>
+<li>Reduces developer effort to populating boilerplate functions within a producer-consumer model.</li>
+</ul>
+</section>
+<section id="asynchronous-overlapping" class="level2">
+<h2 class="anchored" data-anchor-id="asynchronous-overlapping">Asynchronous Overlapping</h2>
+<ul>
+<li>Load/store workers manage HBM to SRAM movement using TMA.</li>
+<li>Compute workers operate on fast memory, overlapping with asynchronous I/O.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="multi-stage-pipeline-buffers" class="level2">
+<h2 class="anchored" data-anchor-id="multi-stage-pipeline-buffers">Multi-stage Pipeline Buffers</h2>
+<ul>
+<li>Maintains N-stage pipelined buffers in shared memory.</li>
+<li>Hides HBM load/store latency by allowing compute to proceed while next tiles load.</li>
+</ul>
+</section>
+<section id="occupancy-vs.-efficiency-tradeoffs" class="level2">
+<h2 class="anchored" data-anchor-id="occupancy-vs.-efficiency-tradeoffs">Occupancy vs.&nbsp;Efficiency Tradeoffs</h2>
+<ul>
+<li>Higher occupancy increases overlap but causes register contention.</li>
+<li>TK parametrizes worker counts, letting developers easily tune the Pareto frontier.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="grid-parallelism-persistent-block-launch" class="level2">
+<h2 class="anchored" data-anchor-id="grid-parallelism-persistent-block-launch">Grid Parallelism: Persistent Block Launch</h2>
+<ul>
+<li>Launches thread blocks on all SMs upfront, reusing them for subsequent tasks.</li>
+<li>Eliminates pipeline bubbles and setup/tear-down overheads.</li>
+</ul>
+</section>
+<section id="l2-cache-reuse-block-launch-order" class="level2">
+<h2 class="anchored" data-anchor-id="l2-cache-reuse-block-launch-order">L2 Cache Reuse &amp; Block Launch Order</h2>
+<ul>
+<li>Block launch order heavily influences L2 cache hit rates and HBM bandwidth.</li>
+<li>TK provides optimized 3D strides to maximize data reuse across thread blocks.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="workhorse-kernels-gemm" class="level2">
+<h2 class="anchored" data-anchor-id="workhorse-kernels-gemm">Workhorse Kernels: GEMM</h2>
+<ul>
+<li>A single 40-line TK GEMM kernel matches CuBLAS and CUTLASS performance.</li>
+<li>Avoids the 600MB+ complexity of highly tuned CuBLAS variants.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig7.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="workhorse-kernels-attention" class="level2">
+<h2 class="anchored" data-anchor-id="workhorse-kernels-attention">Workhorse Kernels: Attention</h2>
+<ul>
+<li>Matches FlashAttention-3 on non-causal forward passes.</li>
+<li>Outperforms FA3 by 10-40% on causal and non-causal backward passes.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig8.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig8.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="emerging-architectures-linear-attention" class="level2">
+<h2 class="anchored" data-anchor-id="emerging-architectures-linear-attention">Emerging Architectures: Linear Attention</h2>
+<ul>
+<li>Outperforms Flash Linear Attention (FLA) by 14x on polynomial-based linear attention.</li>
+<li>Achieves 6.5x speedup on learned feature map linear attention.</li>
+</ul>
+</section>
+<section id="emerging-architectures-state-space-models" class="level2">
+<h2 class="anchored" data-anchor-id="emerging-architectures-state-space-models">Emerging Architectures: State Space Models</h2>
+<ul>
+<li>Outperforms FlashFFTConv by up to 7.9x on long convolutions.</li>
+<li>Beats Triton-based Mamba-2 kernels by over 3x through easy operation fusion.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig9.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig9.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="profiling-long-convolution" class="level2">
+<h2 class="anchored" data-anchor-id="profiling-long-convolution">Profiling: Long Convolution</h2>
+<ul>
+<li>NCU profiles show higher issue slot utilization and fewer memory stalls.</li>
+<li>Tensor core utilization increases by 4.1x compared to FlashFFTConv.</li>
+</ul>
+</section>
+<section id="profiling-attention-backwards" class="level2">
+<h2 class="anchored" data-anchor-id="profiling-attention-backwards">Profiling: Attention Backwards</h2>
+<ul>
+<li>Matches FA3 in tensor core utilization but achieves higher issue slot utilization.</li>
+<li>Incurs 85% fewer shared memory stalled cycles by eliminating bank conflicts.</li>
+</ul>
+</section>
+<section id="extensibility-fp8-padded-tiles" class="level2">
+<h2 class="anchored" data-anchor-id="extensibility-fp8-padded-tiles">Extensibility: FP8 &amp; Padded Tiles</h2>
+<ul>
+<li>Supports FP8 precision GEMMs, matching CuBLAS performance.</li>
+<li>Handles unaligned workloads via automatic padding without sacrificing performance.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig10.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig10.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="extensibility-consumer-personal-hardware" class="level2">
+<h2 class="anchored" data-anchor-id="extensibility-consumer-personal-hardware">Extensibility: Consumer &amp; Personal Hardware</h2>
+<ul>
+<li>Competitive performance on NVIDIA RTX 4090 and Apple M2 Pro.</li>
+<li>Demonstrates cross-platform portability with minimal code changes.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/fig11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig11.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+</section>
+<section id="simplicity-library-size-lines-of-code" class="level2">
+<h2 class="anchored" data-anchor-id="simplicity-library-size-lines-of-code">Simplicity: Library Size &amp; Lines of Code</h2>
+<ul>
+<li>TK library is under 1.0 MB, compared to 22 MB for CUTLASS.</li>
+<li>TK kernels average &lt;200 lines of code, significantly less than SOTA baselines.</li>
+</ul>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>gpu</category>
+  <category>kernels</category>
+  <category>deep-learning</category>
+  <category>systems</category>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/</guid>
+  <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/assets/fig3.png" medium="image" type="image/png" height="77" width="144"/>
+</item>
+<item>
+  <title>FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving</title>
+  <dc:creator>Zihao Ye, Lequn Chen, Ruihang Lai, Wuwei Lin, Yineng Zhang, Stephanie Wang, Tianqi Chen, Baris Kasikci, Vinod Grover, Arvind Krishnamurthy, Luis Ceze</dc:creator>
+  <link>https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="attention-is-critical-for-llm-inference" class="level2">
+<h2 class="anchored" data-anchor-id="attention-is-critical-for-llm-inference">Attention is Critical for LLM Inference</h2>
+<ul>
+<li>Transformer architecture dominates LLMs</li>
+<li>Attention mechanism reads from KV-cache and computes outputs based on queries</li>
+<li>Efficiency of attention operator is paramount to LLM inference performance</li>
+</ul>
+</section>
+<section id="challenge-1-diverse-workload-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-1-diverse-workload-patterns">Challenge 1: Diverse Workload Patterns</h2>
+<ul>
+<li>Various attention computation patterns
+<ul>
+<li>Prefill computation for context processing</li>
+<li>Batched decoding during serving</li>
+</ul></li>
+<li>Prefix-reuse opportunities across requests</li>
+<li>Tree decoding in speculative scenarios</li>
+<li>Query lengths and KV-cache sizes vary within batches and over time</li>
+</ul>
+</section>
+<section id="challenge-2-hardware-customization-requirements" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-2-hardware-customization-requirements">Challenge 2: Hardware Customization Requirements</h2>
+<ul>
+<li>Efficient memory layouts needed for growing KV-cache
+<ul>
+<li>Paged attention, radix trees</li>
+</ul></li>
+<li>Hardware-specific pipelines required for each GPU architecture</li>
+<li>Diverse attention mechanisms in modern LLMs (variants)
+<ul>
+<li>Grouped Query Attention (GQA)</li>
+<li>Specialized masks, sliding window</li>
+<li>Custom attention scores (logits soft-cap, FlashSigmoid)</li>
+</ul></li>
+</ul>
+</section>
+<section id="current-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="current-limitations">Current Limitations</h2>
+<ul>
+<li>Each system implements specialized attention solutions for specific subsets</li>
+<li>Results in:
+<ul>
+<li>High maintenance overhead</li>
+<li>Potential inefficiencies</li>
+<li>Lack of flexibility for new attention variants</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li><strong>Block-sparse format</strong> for unified KV-cache storage</li>
+<li><strong>Customizable attention template</strong> with JIT compilation</li>
+<li><strong>Dynamic load-balanced scheduling</strong> compatible with CUDAGraph</li>
+</ul>
+</section>
+<section id="kv-cache-storage-block-sparse-matrix-as-unified-format" class="level2">
+<h2 class="anchored" data-anchor-id="kv-cache-storage-block-sparse-matrix-as-unified-format">KV-Cache Storage: Block-Sparse Matrix as Unified Format</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Page Table represented in BSR format"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%" alt="Page Table represented in BSR format"></a></p>
+</figure>
+</div>
+<figcaption>Page Table represented in BSR format</figcaption>
+</figure>
+</div>
+<ul>
+<li>Page tables, radix trees, and sparse masks unified under <strong>Block Sparse Row (BSR) format</strong>
+<ul>
+<li>Each block is either zeros or non-zeros.</li>
+</ul></li>
+<li>Flexible block sizes (Br, Bc) allow fine-grained sparsity</li>
+</ul>
+</section>
+<section id="two-meanings-of-block" class="level2">
+<h2 class="anchored" data-anchor-id="two-meanings-of-block">Two Meanings of “Block”</h2>
+<ul>
+<li>Block in Block-Sparse Matrix (BSR format)
+<ul>
+<li>Br (number of rows) is aligned with queries</li>
+<li>Bc (number of cols) is aligned with tokens</li>
+</ul></li>
+<li>Thread Block (CTA - Cooperative Thread Array)</li>
+<li>Queries grouped in the same matrix block are processed by the same thread block.</li>
+</ul>
+</section>
+<section id="composable-formats-for-memory-efficiency" class="level2">
+<h2 class="anchored" data-anchor-id="composable-formats-for-memory-efficiency">Composable Formats for Memory Efficiency</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Composable formats for shared-prefix decomposition"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%" alt="Composable formats for shared-prefix decomposition"></a></p>
+</figure>
+</div>
+<figcaption>Composable formats for shared-prefix decomposition</figcaption>
+</figure>
+</div>
+<ul>
+<li>Multiple block-sparse formats instead of single format</li>
+<li>Shared prefixes: larger block sizes for shared memory access</li>
+<li>Unique suffixes: smaller block sizes</li>
+</ul>
+</section>
+<section id="data-transfer-global-to-shared-memory" class="level2">
+<h2 class="anchored" data-anchor-id="data-transfer-global-to-shared-memory">Data Transfer: Global to Shared Memory</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Tiles transferred from scattered global memory to contiguous shared memory</li>
+<li>Asynchronous copy instructions (LDGSTS) with 128B width</li>
+<li>Supports arbitrary block sizes not aligned with tensor core shapes</li>
+</ul>
+</section>
+<section id="flexible-tile-size-selection" class="level2">
+<h2 class="anchored" data-anchor-id="flexible-tile-size-selection">Flexible Tile Size Selection</h2>
+<ul>
+<li>Tile sizes: (1, 16, 32, 64, 128) × (32, 64, 128)</li>
+<li>Automatic selection heuristics:
+<ol type="1">
+<li>Determine minimal query tile size based on average query length</li>
+<li>Maximize SM resource occupancy given register/shared memory constraints</li>
+</ol></li>
+<li>CUDA cores for tile size 1, tensor cores otherwise</li>
+</ul>
+</section>
+<section id="load-balanced-runtime-scheduler" class="level2">
+<h2 class="anchored" data-anchor-id="load-balanced-runtime-scheduler">Load-Balanced Runtime Scheduler</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image-4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Splits each query tile’s KV into chunks</li>
+<li>Priority queue assigns chunks to CTAs balancing by cost</li>
+<li>Cost function: <img src="https://latex.codecogs.com/png.latex?cost(l_q,%20l_%7Bkv%7D)%20=%20%5Calpha%5Ccdot%20l_q%20%20+%20%5Cbeta%5Ccdot%20l_%7Bkv%7D"></li>
+<li>Produces deterministic aggregation order</li>
+</ul>
+</section>
+<section id="cudagraph-compatibility" class="level2">
+<h2 class="anchored" data-anchor-id="cudagraph-compatibility">CUDAGraph Compatibility</h2>
+<ul>
+<li>Persistent kernels with fixed grid size</li>
+<li>Fixed workspace buffer offsets for consistent pointers</li>
+<li>Attention and contraction stages merged into one persistent kernel</li>
+<li>Plan phase runs on CPU, run phase captured in CUDAGraph</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="environment-setup" class="level2">
+<h2 class="anchored" data-anchor-id="environment-setup">Environment Setup</h2>
+<ul>
+<li><strong>Hardware</strong>
+<ul>
+<li>NVIDIA A100 40GB SXM</li>
+<li>NVIDIA H100 80GB SXM</li>
+</ul></li>
+<li><strong>Software</strong>
+<ul>
+<li>CUDA 12.4, PyTorch 2.4.0</li>
+<li>FP16 precision for storage and computation</li>
+</ul></li>
+<li><strong>Baselines</strong>
+<ul>
+<li>SGLang with Triton backend</li>
+<li>FlashAttention library</li>
+</ul></li>
+</ul>
+</section>
+<section id="end-to-end-llm-serving-performance" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-llm-serving-performance">End-to-End LLM Serving Performance</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image-5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>FlashInfer shows consistent ITL and TTFT improvements over Triton backend</li>
+</ul>
+</section>
+<section id="input-dynamism" class="level2">
+<h2 class="anchored" data-anchor-id="input-dynamism">Input Dynamism</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image-6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image-6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Batch size 16, three sequence length distributions
+<ul>
+<li>Constant (1024), Uniform (512 to 1024), Skewed (Zipf, avg 1024)</li>
+</ul></li>
+<li>FlashInfer significantly outperforms FlashAttention on uniform and skewed distributions</li>
+<li>Load-balanced scheduler addresses variable-length workloads</li>
+</ul>
+</section>
+<section id="customizability-long-context-inference" class="level2">
+<h2 class="anchored" data-anchor-id="customizability-long-context-inference">Customizability: Long-Context Inference</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/image-7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image-7.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></a></p>
+</figure>
+</div>
+<ul>
+<li>Streaming-LLM with fused RoPE + attention kernel</li>
+<li><strong>28-30% latency reduction</strong> across different settings</li>
+<li>Fused kernel achieves 1.6-3.7× higher bandwidth utilization</li>
+</ul>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>llm-inference</category>
+  <category>attention</category>
+  <category>gpu-optimization</category>
+  <category>kv-cache</category>
+  <category>systems</category>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/</guid>
+  <pubDate>Fri, 19 Dec 2025 00:00:00 GMT</pubDate>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/assets/image.png" medium="image" type="image/png" height="73" width="144"/>
+</item>
+<item>
+  <title>H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models</title>
+  <dc:creator>Zhenyu Zhang, Ying Sheng, Tianyi Zhou, Tianlong Chen, Lianmin Zheng, Ruisi Cai, Zhao Song, Yuandong Tian, Christopher Ré, Clark Barrett, Zhangyang Wang, Beidi Chen</dc:creator>
+  <link>https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="llms-generative-inference" class="level2">
+<h2 class="anchored" data-anchor-id="llms-generative-inference">LLMs &amp; Generative Inference</h2>
+<ul>
+<li>LLMs excel at tasks like dialogue, summarization, content creation.</li>
+<li>Generation is typically autoregressive: predict next token based on previous ones.</li>
+</ul>
+</section>
+<section id="the-kv-cache-memory-bottleneck" class="level2">
+<h2 class="anchored" data-anchor-id="the-kv-cache-memory-bottleneck">The KV Cache Memory Bottleneck</h2>
+<p><a href="assets/image-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-1.png" class="img-fluid" style="width:70.0%"></a></p>
+<ul>
+<li><strong>KV Cache size scales linearly with sequence length and batch size.</strong></li>
+<li>Can exceed GPU memory, even more than model parameters.
+<ul>
+<li>Memory ∝ (batch × seq len); OPT-30B @ 128×1024 needs ≈ 180 GB KV alone</li>
+</ul></li>
+<li>Major bottleneck for long content generation and high throughput deployment.</li>
+</ul>
+</section>
+<section id="limitations-of-prior-work" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-of-prior-work">Limitations of Prior Work</h2>
+<ul>
+<li>Simple cache size limits hurt accuracy significantly.</li>
+<li>Existing sparse attention methods often require large caches or degrade pre-trained model performance.</li>
+<li>Learned compression methods can be complex and add inference overhead.</li>
+</ul>
+</section>
+<section id="key-observation-attention-sparsity" class="level2">
+<h2 class="anchored" data-anchor-id="key-observation-attention-sparsity">Key Observation: Attention Sparsity</h2>
+<p><a href="assets/image-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-2.png" class="img-fluid" style="width:50.0%"></a></p>
+<ul>
+<li>LLM attention matrices are highly sparse (&gt;95%) during inference.
+<ul>
+<li>only 5% of the KV cache is sufficient for decoding the same output token</li>
+</ul></li>
+<li>Suggests <strong>not all past tokens are needed</strong>.</li>
+</ul>
+</section>
+<section id="key-observation-heavy-hitters-h₂" class="level2">
+<h2 class="anchored" data-anchor-id="key-observation-heavy-hitters-h₂">Key Observation: Heavy Hitters (H₂)</h2>
+<p><a href="assets/image-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-3.png" class="img-fluid" style="width:70.0%"></a></p>
+<ul>
+<li>Accumulated attention scores follow a power-law distribution.</li>
+<li>A small subset of tokens (“Heavy Hitters” - H₂) contributes most value.</li>
+<li>H₂ correlate strongly with frequent co-occurring tokens.</li>
+</ul>
+</section>
+<section id="key-observation-importance-of-h₂" class="level2">
+<h2 class="anchored" data-anchor-id="key-observation-importance-of-h₂">Key Observation: Importance of H₂</h2>
+<p><a href="assets/image-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-4.png" class="img-fluid" style="width:70.0%"></a></p>
+<ul>
+<li>Removing H₂ tokens drastically drops performance.</li>
+<li>Retaining H₂ + recent tokens maintains accuracy effectively.</li>
+</ul>
+</section>
+<section id="key-observation-local-calculation-is-sufficient" class="level2">
+<h2 class="anchored" data-anchor-id="key-observation-local-calculation-is-sufficient">Key Observation: Local Calculation is Sufficient</h2>
+<p><a href="assets/image-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-5.png" class="img-fluid" style="width:50.0%"></a></p>
+<ul>
+<li>Calculating H₂ importance using only <em>local</em> statistics (past attention) is as effective as using global (future) information.</li>
+<li>Makes a practical, low-cost eviction policy feasible.</li>
+</ul>
+</section>
+</section>
+<section id="system-design" class="level1">
+<h1>System Design</h1>
+<section id="h₂o-heavy-hitter-oracle" class="level2">
+<h2 class="anchored" data-anchor-id="h₂o-heavy-hitter-oracle">H₂O: Heavy-Hitter Oracle</h2>
+<ul>
+<li>A novel, low-cost KV cache eviction policy.</li>
+<li>Goal: Reduce memory footprint significantly while maintaining accuracy.</li>
+</ul>
+</section>
+<section id="h₂o-core-idea" class="level2">
+<h2 class="anchored" data-anchor-id="h₂o-core-idea">H₂O: Core Idea</h2>
+<ul>
+<li>Maintain a fixed-size KV cache by dynamically balancing:
+<ol type="1">
+<li><strong>Recent Tokens:</strong> Always keep the last <code>N</code> tokens (temporal locality).</li>
+<li><strong>Heavy Hitter (H₂) Tokens:</strong> Keep the <code>M</code> tokens with the highest <em>accumulated attention scores</em>.</li>
+</ol></li>
+</ul>
+</section>
+<section id="h₂o-eviction-policy" class="level2">
+<h2 class="anchored" data-anchor-id="h₂o-eviction-policy">H₂O: Eviction Policy</h2>
+<p><a href="assets/image-6.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-6.png" class="img-fluid" style="width:35.0%"></a></p>
+<ul>
+<li><strong>Score Calculation:</strong> At each step, update accumulated attention score for cached tokens based on current attention <code>oᵢ</code>.</li>
+<li><strong>Eviction:</strong> If cache is full, evict the token (excluding recent ones) with the <em>lowest</em> accumulated score.</li>
+<li><strong>New Token:</strong> Add the newly generated token to the recent set.</li>
+</ul>
+<!-- ## Theoretical Formulation
+
+- KV cache eviction is formulated as a dynamic submodular maximization problem.
+- The greedy H₂O policy (evicting lowest score) is provably near-optimal under mild assumptions. -->
+</section>
+<section id="implementation-details" class="level2">
+<h2 class="anchored" data-anchor-id="implementation-details">Implementation Details</h2>
+<ul>
+<li>Implemented on top of FlexGen inference engine.</li>
+<li>Efficient management:
+<ul>
+<li>Pre-allocated memory buffers.</li>
+<li>Circular queue for recent tokens.</li>
+<li>Avoids expensive memory swaps or data movement.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="experimental-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
+<ul>
+<li><strong>Models:</strong> OPT (6.7B, 30B, 66B), LLaMA (7B, 13B, 30B), GPT-NeoX (20B).</li>
+<li><strong>Tasks:</strong> Summarization (XSUM, CNN/DM), QA (OpenBookQA), Reasoning (COPA, PiQA, RTE, WinoGrande), Math (MathQA). From HELM &amp; lm-eval-harness.</li>
+<li><strong>Hardware:</strong> NVIDIA A100 80GB GPU.</li>
+<li><strong>Baselines:</strong> Full Cache, “Local” (only recent tokens), Sparse Transformers (Strided, Fixed).</li>
+</ul>
+<p><a href="assets/image-10.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-10.png" class="img-fluid"></a></p>
+</section>
+<section id="accuracy" class="level2">
+<h2 class="anchored" data-anchor-id="accuracy">Accuracy</h2>
+<p><a href="assets/image-7.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-7.png" class="img-fluid"></a></p>
+<ul>
+<li>H₂O (with 20% cache budget, i.e., 5x reduction) achieves comparable accuracy to the full cache model across tasks and models.</li>
+<li>Significantly outperforms the “Local” baseline, which collapses at low budgets.</li>
+<li>H₂O sometimes acts as a regularizer, slightly improving performance.</li>
+</ul>
+</section>
+<section id="throughput-improvements" class="level2">
+<h2 class="anchored" data-anchor-id="throughput-improvements">Throughput Improvements</h2>
+<p><a href="assets/image-8.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-8.png" class="img-fluid"></a></p>
+<ul>
+<li>H₂O enables much larger batch sizes or avoids CPU offloading due to reduced memory.</li>
+<li><strong>Up to 29x</strong> throughput improvement over DeepSpeed &amp; Accelerate.</li>
+<li><strong>Up to 3x</strong> throughput improvement over FlexGen (state-of-the-art).</li>
+</ul>
+</section>
+<section id="latency-reduction" class="level2">
+<h2 class="anchored" data-anchor-id="latency-reduction">Latency Reduction</h2>
+<p><a href="assets/image-9.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-9.png" class="img-fluid"></a></p>
+<ul>
+<li>With the <em>same</em> batch size, H₂O reduces generation latency.</li>
+<li><strong>Up to 1.9x</strong> lower latency compared to FlexGen for long sequences.</li>
+</ul>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>llm</category>
+  <category>inference</category>
+  <category>kv-cache</category>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/</guid>
+  <pubDate>Fri, 02 May 2025 00:00:00 GMT</pubDate>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/assets/image-3.png" medium="image" type="image/png" height="105" width="144"/>
+</item>
+<item>
+  <title>IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference</title>
+  <dc:creator>Weijian Chen, Shuibing He, Haoyang Qu, Ruidong Zhang, Siling Yang, and Ping Chen, Zhejiang University; Yi Zheng and Baoxing Huai, Huawei Cloud; Gang Chen, Zhejiang University</dc:creator>
+  <link>https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="llm-inference-context-prefixes" class="level2">
+<h2 class="anchored" data-anchor-id="llm-inference-context-prefixes">LLM Inference &amp; Context Prefixes</h2>
+<ul>
+<li>LLMs use context-rich prefixes (history, documents) for better quality.</li>
+<li>Prefixes significantly increase input length.</li>
+<li><strong>Problem:</strong> Longer inputs lead to high computation and <strong>Time To First Token (TTFT)</strong> latency.</li>
+</ul>
+</section>
+<section id="prefix-kv-reuse" class="level2">
+<h2 class="anchored" data-anchor-id="prefix-kv-reuse">Prefix KV Reuse</h2>
+<ul>
+<li>Many requests share common prefixes.</li>
+<li>Recomputing Key/Value (KV) tensors for prefixes is wasteful.</li>
+<li><strong>Solution:</strong> Store and reuse prefix KVs.</li>
+<li>Existing systems cache KVs in GPU/CPU memory.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/prefix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="TTFT"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/prefix.png" class="img-fluid figure-img" alt="TTFT"></a></p>
+<figcaption>TTFT</figcaption>
+</figure>
+</div>
+</section>
+<section id="the-disk-io-bottleneck" class="level2">
+<h2 class="anchored" data-anchor-id="the-disk-io-bottleneck">The Disk I/O Bottleneck</h2>
+<ul>
+<li>GPU/CPU memory is limited.</li>
+<li>Prefixes can be large (e.g., 3.4GB for OPT-30B, 2.6k tokens).</li>
+<li>Offloading KVs to disk is necessary but slow.</li>
+<li><strong>Problem:</strong> Disk I/O latency can exceed recomputation time, negating reuse benefits.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/prefix.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="TTFT"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/prefix.png" class="img-fluid figure-img" alt="TTFT"></a></p>
+<figcaption>TTFT</figcaption>
+</figure>
+</div>
+</section>
+<section id="the-disk-io-bottleneck-1" class="level2">
+<h2 class="anchored" data-anchor-id="the-disk-io-bottleneck-1">The Disk I/O Bottleneck</h2>
+<ul>
+<li>GPU/CPU memory is limited.</li>
+<li>Prefixes can be large (e.g., 3.4GB for OPT-30B, 2.6k tokens).</li>
+<li>Offloading KVs to disk is necessary but slow.</li>
+<li><strong>Problem:</strong> Disk I/O latency can exceed recomputation time, negating reuse benefits.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/ttft-breakdown.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="TTFT Breakdown"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/ttft-breakdown.png" class="img-fluid figure-img" alt="TTFT Breakdown"></a></p>
+<figcaption>TTFT Breakdown</figcaption>
+</figure>
+</div>
+</section>
+<section id="insight-not-all-kvs-are-equally-important" class="level2">
+<h2 class="anchored" data-anchor-id="insight-not-all-kvs-are-equally-important">Insight: Not All KVs Are Equally Important</h2>
+<ul>
+<li>Research shows LLM inference quality is robust to discarding less important KVs.</li>
+<li>Most impact comes from a subset of “important” tokens/KVs.</li>
+<li><strong>Opportunity:</strong> Can we leverage importance to optimize prefix KV reuse from slower storage?</li>
+</ul>
+</section>
+<section id="motivation" class="level2">
+<h2 class="anchored" data-anchor-id="motivation">Motivation</h2>
+<ul>
+<li>Reduce the TTFT bottleneck caused by loading prefix KVs from disk.</li>
+<li><strong>Idea:</strong> Selectively load <em>only the important</em> prefix KVs.</li>
+<li>Goal: Minimize I/O data transfer while maintaining inference quality.</li>
+</ul>
+</section>
+<section id="challenge-1-identifying-important-kvs-efficiently" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-1-identifying-important-kvs-efficiently">Challenge 1: Identifying Important KVs Efficiently</h2>
+<ul>
+<li>Standard methods need <em>all</em> prefix KVs loaded into GPU to calculate attention scores.
+<ul>
+<li>Defeats the purpose of reducing I/O.</li>
+</ul></li>
+<li><strong>Importance is query-dependent</strong>: Statically pre-identifying important tokens for a prefix doesn’t work well (poor recall).</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/recall.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Left: Accuracy w.r.t KV recall ratio; Right: ORI is baseline, SPI means statical pre-identifying"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/recall.png" class="img-fluid figure-img" alt="Left: Accuracy w.r.t KV recall ratio; Right: ORI is baseline, SPI means statical pre-identifying"></a></p>
+<figcaption>Left: Accuracy w.r.t KV recall ratio; Right: ORI is baseline, SPI means statical pre-identifying</figcaption>
+</figure>
+</div>
+</section>
+<section id="challenge-2-suboptimal-storage-caching" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-2-suboptimal-storage-caching">Challenge 2: Suboptimal Storage &amp; Caching</h2>
+<ul>
+<li>Existing systems chunk KVs sequentially.
+<ul>
+<li>Loading important KVs forces loading unimportant ones in the same IO chunk (read amplification).</li>
+</ul></li>
+<li>Standard caching (LRU/LFU) ignores KV importance.
+<ul>
+<li>Importance-rich chunks might be evicted prematurely.</li>
+</ul></li>
+</ul>
+<p><a href="assets/importance.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/importance.png" class="img-fluid"></a></p>
+</section>
+</section>
+<section id="system-design" class="level1">
+<h1>System Design</h1>
+<section id="impress-overview" class="level2">
+<h2 class="anchored" data-anchor-id="impress-overview">IMPRESS Overview</h2>
+<ul>
+<li>An importance-informed, multi-tier (GPU, CPU, Disk) prefix KV storage system.</li>
+<li>Key Components:
+<ul>
+<li><strong>ITF:</strong> Important Token Identification</li>
+<li><strong>PKM:</strong> Importance-Informed Prefix KV Management (Reordering &amp; Caching)</li>
+</ul></li>
+</ul>
+<p><a href="assets/overview.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/overview.png" class="img-fluid" style="width:60.0%"></a></p>
+</section>
+<section id="impress-dataflow" class="level2">
+<h2 class="anchored" data-anchor-id="impress-dataflow">IMPRESS Dataflow</h2>
+<ol type="1">
+<li>Request arrives (prefix + query).</li>
+<li>Find longest reusable prefix (<img src="https://latex.codecogs.com/png.latex?R">) in radix tree.</li>
+<li><strong>ITF:</strong> Identify important KVs in <img src="https://latex.codecogs.com/png.latex?R"> (<img src="https://latex.codecogs.com/png.latex?R_%7Bimportant%7D">) with minimal I/O.</li>
+<li>Load <img src="https://latex.codecogs.com/png.latex?R_%7Bimportant%7D"> (from disk/CPU if needed) to GPU.</li>
+<li>Compute remaining prefill using <img src="https://latex.codecogs.com/png.latex?R_%7Bimportant%7D"> + non-reused prefix (<img src="https://latex.codecogs.com/png.latex?NR">) + query.</li>
+<li><strong>PKM:</strong> Store new KVs (<img src="https://latex.codecogs.com/png.latex?NR">) and manage caches/disk layout.</li>
+</ol>
+</section>
+<section id="itf-insight-1-intra-layer-similarity" class="level2">
+<h2 class="anchored" data-anchor-id="itf-insight-1-intra-layer-similarity">ITF Insight 1: Intra-Layer Similarity</h2>
+<ul>
+<li><strong>Observation:</strong> The set of important token indices is highly similar <em>across different attention heads within the same layer</em>.</li>
+<li>Intuition: Heads derive k/v from the same large K/V tensors.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/similarity.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Left: example of similarity between two heads (1/3); Right: Heatmap"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/similarity.png" class="img-fluid figure-img" alt="Left: example of similarity between two heads (1/3); Right: Heatmap"></a></p>
+<figcaption>Left: example of similarity between two heads (1/3); Right: Heatmap</figcaption>
+</figure>
+</div>
+</section>
+<section id="itf-insight-2-similarity-across-scales" class="level2">
+<h2 class="anchored" data-anchor-id="itf-insight-2-similarity-across-scales">ITF Insight 2: Similarity Across Scales</h2>
+<ul>
+<li><strong>Observation:</strong> Similarity persists across different importance sampling ratios and LLM model sizes/depths.</li>
+<li>Similarity tends to be lower for smaller ratios, smaller models, and deeper layers, but still significant.</li>
+</ul>
+<p><a href="assets/similarity-bar.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/similarity-bar.png" class="img-fluid" style="width:80.0%"></a></p>
+</section>
+<section id="similarity-guided-important-token-identification-itf" class="level2">
+<h2 class="anchored" data-anchor-id="similarity-guided-important-token-identification-itf">Similarity-Guided Important Token Identification (ITF)</h2>
+<ul>
+<li><strong>Idea:</strong> Use similarity to approximate global importance using only a few heads (“probe heads”).</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/allvsprove.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Example: 4 tokens, 32 heads, use 3 probe heads"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/allvsprove.png" class="img-fluid figure-img" alt="Example: 4 tokens, 32 heads, use 3 probe heads"></a></p>
+<figcaption>Example: 4 tokens, 32 heads, use 3 probe heads</figcaption>
+</figure>
+</div>
+</section>
+<section id="similarity-guided-important-token-identification-itf-1" class="level2">
+<h2 class="anchored" data-anchor-id="similarity-guided-important-token-identification-itf-1">Similarity-Guided Important Token Identification (ITF)</h2>
+<ul>
+<li><strong>Idea:</strong> Use similarity to approximate global importance using only a few heads (“probe heads”).</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/timeline.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Reduced TTFT"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/timeline.png" class="img-fluid figure-img" alt="Reduced TTFT"></a></p>
+<figcaption>Reduced TTFT</figcaption>
+</figure>
+</div>
+</section>
+<section id="importance-informed-kv-management-pkm" class="level2">
+<h2 class="anchored" data-anchor-id="importance-informed-kv-management-pkm">Importance-Informed KV Management (PKM)</h2>
+<ul>
+<li>Addresses Challenge 2 (suboptimal storage/caching).</li>
+<li>Two parts:
+<ol type="1">
+<li>KV Reordering (Storage Layout)</li>
+<li>Score-Based Cache Management</li>
+</ol></li>
+</ul>
+</section>
+<section id="pkm-kv-reordering" class="level2">
+<h2 class="anchored" data-anchor-id="pkm-kv-reordering">PKM: KV Reordering</h2>
+<ul>
+<li><strong>Problem:</strong> Sequential KV layout leads to read amplification.</li>
+<li><strong>Solution:</strong> Periodically (offline) reorder tokens within prefix segments based on average importance.</li>
+<li>Repack KVs: Group important KVs together into denser IO chunks.</li>
+<li><strong>Result:</strong> Reduces number of chunks read for important KVs.</li>
+</ul>
+<p><a href="assets/reorder.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/reorder.png" class="img-fluid"></a></p>
+</section>
+<section id="pkm-score-based-cache-management" class="level2">
+<h2 class="anchored" data-anchor-id="pkm-score-based-cache-management">PKM: Score-Based Cache Management</h2>
+<ul>
+<li><strong>Problem:</strong> Standard LRU/LFU ignores KV importance, leading to poor GPU cache hit rates for important data.</li>
+<li><strong>Solution:</strong> Assign a score to each chunk:
+<ul>
+<li><code>Score = AccessFrequency * ImportanceRatio</code></li>
+</ul></li>
+<li>ImportanceRatio = (% of important KVs in the chunk, updated dynamically).</li>
+<li>Prioritize chunks with higher scores for GPU cache admission/retention.</li>
+</ul>
+</section>
+<section id="score-based-caching-dual-cache-policy" class="level2">
+<h2 class="anchored" data-anchor-id="score-based-caching-dual-cache-policy">Score-Based Caching: Dual-Cache Policy</h2>
+<ul>
+<li>Manages GPU and CPU caches (exclusive).</li>
+<li>Uses two min-heaps (one per cache) storing chunk scores.</li>
+<li>On access/load:
+<ul>
+<li>Update chunk score.</li>
+<li>Promote chunk to GPU cache if score &gt; lowest score in GPU heap.</li>
+<li>Evict lowest-scored chunk from GPU/CPU heap if cache is full.</li>
+</ul></li>
+<li>Ensures non-redundancy; replicas always exist on disk.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<ul>
+<li><strong>Models:</strong> OPT-{6.7B, 13B, 30B}, Llama2-{7B, 13B}</li>
+<li><strong>Hardware:</strong> AMD EPYC CPU, 128GB DRAM, NVIDIA A100 GPU (80GB), Intel NVMe SSD</li>
+<li><strong>Datasets:</strong> PIQA, RTE, COPA, OpenBookQA (Few-shot setup)</li>
+<li><strong>Baselines:</strong>
+<ul>
+<li><code>ReComp</code>: No reuse.</li>
+<li><code>AS-like</code>: AttentionStore baseline (reuse all KVs, LRU GPU cache).</li>
+<li><code>AS+H2O+LRU</code>: AS-like + H2O importance (load important V only, LRU).</li>
+<li><code>AS+H2O+LFU</code>: AS-like + H2O importance (load important V only, LFU).</li>
+</ul></li>
+<li><strong>IMPRESS:</strong> Uses ITF + KV Reordering + Score-based Caching.</li>
+</ul>
+</section>
+<section id="model-generation-quality" class="level2">
+<h2 class="anchored" data-anchor-id="model-generation-quality">Model Generation Quality</h2>
+<ul>
+<li>Negligible accuracy drop (&lt;0.2%)</li>
+</ul>
+<p><a href="assets/acc.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/acc.png" class="img-fluid"></a></p>
+</section>
+<section id="average-ttft-performance" class="level2">
+<h2 class="anchored" data-anchor-id="average-ttft-performance">Average TTFT Performance</h2>
+<ul>
+<li>1.2x - 2.8x TTFT reduction over the prior SOTA</li>
+</ul>
+<p><a href="assets/ttft.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/ttft.png" class="img-fluid"></a></p>
+</section>
+<section id="io-time-reduction" class="level2">
+<h2 class="anchored" data-anchor-id="io-time-reduction">I/O Time Reduction</h2>
+<ul>
+<li>1.5x - 3.8x reduction in I/O time for loading prefix KVs compared to prior SOTA</li>
+</ul>
+<p><a href="assets/io.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/io.png" class="img-fluid"></a></p>
+</section>
+<section id="breakdown" class="level2">
+<h2 class="anchored" data-anchor-id="breakdown">Breakdown</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="assets/breakdown.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="+RO: +KV Recorder; ALL: +Score-base caching"><img src="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/breakdown.png" class="img-fluid figure-img" alt="+RO: +KV Recorder; ALL: +Score-base caching"></a></p>
+<figcaption>+RO: +KV Recorder; ALL: +Score-base caching</figcaption>
+</figure>
+</div>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>llm</category>
+  <category>inference</category>
+  <category>kv-cache</category>
+  <category>storage</category>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/</guid>
+  <pubDate>Fri, 11 Apr 2025 00:00:00 GMT</pubDate>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/assets/overview.png" medium="image" type="image/png" height="107" width="144"/>
+</item>
+</channel>
+</rss>

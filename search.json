@@ -1,0 +1,793 @@
+[
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html",
+    "href": "papers/2026-06-27-thunderkittens/index.html",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "AI progress is bottlenecked by mapping architectures to GPU hardware.\nHand-written custom kernels often fail to meet theoretical performance thresholds.\n\n\n\n\n\nRapid emergence of new ML architectures (Transformers, SSMs, linear attention).\nKernel support lags; e.g., FlashAttention-2 took years to optimize for H100.\n\n\n\n\n\nTensor cores provide 15-16x the FLOPs of general-purpose compute.\nHigh-performance frameworks must prioritize keeping tensor cores fully utilized.\n\n\n\n\n\nThreads execute in groups of 32 (warps) on physical execution units.\nMemory layouts map logical data to physical threads; poor layouts cause bank conflicts.\n\n\n\n\n\nWarps are grouped into blocks, sharing fast shared memory (SMEM).\nHigher occupancy (more warps per block) helps hide latencies but increases resource contention.\n\n\n\n\n\nGrids launch multiple thread blocks across Streaming Multiprocessors (SMs).\nBlocks communicate via slow HBM, with L2 cache helping to reduce latency.\n\n\n\n\n\nExecution time is the max of memory, compute, and overhead costs.\nIdeal performance requires perfect overlapping of memory loads, compute, and tensor core ops.\n\n\n\n\n\nCUTLASS offers high performance but relies on myriad nested C++ templates.\nTriton provides simpler interfaces but limits access to specialized hardware instructions."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#the-gpu-kernel-bottleneck",
+    "href": "papers/2026-06-27-thunderkittens/index.html#the-gpu-kernel-bottleneck",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "AI progress is bottlenecked by mapping architectures to GPU hardware.\nHand-written custom kernels often fail to meet theoretical performance thresholds."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#the-cambrian-explosion-of-ai-architectures",
+    "href": "papers/2026-06-27-thunderkittens/index.html#the-cambrian-explosion-of-ai-architectures",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "Rapid emergence of new ML architectures (Transformers, SSMs, linear attention).\nKernel support lags; e.g., FlashAttention-2 took years to optimize for H100."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#specialized-matrix-multiply-units",
+    "href": "papers/2026-06-27-thunderkittens/index.html#specialized-matrix-multiply-units",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "Tensor cores provide 15-16x the FLOPs of general-purpose compute.\nHigh-performance frameworks must prioritize keeping tensor cores fully utilized."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#gpu-hierarchy-warps",
+    "href": "papers/2026-06-27-thunderkittens/index.html#gpu-hierarchy-warps",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "Threads execute in groups of 32 (warps) on physical execution units.\nMemory layouts map logical data to physical threads; poor layouts cause bank conflicts."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#gpu-hierarchy-thread-blocks",
+    "href": "papers/2026-06-27-thunderkittens/index.html#gpu-hierarchy-thread-blocks",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "Warps are grouped into blocks, sharing fast shared memory (SMEM).\nHigher occupancy (more warps per block) helps hide latencies but increases resource contention."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#gpu-hierarchy-grids",
+    "href": "papers/2026-06-27-thunderkittens/index.html#gpu-hierarchy-grids",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "Grids launch multiple thread blocks across Streaming Multiprocessors (SMs).\nBlocks communicate via slow HBM, with L2 cache helping to reduce latency."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#the-cost-model-of-gpu-parallelism",
+    "href": "papers/2026-06-27-thunderkittens/index.html#the-cost-model-of-gpu-parallelism",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "Execution time is the max of memory, compute, and overhead costs.\nIdeal performance requires perfect overlapping of memory loads, compute, and tensor core ops."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#existing-frameworks-cutlass-triton",
+    "href": "papers/2026-06-27-thunderkittens/index.html#existing-frameworks-cutlass-triton",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "",
+    "text": "CUTLASS offers high performance but relies on myriad nested C++ templates.\nTriton provides simpler interfaces but limits access to specialized hardware instructions."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#thunderkittens-overview",
+    "href": "papers/2026-06-27-thunderkittens/index.html#thunderkittens-overview",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "ThunderKittens Overview",
+    "text": "ThunderKittens Overview\n\nA framework using a small, opinionated set of abstractions for high-performance AI kernels.\nMaps directly to the three levels of the GPU hierarchy: warp, block, and grid."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#warp-parallelism-tile-data-structures",
+    "href": "papers/2026-06-27-thunderkittens/index.html#warp-parallelism-tile-data-structures",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Warp Parallelism: Tile Data Structures",
+    "text": "Warp Parallelism: Tile Data Structures\n\nUses 16x16 matrix tiles as the basic data structure.\nMaximizes compatibility with tensor cores and hardware-accelerated instructions."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#warp-parallelism-pytorch-like-operations",
+    "href": "papers/2026-06-27-thunderkittens/index.html#warp-parallelism-pytorch-like-operations",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Warp Parallelism: PyTorch-like Operations",
+    "text": "Warp Parallelism: PyTorch-like Operations\n\nProvides familiar parallel compute primitives (e.g., mma, exp, cumsum).\nEnables static compile-time checking of layouts and operations to prevent bugs."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#managing-memory-layouts",
+    "href": "papers/2026-06-27-thunderkittens/index.html#managing-memory-layouts",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Managing Memory Layouts",
+    "text": "Managing Memory Layouts\n\nRegister tiles must match tensor core layouts; shared tiles need specific layouts for bulk copies.\nTK automatically assigns shared tile layouts to minimize bank conflicts based on size and type."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#shared-memory-bank-conflicts",
+    "href": "papers/2026-06-27-thunderkittens/index.html#shared-memory-bank-conflicts",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Shared Memory Bank Conflicts",
+    "text": "Shared Memory Bank Conflicts\n\nNaive row-major layouts suffer severe bank conflicts when loading into tensor cores.\nTK uses swizzled layouts (32B, 64B, 128B) to eliminate conflicts while maintaining hardware support."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#block-parallelism-the-lcsf-template",
+    "href": "papers/2026-06-27-thunderkittens/index.html#block-parallelism-the-lcsf-template",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Block Parallelism: The LCSF Template",
+    "text": "Block Parallelism: The LCSF Template\n\nGeneralized asynchronous template: Load, Compute, Store, Finish.\nReduces developer effort to populating boilerplate functions within a producer-consumer model."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#asynchronous-overlapping",
+    "href": "papers/2026-06-27-thunderkittens/index.html#asynchronous-overlapping",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Asynchronous Overlapping",
+    "text": "Asynchronous Overlapping\n\nLoad/store workers manage HBM to SRAM movement using TMA.\nCompute workers operate on fast memory, overlapping with asynchronous I/O."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#multi-stage-pipeline-buffers",
+    "href": "papers/2026-06-27-thunderkittens/index.html#multi-stage-pipeline-buffers",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Multi-stage Pipeline Buffers",
+    "text": "Multi-stage Pipeline Buffers\n\nMaintains N-stage pipelined buffers in shared memory.\nHides HBM load/store latency by allowing compute to proceed while next tiles load."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#occupancy-vs.-efficiency-tradeoffs",
+    "href": "papers/2026-06-27-thunderkittens/index.html#occupancy-vs.-efficiency-tradeoffs",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Occupancy vs. Efficiency Tradeoffs",
+    "text": "Occupancy vs. Efficiency Tradeoffs\n\nHigher occupancy increases overlap but causes register contention.\nTK parametrizes worker counts, letting developers easily tune the Pareto frontier."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#grid-parallelism-persistent-block-launch",
+    "href": "papers/2026-06-27-thunderkittens/index.html#grid-parallelism-persistent-block-launch",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Grid Parallelism: Persistent Block Launch",
+    "text": "Grid Parallelism: Persistent Block Launch\n\nLaunches thread blocks on all SMs upfront, reusing them for subsequent tasks.\nEliminates pipeline bubbles and setup/tear-down overheads."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#l2-cache-reuse-block-launch-order",
+    "href": "papers/2026-06-27-thunderkittens/index.html#l2-cache-reuse-block-launch-order",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "L2 Cache Reuse & Block Launch Order",
+    "text": "L2 Cache Reuse & Block Launch Order\n\nBlock launch order heavily influences L2 cache hit rates and HBM bandwidth.\nTK provides optimized 3D strides to maximize data reuse across thread blocks."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#workhorse-kernels-gemm",
+    "href": "papers/2026-06-27-thunderkittens/index.html#workhorse-kernels-gemm",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Workhorse Kernels: GEMM",
+    "text": "Workhorse Kernels: GEMM\n\nA single 40-line TK GEMM kernel matches CuBLAS and CUTLASS performance.\nAvoids the 600MB+ complexity of highly tuned CuBLAS variants."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#workhorse-kernels-attention",
+    "href": "papers/2026-06-27-thunderkittens/index.html#workhorse-kernels-attention",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Workhorse Kernels: Attention",
+    "text": "Workhorse Kernels: Attention\n\nMatches FlashAttention-3 on non-causal forward passes.\nOutperforms FA3 by 10-40% on causal and non-causal backward passes."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#emerging-architectures-linear-attention",
+    "href": "papers/2026-06-27-thunderkittens/index.html#emerging-architectures-linear-attention",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Emerging Architectures: Linear Attention",
+    "text": "Emerging Architectures: Linear Attention\n\nOutperforms Flash Linear Attention (FLA) by 14x on polynomial-based linear attention.\nAchieves 6.5x speedup on learned feature map linear attention."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#emerging-architectures-state-space-models",
+    "href": "papers/2026-06-27-thunderkittens/index.html#emerging-architectures-state-space-models",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Emerging Architectures: State Space Models",
+    "text": "Emerging Architectures: State Space Models\n\nOutperforms FlashFFTConv by up to 7.9x on long convolutions.\nBeats Triton-based Mamba-2 kernels by over 3x through easy operation fusion."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#profiling-long-convolution",
+    "href": "papers/2026-06-27-thunderkittens/index.html#profiling-long-convolution",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Profiling: Long Convolution",
+    "text": "Profiling: Long Convolution\n\nNCU profiles show higher issue slot utilization and fewer memory stalls.\nTensor core utilization increases by 4.1x compared to FlashFFTConv."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#profiling-attention-backwards",
+    "href": "papers/2026-06-27-thunderkittens/index.html#profiling-attention-backwards",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Profiling: Attention Backwards",
+    "text": "Profiling: Attention Backwards\n\nMatches FA3 in tensor core utilization but achieves higher issue slot utilization.\nIncurs 85% fewer shared memory stalled cycles by eliminating bank conflicts."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#extensibility-fp8-padded-tiles",
+    "href": "papers/2026-06-27-thunderkittens/index.html#extensibility-fp8-padded-tiles",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Extensibility: FP8 & Padded Tiles",
+    "text": "Extensibility: FP8 & Padded Tiles\n\nSupports FP8 precision GEMMs, matching CuBLAS performance.\nHandles unaligned workloads via automatic padding without sacrificing performance."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#extensibility-consumer-personal-hardware",
+    "href": "papers/2026-06-27-thunderkittens/index.html#extensibility-consumer-personal-hardware",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Extensibility: Consumer & Personal Hardware",
+    "text": "Extensibility: Consumer & Personal Hardware\n\nCompetitive performance on NVIDIA RTX 4090 and Apple M2 Pro.\nDemonstrates cross-platform portability with minimal code changes."
+  },
+  {
+    "objectID": "papers/2026-06-27-thunderkittens/index.html#simplicity-library-size-lines-of-code",
+    "href": "papers/2026-06-27-thunderkittens/index.html#simplicity-library-size-lines-of-code",
+    "title": "THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS",
+    "section": "Simplicity: Library Size & Lines of Code",
+    "text": "Simplicity: Library Size & Lines of Code\n\nTK library is under 1.0 MB, compared to 22 MB for CUTLASS.\nTK kernels average &lt;200 lines of code, significantly less than SOTA baselines."
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html",
+    "href": "papers/2025-12-19-flashinfer/index.html",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "",
+    "text": "Transformer architecture dominates LLMs\nAttention mechanism reads from KV-cache and computes outputs based on queries\nEfficiency of attention operator is paramount to LLM inference performance\n\n\n\n\n\nVarious attention computation patterns\n\nPrefill computation for context processing\nBatched decoding during serving\n\nPrefix-reuse opportunities across requests\nTree decoding in speculative scenarios\nQuery lengths and KV-cache sizes vary within batches and over time\n\n\n\n\n\nEfficient memory layouts needed for growing KV-cache\n\nPaged attention, radix trees\n\nHardware-specific pipelines required for each GPU architecture\nDiverse attention mechanisms in modern LLMs (variants)\n\nGrouped Query Attention (GQA)\nSpecialized masks, sliding window\nCustom attention scores (logits soft-cap, FlashSigmoid)\n\n\n\n\n\n\nEach system implements specialized attention solutions for specific subsets\nResults in:\n\nHigh maintenance overhead\nPotential inefficiencies\nLack of flexibility for new attention variants"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#attention-is-critical-for-llm-inference",
+    "href": "papers/2025-12-19-flashinfer/index.html#attention-is-critical-for-llm-inference",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "",
+    "text": "Transformer architecture dominates LLMs\nAttention mechanism reads from KV-cache and computes outputs based on queries\nEfficiency of attention operator is paramount to LLM inference performance"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#challenge-1-diverse-workload-patterns",
+    "href": "papers/2025-12-19-flashinfer/index.html#challenge-1-diverse-workload-patterns",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "",
+    "text": "Various attention computation patterns\n\nPrefill computation for context processing\nBatched decoding during serving\n\nPrefix-reuse opportunities across requests\nTree decoding in speculative scenarios\nQuery lengths and KV-cache sizes vary within batches and over time"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#challenge-2-hardware-customization-requirements",
+    "href": "papers/2025-12-19-flashinfer/index.html#challenge-2-hardware-customization-requirements",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "",
+    "text": "Efficient memory layouts needed for growing KV-cache\n\nPaged attention, radix trees\n\nHardware-specific pipelines required for each GPU architecture\nDiverse attention mechanisms in modern LLMs (variants)\n\nGrouped Query Attention (GQA)\nSpecialized masks, sliding window\nCustom attention scores (logits soft-cap, FlashSigmoid)"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#current-limitations",
+    "href": "papers/2025-12-19-flashinfer/index.html#current-limitations",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "",
+    "text": "Each system implements specialized attention solutions for specific subsets\nResults in:\n\nHigh maintenance overhead\nPotential inefficiencies\nLack of flexibility for new attention variants"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#overview",
+    "href": "papers/2025-12-19-flashinfer/index.html#overview",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Overview",
+    "text": "Overview\n\n\n\n\n\n\nBlock-sparse format for unified KV-cache storage\nCustomizable attention template with JIT compilation\nDynamic load-balanced scheduling compatible with CUDAGraph"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#kv-cache-storage-block-sparse-matrix-as-unified-format",
+    "href": "papers/2025-12-19-flashinfer/index.html#kv-cache-storage-block-sparse-matrix-as-unified-format",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "KV-Cache Storage: Block-Sparse Matrix as Unified Format",
+    "text": "KV-Cache Storage: Block-Sparse Matrix as Unified Format\n\n\n\n\n\n\n\nPage Table represented in BSR format\n\n\n\nPage tables, radix trees, and sparse masks unified under Block Sparse Row (BSR) format\n\nEach block is either zeros or non-zeros.\n\nFlexible block sizes (Br, Bc) allow fine-grained sparsity"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#two-meanings-of-block",
+    "href": "papers/2025-12-19-flashinfer/index.html#two-meanings-of-block",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Two Meanings of “Block”",
+    "text": "Two Meanings of “Block”\n\nBlock in Block-Sparse Matrix (BSR format)\n\nBr (number of rows) is aligned with queries\nBc (number of cols) is aligned with tokens\n\nThread Block (CTA - Cooperative Thread Array)\nQueries grouped in the same matrix block are processed by the same thread block."
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#composable-formats-for-memory-efficiency",
+    "href": "papers/2025-12-19-flashinfer/index.html#composable-formats-for-memory-efficiency",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Composable Formats for Memory Efficiency",
+    "text": "Composable Formats for Memory Efficiency\n\n\n\n\n\n\n\nComposable formats for shared-prefix decomposition\n\n\n\nMultiple block-sparse formats instead of single format\nShared prefixes: larger block sizes for shared memory access\nUnique suffixes: smaller block sizes"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#data-transfer-global-to-shared-memory",
+    "href": "papers/2025-12-19-flashinfer/index.html#data-transfer-global-to-shared-memory",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Data Transfer: Global to Shared Memory",
+    "text": "Data Transfer: Global to Shared Memory\n\n\n\n\n\n\nTiles transferred from scattered global memory to contiguous shared memory\nAsynchronous copy instructions (LDGSTS) with 128B width\nSupports arbitrary block sizes not aligned with tensor core shapes"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#flexible-tile-size-selection",
+    "href": "papers/2025-12-19-flashinfer/index.html#flexible-tile-size-selection",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Flexible Tile Size Selection",
+    "text": "Flexible Tile Size Selection\n\nTile sizes: (1, 16, 32, 64, 128) × (32, 64, 128)\nAutomatic selection heuristics:\n\nDetermine minimal query tile size based on average query length\nMaximize SM resource occupancy given register/shared memory constraints\n\nCUDA cores for tile size 1, tensor cores otherwise"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#load-balanced-runtime-scheduler",
+    "href": "papers/2025-12-19-flashinfer/index.html#load-balanced-runtime-scheduler",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Load-Balanced Runtime Scheduler",
+    "text": "Load-Balanced Runtime Scheduler\n\n\n\n\n\n\nSplits each query tile’s KV into chunks\nPriority queue assigns chunks to CTAs balancing by cost\nCost function: \\(cost(l_q, l_{kv}) = \\alpha\\cdot l_q  + \\beta\\cdot l_{kv}\\)\nProduces deterministic aggregation order"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#cudagraph-compatibility",
+    "href": "papers/2025-12-19-flashinfer/index.html#cudagraph-compatibility",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "CUDAGraph Compatibility",
+    "text": "CUDAGraph Compatibility\n\nPersistent kernels with fixed grid size\nFixed workspace buffer offsets for consistent pointers\nAttention and contraction stages merged into one persistent kernel\nPlan phase runs on CPU, run phase captured in CUDAGraph"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#environment-setup",
+    "href": "papers/2025-12-19-flashinfer/index.html#environment-setup",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Environment Setup",
+    "text": "Environment Setup\n\nHardware\n\nNVIDIA A100 40GB SXM\nNVIDIA H100 80GB SXM\n\nSoftware\n\nCUDA 12.4, PyTorch 2.4.0\nFP16 precision for storage and computation\n\nBaselines\n\nSGLang with Triton backend\nFlashAttention library"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#end-to-end-llm-serving-performance",
+    "href": "papers/2025-12-19-flashinfer/index.html#end-to-end-llm-serving-performance",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "End-to-End LLM Serving Performance",
+    "text": "End-to-End LLM Serving Performance\n\n\n\n\n\n\nFlashInfer shows consistent ITL and TTFT improvements over Triton backend"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#input-dynamism",
+    "href": "papers/2025-12-19-flashinfer/index.html#input-dynamism",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Input Dynamism",
+    "text": "Input Dynamism\n\n\n\n\n\n\nBatch size 16, three sequence length distributions\n\nConstant (1024), Uniform (512 to 1024), Skewed (Zipf, avg 1024)\n\nFlashInfer significantly outperforms FlashAttention on uniform and skewed distributions\nLoad-balanced scheduler addresses variable-length workloads"
+  },
+  {
+    "objectID": "papers/2025-12-19-flashinfer/index.html#customizability-long-context-inference",
+    "href": "papers/2025-12-19-flashinfer/index.html#customizability-long-context-inference",
+    "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+    "section": "Customizability: Long-Context Inference",
+    "text": "Customizability: Long-Context Inference\n\n\n\n\n\n\nStreaming-LLM with fused RoPE + attention kernel\n28-30% latency reduction across different settings\nFused kernel achieves 1.6-3.7× higher bandwidth utilization"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html",
+    "href": "papers/2025-04-11-impress/index.html",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "LLMs use context-rich prefixes (history, documents) for better quality.\nPrefixes significantly increase input length.\nProblem: Longer inputs lead to high computation and Time To First Token (TTFT) latency.\n\n\n\n\n\nMany requests share common prefixes.\nRecomputing Key/Value (KV) tensors for prefixes is wasteful.\nSolution: Store and reuse prefix KVs.\nExisting systems cache KVs in GPU/CPU memory.\n\n\n\n\nTTFT\n\n\n\n\n\n\nGPU/CPU memory is limited.\nPrefixes can be large (e.g., 3.4GB for OPT-30B, 2.6k tokens).\nOffloading KVs to disk is necessary but slow.\nProblem: Disk I/O latency can exceed recomputation time, negating reuse benefits.\n\n\n\n\nTTFT\n\n\n\n\n\n\nGPU/CPU memory is limited.\nPrefixes can be large (e.g., 3.4GB for OPT-30B, 2.6k tokens).\nOffloading KVs to disk is necessary but slow.\nProblem: Disk I/O latency can exceed recomputation time, negating reuse benefits.\n\n\n\n\nTTFT Breakdown\n\n\n\n\n\n\nResearch shows LLM inference quality is robust to discarding less important KVs.\nMost impact comes from a subset of “important” tokens/KVs.\nOpportunity: Can we leverage importance to optimize prefix KV reuse from slower storage?\n\n\n\n\n\nReduce the TTFT bottleneck caused by loading prefix KVs from disk.\nIdea: Selectively load only the important prefix KVs.\nGoal: Minimize I/O data transfer while maintaining inference quality.\n\n\n\n\n\nStandard methods need all prefix KVs loaded into GPU to calculate attention scores.\n\nDefeats the purpose of reducing I/O.\n\nImportance is query-dependent: Statically pre-identifying important tokens for a prefix doesn’t work well (poor recall).\n\n\n\n\nLeft: Accuracy w.r.t KV recall ratio; Right: ORI is baseline, SPI means statical pre-identifying\n\n\n\n\n\n\nExisting systems chunk KVs sequentially.\n\nLoading important KVs forces loading unimportant ones in the same IO chunk (read amplification).\n\nStandard caching (LRU/LFU) ignores KV importance.\n\nImportance-rich chunks might be evicted prematurely."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#llm-inference-context-prefixes",
+    "href": "papers/2025-04-11-impress/index.html#llm-inference-context-prefixes",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "LLMs use context-rich prefixes (history, documents) for better quality.\nPrefixes significantly increase input length.\nProblem: Longer inputs lead to high computation and Time To First Token (TTFT) latency."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#prefix-kv-reuse",
+    "href": "papers/2025-04-11-impress/index.html#prefix-kv-reuse",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "Many requests share common prefixes.\nRecomputing Key/Value (KV) tensors for prefixes is wasteful.\nSolution: Store and reuse prefix KVs.\nExisting systems cache KVs in GPU/CPU memory.\n\n\n\n\nTTFT"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#the-disk-io-bottleneck",
+    "href": "papers/2025-04-11-impress/index.html#the-disk-io-bottleneck",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "GPU/CPU memory is limited.\nPrefixes can be large (e.g., 3.4GB for OPT-30B, 2.6k tokens).\nOffloading KVs to disk is necessary but slow.\nProblem: Disk I/O latency can exceed recomputation time, negating reuse benefits.\n\n\n\n\nTTFT"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#the-disk-io-bottleneck-1",
+    "href": "papers/2025-04-11-impress/index.html#the-disk-io-bottleneck-1",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "GPU/CPU memory is limited.\nPrefixes can be large (e.g., 3.4GB for OPT-30B, 2.6k tokens).\nOffloading KVs to disk is necessary but slow.\nProblem: Disk I/O latency can exceed recomputation time, negating reuse benefits.\n\n\n\n\nTTFT Breakdown"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#insight-not-all-kvs-are-equally-important",
+    "href": "papers/2025-04-11-impress/index.html#insight-not-all-kvs-are-equally-important",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "Research shows LLM inference quality is robust to discarding less important KVs.\nMost impact comes from a subset of “important” tokens/KVs.\nOpportunity: Can we leverage importance to optimize prefix KV reuse from slower storage?"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#motivation",
+    "href": "papers/2025-04-11-impress/index.html#motivation",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "Reduce the TTFT bottleneck caused by loading prefix KVs from disk.\nIdea: Selectively load only the important prefix KVs.\nGoal: Minimize I/O data transfer while maintaining inference quality."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#challenge-1-identifying-important-kvs-efficiently",
+    "href": "papers/2025-04-11-impress/index.html#challenge-1-identifying-important-kvs-efficiently",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "Standard methods need all prefix KVs loaded into GPU to calculate attention scores.\n\nDefeats the purpose of reducing I/O.\n\nImportance is query-dependent: Statically pre-identifying important tokens for a prefix doesn’t work well (poor recall).\n\n\n\n\nLeft: Accuracy w.r.t KV recall ratio; Right: ORI is baseline, SPI means statical pre-identifying"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#challenge-2-suboptimal-storage-caching",
+    "href": "papers/2025-04-11-impress/index.html#challenge-2-suboptimal-storage-caching",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "",
+    "text": "Existing systems chunk KVs sequentially.\n\nLoading important KVs forces loading unimportant ones in the same IO chunk (read amplification).\n\nStandard caching (LRU/LFU) ignores KV importance.\n\nImportance-rich chunks might be evicted prematurely."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#impress-overview",
+    "href": "papers/2025-04-11-impress/index.html#impress-overview",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "IMPRESS Overview",
+    "text": "IMPRESS Overview\n\nAn importance-informed, multi-tier (GPU, CPU, Disk) prefix KV storage system.\nKey Components:\n\nITF: Important Token Identification\nPKM: Importance-Informed Prefix KV Management (Reordering & Caching)"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#impress-dataflow",
+    "href": "papers/2025-04-11-impress/index.html#impress-dataflow",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "IMPRESS Dataflow",
+    "text": "IMPRESS Dataflow\n\nRequest arrives (prefix + query).\nFind longest reusable prefix (\\(R\\)) in radix tree.\nITF: Identify important KVs in \\(R\\) (\\(R_{important}\\)) with minimal I/O.\nLoad \\(R_{important}\\) (from disk/CPU if needed) to GPU.\nCompute remaining prefill using \\(R_{important}\\) + non-reused prefix (\\(NR\\)) + query.\nPKM: Store new KVs (\\(NR\\)) and manage caches/disk layout."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#itf-insight-1-intra-layer-similarity",
+    "href": "papers/2025-04-11-impress/index.html#itf-insight-1-intra-layer-similarity",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "ITF Insight 1: Intra-Layer Similarity",
+    "text": "ITF Insight 1: Intra-Layer Similarity\n\nObservation: The set of important token indices is highly similar across different attention heads within the same layer.\nIntuition: Heads derive k/v from the same large K/V tensors.\n\n\n\n\nLeft: example of similarity between two heads (1/3); Right: Heatmap"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#itf-insight-2-similarity-across-scales",
+    "href": "papers/2025-04-11-impress/index.html#itf-insight-2-similarity-across-scales",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "ITF Insight 2: Similarity Across Scales",
+    "text": "ITF Insight 2: Similarity Across Scales\n\nObservation: Similarity persists across different importance sampling ratios and LLM model sizes/depths.\nSimilarity tends to be lower for smaller ratios, smaller models, and deeper layers, but still significant."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#similarity-guided-important-token-identification-itf",
+    "href": "papers/2025-04-11-impress/index.html#similarity-guided-important-token-identification-itf",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Similarity-Guided Important Token Identification (ITF)",
+    "text": "Similarity-Guided Important Token Identification (ITF)\n\nIdea: Use similarity to approximate global importance using only a few heads (“probe heads”).\n\n\n\n\nExample: 4 tokens, 32 heads, use 3 probe heads"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#similarity-guided-important-token-identification-itf-1",
+    "href": "papers/2025-04-11-impress/index.html#similarity-guided-important-token-identification-itf-1",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Similarity-Guided Important Token Identification (ITF)",
+    "text": "Similarity-Guided Important Token Identification (ITF)\n\nIdea: Use similarity to approximate global importance using only a few heads (“probe heads”).\n\n\n\n\nReduced TTFT"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#importance-informed-kv-management-pkm",
+    "href": "papers/2025-04-11-impress/index.html#importance-informed-kv-management-pkm",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Importance-Informed KV Management (PKM)",
+    "text": "Importance-Informed KV Management (PKM)\n\nAddresses Challenge 2 (suboptimal storage/caching).\nTwo parts:\n\nKV Reordering (Storage Layout)\nScore-Based Cache Management"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#pkm-kv-reordering",
+    "href": "papers/2025-04-11-impress/index.html#pkm-kv-reordering",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "PKM: KV Reordering",
+    "text": "PKM: KV Reordering\n\nProblem: Sequential KV layout leads to read amplification.\nSolution: Periodically (offline) reorder tokens within prefix segments based on average importance.\nRepack KVs: Group important KVs together into denser IO chunks.\nResult: Reduces number of chunks read for important KVs."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#pkm-score-based-cache-management",
+    "href": "papers/2025-04-11-impress/index.html#pkm-score-based-cache-management",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "PKM: Score-Based Cache Management",
+    "text": "PKM: Score-Based Cache Management\n\nProblem: Standard LRU/LFU ignores KV importance, leading to poor GPU cache hit rates for important data.\nSolution: Assign a score to each chunk:\n\nScore = AccessFrequency * ImportanceRatio\n\nImportanceRatio = (% of important KVs in the chunk, updated dynamically).\nPrioritize chunks with higher scores for GPU cache admission/retention."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#score-based-caching-dual-cache-policy",
+    "href": "papers/2025-04-11-impress/index.html#score-based-caching-dual-cache-policy",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Score-Based Caching: Dual-Cache Policy",
+    "text": "Score-Based Caching: Dual-Cache Policy\n\nManages GPU and CPU caches (exclusive).\nUses two min-heaps (one per cache) storing chunk scores.\nOn access/load:\n\nUpdate chunk score.\nPromote chunk to GPU cache if score &gt; lowest score in GPU heap.\nEvict lowest-scored chunk from GPU/CPU heap if cache is full.\n\nEnsures non-redundancy; replicas always exist on disk."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#setup",
+    "href": "papers/2025-04-11-impress/index.html#setup",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Setup",
+    "text": "Setup\n\nModels: OPT-{6.7B, 13B, 30B}, Llama2-{7B, 13B}\nHardware: AMD EPYC CPU, 128GB DRAM, NVIDIA A100 GPU (80GB), Intel NVMe SSD\nDatasets: PIQA, RTE, COPA, OpenBookQA (Few-shot setup)\nBaselines:\n\nReComp: No reuse.\nAS-like: AttentionStore baseline (reuse all KVs, LRU GPU cache).\nAS+H2O+LRU: AS-like + H2O importance (load important V only, LRU).\nAS+H2O+LFU: AS-like + H2O importance (load important V only, LFU).\n\nIMPRESS: Uses ITF + KV Reordering + Score-based Caching."
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#model-generation-quality",
+    "href": "papers/2025-04-11-impress/index.html#model-generation-quality",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Model Generation Quality",
+    "text": "Model Generation Quality\n\nNegligible accuracy drop (&lt;0.2%)"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#average-ttft-performance",
+    "href": "papers/2025-04-11-impress/index.html#average-ttft-performance",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Average TTFT Performance",
+    "text": "Average TTFT Performance\n\n1.2x - 2.8x TTFT reduction over the prior SOTA"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#io-time-reduction",
+    "href": "papers/2025-04-11-impress/index.html#io-time-reduction",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "I/O Time Reduction",
+    "text": "I/O Time Reduction\n\n1.5x - 3.8x reduction in I/O time for loading prefix KVs compared to prior SOTA"
+  },
+  {
+    "objectID": "papers/2025-04-11-impress/index.html#breakdown",
+    "href": "papers/2025-04-11-impress/index.html#breakdown",
+    "title": "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference",
+    "section": "Breakdown",
+    "text": "Breakdown\n\n\n\n+RO: +KV Recorder; ALL: +Score-base caching"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Weekly Paper Sharing",
+    "section": "",
+    "text": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge\n\n\nASPLOS 2024\n\n\n\nllm\n\nquantization\n\ncpu\n\nedge\n\ninference\n\n\n\nLUT-based mpGEMM kernel: bit-wise table lookup replaces dequantization, achieving 4x throughput and 70% energy reduction on edge CPUs.\n\n\n\nJianyu Wei, Shijie Cao, Ting Cao, Lingxiao Ma, Lei Wang, Yanyong Zhang, Mao Yang\n\n\nJun 27, 2026\n\n\n\n\n\n\n\n\n\n\n\n\n\nTHUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS\n\n\narXiv 2024\n\n\n\ngpu\n\nkernels\n\ndeep-learning\n\nsystems\n\n\n\nSimple 16x16 tile abstractions for high-performance AI kernels matching SOTA.\n\n\n\nBenjamin F. Spector, Simran Arora, Aaryan Singhal, Arjun Parthasarathy, Daniel Y. Fu, Christopher Ré\n\n\nJun 27, 2026\n\n\n\n\n\n\n\n\n\n\n\n\n\nFlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving\n\n\nMLSys ’25\n\n\n\nllm-inference\n\nattention\n\ngpu-optimization\n\nkv-cache\n\nsystems\n\n\n\nFlashInfer is a customizable attention engine for efficient LLM serving.\n\n\n\nZihao Ye, Lequn Chen, Ruihang Lai, Wuwei Lin, Yineng Zhang, Stephanie Wang, Tianqi Chen, Baris Kasikci, Vinod Grover, Arvind Krishnamurthy, Luis Ceze\n\n\nDec 19, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n\nH2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models\n\n\nNeurIPS 2023\n\n\n\nllm\n\ninference\n\nkv-cache\n\n\n\nKV-cache eviction policy: keep recent tokens + Heavy Hitters (highest accumulated attention scores), achieving 5x reduction with comparable accuracy.\n\n\n\nZhenyu Zhang, Ying Sheng, Tianyi Zhou, Tianlong Chen, Lianmin Zheng, Ruisi Cai, Zhao Song, Yuandong Tian, Christopher Ré, Clark Barrett, Zhangyang Wang, Beidi Chen\n\n\nMay 2, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n\nIMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference\n\n\nFAST ’25\n\n\n\nllm\n\ninference\n\nkv-cache\n\nstorage\n\n\n\nImportance-informed multi-tier prefix KV storage: identify important KVs with probe heads, reorder for dense IO, score-based caching.\n\n\n\nWeijian Chen, Shuibing He, Haoyang Qu, Ruidong Zhang, Siling Yang, and Ping Chen, Zhejiang University; Yi Zheng and Baoxing Huai, Huawei Cloud; Gang Chen, Zhejiang University\n\n\nApr 11, 2025\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html",
+    "href": "papers/2025-05-02-h2o/index.html",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "LLMs excel at tasks like dialogue, summarization, content creation.\nGeneration is typically autoregressive: predict next token based on previous ones.\n\n\n\n\n\n\nKV Cache size scales linearly with sequence length and batch size.\nCan exceed GPU memory, even more than model parameters.\n\nMemory ∝ (batch × seq len); OPT-30B @ 128×1024 needs ≈ 180 GB KV alone\n\nMajor bottleneck for long content generation and high throughput deployment.\n\n\n\n\n\nSimple cache size limits hurt accuracy significantly.\nExisting sparse attention methods often require large caches or degrade pre-trained model performance.\nLearned compression methods can be complex and add inference overhead.\n\n\n\n\n\n\nLLM attention matrices are highly sparse (&gt;95%) during inference.\n\nonly 5% of the KV cache is sufficient for decoding the same output token\n\nSuggests not all past tokens are needed.\n\n\n\n\n\n\nAccumulated attention scores follow a power-law distribution.\nA small subset of tokens (“Heavy Hitters” - H₂) contributes most value.\nH₂ correlate strongly with frequent co-occurring tokens.\n\n\n\n\n\n\nRemoving H₂ tokens drastically drops performance.\nRetaining H₂ + recent tokens maintains accuracy effectively.\n\n\n\n\n\n\nCalculating H₂ importance using only local statistics (past attention) is as effective as using global (future) information.\nMakes a practical, low-cost eviction policy feasible."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#llms-generative-inference",
+    "href": "papers/2025-05-02-h2o/index.html#llms-generative-inference",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "LLMs excel at tasks like dialogue, summarization, content creation.\nGeneration is typically autoregressive: predict next token based on previous ones."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#the-kv-cache-memory-bottleneck",
+    "href": "papers/2025-05-02-h2o/index.html#the-kv-cache-memory-bottleneck",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "KV Cache size scales linearly with sequence length and batch size.\nCan exceed GPU memory, even more than model parameters.\n\nMemory ∝ (batch × seq len); OPT-30B @ 128×1024 needs ≈ 180 GB KV alone\n\nMajor bottleneck for long content generation and high throughput deployment."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#limitations-of-prior-work",
+    "href": "papers/2025-05-02-h2o/index.html#limitations-of-prior-work",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "Simple cache size limits hurt accuracy significantly.\nExisting sparse attention methods often require large caches or degrade pre-trained model performance.\nLearned compression methods can be complex and add inference overhead."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#key-observation-attention-sparsity",
+    "href": "papers/2025-05-02-h2o/index.html#key-observation-attention-sparsity",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "LLM attention matrices are highly sparse (&gt;95%) during inference.\n\nonly 5% of the KV cache is sufficient for decoding the same output token\n\nSuggests not all past tokens are needed."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#key-observation-heavy-hitters-h₂",
+    "href": "papers/2025-05-02-h2o/index.html#key-observation-heavy-hitters-h₂",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "Accumulated attention scores follow a power-law distribution.\nA small subset of tokens (“Heavy Hitters” - H₂) contributes most value.\nH₂ correlate strongly with frequent co-occurring tokens."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#key-observation-importance-of-h₂",
+    "href": "papers/2025-05-02-h2o/index.html#key-observation-importance-of-h₂",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "Removing H₂ tokens drastically drops performance.\nRetaining H₂ + recent tokens maintains accuracy effectively."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#key-observation-local-calculation-is-sufficient",
+    "href": "papers/2025-05-02-h2o/index.html#key-observation-local-calculation-is-sufficient",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "",
+    "text": "Calculating H₂ importance using only local statistics (past attention) is as effective as using global (future) information.\nMakes a practical, low-cost eviction policy feasible."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#h₂o-heavy-hitter-oracle",
+    "href": "papers/2025-05-02-h2o/index.html#h₂o-heavy-hitter-oracle",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "H₂O: Heavy-Hitter Oracle",
+    "text": "H₂O: Heavy-Hitter Oracle\n\nA novel, low-cost KV cache eviction policy.\nGoal: Reduce memory footprint significantly while maintaining accuracy."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#h₂o-core-idea",
+    "href": "papers/2025-05-02-h2o/index.html#h₂o-core-idea",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "H₂O: Core Idea",
+    "text": "H₂O: Core Idea\n\nMaintain a fixed-size KV cache by dynamically balancing:\n\nRecent Tokens: Always keep the last N tokens (temporal locality).\nHeavy Hitter (H₂) Tokens: Keep the M tokens with the highest accumulated attention scores."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#h₂o-eviction-policy",
+    "href": "papers/2025-05-02-h2o/index.html#h₂o-eviction-policy",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "H₂O: Eviction Policy",
+    "text": "H₂O: Eviction Policy\n\n\nScore Calculation: At each step, update accumulated attention score for cached tokens based on current attention oᵢ.\nEviction: If cache is full, evict the token (excluding recent ones) with the lowest accumulated score.\nNew Token: Add the newly generated token to the recent set."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#implementation-details",
+    "href": "papers/2025-05-02-h2o/index.html#implementation-details",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "Implementation Details",
+    "text": "Implementation Details\n\nImplemented on top of FlexGen inference engine.\nEfficient management:\n\nPre-allocated memory buffers.\nCircular queue for recent tokens.\nAvoids expensive memory swaps or data movement."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#experimental-setup",
+    "href": "papers/2025-05-02-h2o/index.html#experimental-setup",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "Experimental Setup",
+    "text": "Experimental Setup\n\nModels: OPT (6.7B, 30B, 66B), LLaMA (7B, 13B, 30B), GPT-NeoX (20B).\nTasks: Summarization (XSUM, CNN/DM), QA (OpenBookQA), Reasoning (COPA, PiQA, RTE, WinoGrande), Math (MathQA). From HELM & lm-eval-harness.\nHardware: NVIDIA A100 80GB GPU.\nBaselines: Full Cache, “Local” (only recent tokens), Sparse Transformers (Strided, Fixed)."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#accuracy",
+    "href": "papers/2025-05-02-h2o/index.html#accuracy",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "Accuracy",
+    "text": "Accuracy\n\n\nH₂O (with 20% cache budget, i.e., 5x reduction) achieves comparable accuracy to the full cache model across tasks and models.\nSignificantly outperforms the “Local” baseline, which collapses at low budgets.\nH₂O sometimes acts as a regularizer, slightly improving performance."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#throughput-improvements",
+    "href": "papers/2025-05-02-h2o/index.html#throughput-improvements",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "Throughput Improvements",
+    "text": "Throughput Improvements\n\n\nH₂O enables much larger batch sizes or avoids CPU offloading due to reduced memory.\nUp to 29x throughput improvement over DeepSpeed & Accelerate.\nUp to 3x throughput improvement over FlexGen (state-of-the-art)."
+  },
+  {
+    "objectID": "papers/2025-05-02-h2o/index.html#latency-reduction",
+    "href": "papers/2025-05-02-h2o/index.html#latency-reduction",
+    "title": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+    "section": "Latency Reduction",
+    "text": "Latency Reduction\n\n\nWith the same batch size, H₂O reduces generation latency.\nUp to 1.9x lower latency compared to FlexGen for long sequences."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html",
+    "href": "papers/2026-06-27-t-mac/index.html",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "",
+    "text": "Deploying LLMs on edge devices (smartphones, robotics) enhances privacy and reduces latency.\nMemory constraints necessitate low-bit weight quantization (4-bit, 2-bit, 1-bit).\nActivation quantization lags behind due to outliers, leading to asymmetric precision (e.g., W4A16, W1A8).\n\n\n\n\n\nCurrent hardware lacks native support for mixed-precision matrix multiplication (mpGEMM).\nExisting systems resort to dequantizing low-bit weights to match high-precision activations.\n\n\n\n\n\n\n\n\nGeneral practice: Dequantize weights, then perform high-precision Matmul.\n\n\nT-MAC: Bit-serial decomposition, precompute tables, and perform table lookup + sum.\n\n\n\n\n\n\nDequantization overhead offsets the gains from bit-width reduction.\nScaling down from 4-bit to 1-bit can actually increase latency in existing systems.\nFails to fully capitalize on the reduced memory bandwidth requirements of low-bit weights.\n\n\n\n\n\nDifferent deployment scenarios require different bit-widths (1-bit to 4-bit).\nData layouts and kernels must be redesigned case-by-case for each mixed precision.\nA unified, scalable solution independent of hardware data types is urgently needed.\n\n\n\n\n\nLookup Table (LUT) methods precompute products to avoid costly multiply-accumulate operations.\nExplored on GPUs but suboptimal due to fixed architecture constraints (inadequate storage or slow access).\nLUT-based mpGEMM on CPUs remains uncharted territory, offering a promising path for edge deployment."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#llm-on-edge-low-bit-quantization",
+    "href": "papers/2026-06-27-t-mac/index.html#llm-on-edge-low-bit-quantization",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "",
+    "text": "Deploying LLMs on edge devices (smartphones, robotics) enhances privacy and reduces latency.\nMemory constraints necessitate low-bit weight quantization (4-bit, 2-bit, 1-bit).\nActivation quantization lags behind due to outliers, leading to asymmetric precision (e.g., W4A16, W1A8)."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#the-mixed-precision-gemm-challenge",
+    "href": "papers/2026-06-27-t-mac/index.html#the-mixed-precision-gemm-challenge",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "",
+    "text": "Current hardware lacks native support for mixed-precision matrix multiplication (mpGEMM).\nExisting systems resort to dequantizing low-bit weights to match high-precision activations.\n\n\n\n\n\n\n\n\nGeneral practice: Dequantize weights, then perform high-precision Matmul.\n\n\nT-MAC: Bit-serial decomposition, precompute tables, and perform table lookup + sum."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#limitations-of-dequantization",
+    "href": "papers/2026-06-27-t-mac/index.html#limitations-of-dequantization",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "",
+    "text": "Dequantization overhead offsets the gains from bit-width reduction.\nScaling down from 4-bit to 1-bit can actually increase latency in existing systems.\nFails to fully capitalize on the reduced memory bandwidth requirements of low-bit weights."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#bit-width-diversity-development-cost",
+    "href": "papers/2026-06-27-t-mac/index.html#bit-width-diversity-development-cost",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "",
+    "text": "Different deployment scenarios require different bit-widths (1-bit to 4-bit).\nData layouts and kernels must be redesigned case-by-case for each mixed precision.\nA unified, scalable solution independent of hardware data types is urgently needed."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#lut-based-computation-gpu-vs-cpu",
+    "href": "papers/2026-06-27-t-mac/index.html#lut-based-computation-gpu-vs-cpu",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "",
+    "text": "Lookup Table (LUT) methods precompute products to avoid costly multiply-accumulate operations.\nExplored on GPUs but suboptimal due to fixed architecture constraints (inadequate storage or slow access).\nLUT-based mpGEMM on CPUs remains uncharted territory, offering a promising path for edge deployment."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#t-mac-overview",
+    "href": "papers/2026-06-27-t-mac/index.html#t-mac-overview",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "T-MAC Overview",
+    "text": "T-MAC Overview\n\nT-MAC transforms data-type-centric multiplication to bit-wise table lookup.\nProvides a unified and scalable mpGEMM solution for any mixed bit-width.\n\n\n\n\n\n\n\nOffline: Bit-serial decomposition of weights, tiling, and permutation.\nOnline: Precompute LUT from activations, table look-up, and bit-serial aggregation."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#bit-serial-decomposition",
+    "href": "papers/2026-06-27-t-mac/index.html#bit-serial-decomposition",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Bit-Serial Decomposition",
+    "text": "Bit-Serial Decomposition\n\nMultiplication is transformed into bit-wise calculation based on linear equivalent transformation.\n\n\n\n\n\n\n\nDiverse weight layouts are reduced to a unified one-bit matrix layout.\nEnables linear scale-down of computation cost with bit-width reduction."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#lut-based-mpgemm-algorithm",
+    "href": "papers/2026-06-27-t-mac/index.html#lut-based-mpgemm-algorithm",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "LUT-based mpGEMM Algorithm",
+    "text": "LUT-based mpGEMM Algorithm\n\nA \\(b\\)-bit weight matrix is decomposed into \\(b\\) one-bit matrices.\nFor a group of \\(g\\) bits, there are only \\(2^g\\) possible permutations.\nActivations are precomputed with all bit patterns and saved in a table.\nmpGEMM is reduced to table lookup and addition, eliminating multiplications.\n\n\n\n\n\n\n\nLeft: T-MAC unpacks indices, looks up tables, splits/converts, and aggregates.\nRight: General practice decodes weights and performs dot-product."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#challenges-of-lut-implementation",
+    "href": "papers/2026-06-27-t-mac/index.html#challenges-of-lut-implementation",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Challenges of LUT Implementation",
+    "text": "Challenges of LUT Implementation\n\nRandom Data Access: Tables are randomly accessed, requiring residence in fast on-chip memory (registers).\nEnlarged On-Chip Memory: LUT size grows exponentially with group size \\(g\\), and vector outputs require more temporary storage."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#lut-centric-data-layout",
+    "href": "papers/2026-06-27-t-mac/index.html#lut-centric-data-layout",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "LUT-Centric Data Layout",
+    "text": "LUT-Centric Data Layout\n\nStores lookup tables in registers to accelerate random accesses.\nLeverages hardware-specific instructions (e.g., TBL on ARM, PSHUF on x86).\nDesigns axis reordering and tiling to enhance data reuse and reduce memory pressure."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#axis-reordering-tiling",
+    "href": "papers/2026-06-27-t-mac/index.html#axis-reordering-tiling",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Axis Reordering & Tiling",
+    "text": "Axis Reordering & Tiling\n\nAxis Reordering: Swaps loop order to temporal axis (\\(K\\)) first, maintaining a small lookup table \\([1, 2^g]\\) instead of a massive one.\nTiling: Carefully considers tile sizes \\(N_{tn}, M_{tm}, K_{tk}\\) to maximize lookup table reuse across the weight matrix."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#weight-permutation-interleaving",
+    "href": "papers/2026-06-27-t-mac/index.html#weight-permutation-interleaving",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Weight Permutation & Interleaving",
+    "text": "Weight Permutation & Interleaving\n\nWeight Permutation: Permutes weight matrix offline to align tile loads with sequential memory transactions, maximizing DRAM bandwidth.\nWeight Interleaving: Reorders packed weights to eliminate backward reordering overhead during little-endian unpacking.\n\n\n\n\n\n\n\nInterleaved weights can be unpacked sequentially using simple AND and SHR+AND operations."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#reducing-lut-storage-mirror-consolidation",
+    "href": "papers/2026-06-27-t-mac/index.html#reducing-lut-storage-mirror-consolidation",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Reducing LUT Storage: Mirror Consolidation",
+    "text": "Reducing LUT Storage: Mirror Consolidation\n\nExploits the symmetrical properties of table values (positive/negative pairs).\nOnly half of the table values need to be explicitly stored; the rest are reconstructed by negation.\nLossless compression that halves the table length and accelerates precomputation.\n\n\n\n\n\n\n\nMirror consolidation halves the table length; table quantization reduces the table width."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#reducing-lut-storage-table-quantization",
+    "href": "papers/2026-06-27-t-mac/index.html#reducing-lut-storage-table-quantization",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Reducing LUT Storage: Table Quantization",
+    "text": "Reducing LUT Storage: Table Quantization\n\nQuantizes table values (e.g., fp16 to int8) with a scaling factor to reduce table width.\nUses finer granularity and dynamic quantization to minimize accuracy degradation.\nCombined with mirror consolidation, reduces storage footprint up to a quarter without accuracy loss."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#hardware-intrinsics-for-fast-lookup",
+    "href": "papers/2026-06-27-t-mac/index.html#hardware-intrinsics-for-fast-lookup",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Hardware Intrinsics for Fast Lookup",
+    "text": "Hardware Intrinsics for Fast Lookup\n\nUtilizes 8-bit look-up instructions provided by ARM NEON and Intel AVX2.\n\n\n\n\n\n\n\nNEON’s 128-bit width perfectly accommodates \\(g=4\\) tables.\nAVX2 duplicates tables to fill 256-bit registers for parallel lookups.\nFloat16 tables are split into two 8-bit LUTs and recombined."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#fast-8-bit-aggregation",
+    "href": "papers/2026-06-27-t-mac/index.html#fast-8-bit-aggregation",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Fast 8-bit Aggregation",
+    "text": "Fast 8-bit Aggregation\n\nAggregates look-up results in low bit (int8) before converting to higher precision (fp16).\nUses avg/rhadd instructions to compute averages and minimize overflow without int16 conversion.\nDoubles throughput compared to int16 aggregation, offered as an optional optimization."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#bit-serial-linear-transformation",
+    "href": "papers/2026-06-27-t-mac/index.html#bit-serial-linear-transformation",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Bit-Serial Linear Transformation",
+    "text": "Bit-Serial Linear Transformation\n\nIntroduces a linear transformation \\(f(v_i)\\) to bit values to speed up precomputation and reduce quantization error.\nSelects \\(s_0 = -1\\) and \\(s_1 = 1\\) to circumvent float-multiply instructions and minimize LUT entry differences.\n\n\n\n\n\n\n\nAdjusts the decomposition of \\(W\\) to incorporate the transformed values and bias terms."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#experimental-setup",
+    "href": "papers/2026-06-27-t-mac/index.html#experimental-setup",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Experimental Setup",
+    "text": "Experimental Setup\n\nDevices: Apple M2-Ultra, Raspberry Pi 5, Jetson AGX Orin, Surface Book 3.\nModels: Llama-2 (1/2/3/4-bit) and BitNet (1-bit, 1.58-bit).\nBaselines: State-of-the-art llama.cpp (dequantization-based kernels)."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#mpgemv-kernel-performance",
+    "href": "papers/2026-06-27-t-mac/index.html#mpgemv-kernel-performance",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "mpGEMV Kernel Performance",
+    "text": "mpGEMV Kernel Performance\n\nllama.cpp fails to gain speedup as bits decrease, even slowing down at 3-bit due to decoding overhead.\nT-MAC achieves linear speedup with bit reduction across all devices.\n\n\n\n\n\n\n\nSingle-threaded mpGEMV: Up to 11.2x speedup for 1-bit.\nMulti-threaded mpGEMV: Constrained by memory bandwidth but still achieves significant speedup (e.g., 4.0x at 2-bit)."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#mpgemm-kernel-performance",
+    "href": "papers/2026-06-27-t-mac/index.html#mpgemm-kernel-performance",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "mpGEMM Kernel Performance",
+    "text": "mpGEMM Kernel Performance\n\nEvaluated with a sequence length of 256 for multi-threading.\nT-MAC achieves maximum speedups of 4.0x, 5.3x, and 5.3x on RBP, Orin, and Surface for 2-bit.\nM2-Ultra benefits from AMX coprocessor, but T-MAC still achieves 2.0x speedup for 1-bit."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#end-to-end-inference-throughput",
+    "href": "papers/2026-06-27-t-mac/index.html#end-to-end-inference-throughput",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "End-to-End Inference Throughput",
+    "text": "End-to-End Inference Throughput\n\nIntegrated T-MAC kernels into llama.cpp for real-world model evaluation.\n\n\n\n\n\n\n\nSingle-threaded: Up to 6.7x speedup on Raspberry Pi 5.\nMulti-threaded: Peak of 71 tokens/sec on M2-Ultra and 11 tokens/sec on Raspberry Pi 5 for BitNet-3B."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#power-and-energy-consumption",
+    "href": "papers/2026-06-27-t-mac/index.html#power-and-energy-consumption",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Power and Energy Consumption",
+    "text": "Power and Energy Consumption\n\nMeasured on M2-Ultra using multi-threaded inference.\n\n\n\n\n\n\n\nPower consumption reduced by 10.3% to 17.3% across models.\nTotal energy consumption reduced by 20.6% to 61.2% due to combined power and latency gains."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#optimization-breakdown",
+    "href": "papers/2026-06-27-t-mac/index.html#optimization-breakdown",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Optimization Breakdown",
+    "text": "Optimization Breakdown\n\nProgressive application of optimizations on M2-Ultra multi-threaded GEMV.\n\n\n\n\n\n\n\nTable Quantization (TQ): Makes performance competitive with llama.cpp.\nTiling & Permutation: Yields up to 1.45x and 1.39x speedups respectively.\nInterleaving: Eliminates unpacking overhead, achieving 1.42x speedup."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#error-analysis",
+    "href": "papers/2026-06-27-t-mac/index.html#error-analysis",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "Error Analysis",
+    "text": "Error Analysis\n\nTwo error sources: table quantization (algorithmic) and fast aggregation (instruction execution).\n\n\n\n\n\n\n\nTable quantization introduces negligible NMSE difference compared to llama.cpp.\nFast aggregation increases NMSE by 2.5x but is optional for latency-critical, accuracy-tolerant scenarios.\nEnd-to-end model quality (perplexity, accuracy) remains identical to llama.cpp without fast aggregation."
+  },
+  {
+    "objectID": "papers/2026-06-27-t-mac/index.html#cpu-vs-gpu-comparison",
+    "href": "papers/2026-06-27-t-mac/index.html#cpu-vs-gpu-comparison",
+    "title": "T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge",
+    "section": "CPU vs GPU Comparison",
+    "text": "CPU vs GPU Comparison\n\nCompared T-MAC (CPU) with llama.cpp (GPU) on NVIDIA Jetson AGX Orin.\n\n\n\n\n\n\n\nT-MAC significantly outperforms GPU on W1A16 and achieves comparable performance on W2A16/W3A16.\nEnd-to-end: T-MAC (CPU) achieves 2.3x better energy efficiency than llama.cpp (GPU) despite slightly lower throughput."
+  }
+]
