@@ -4,8 +4,8 @@
 Pipeline (per PRD F1):
   1. MinerU Precision (vlm) parses PDF -> full markdown + cropped figures + content_list.json
   2. Build a figure catalog (filename, caption, surrounding context) from content_list.json
-  3. Single OpenAI-compatible Chat Completions call (vision gated by MODEL_SUPPORTS_VISION)
-     -> structured JSON {slug, title, ..., hero_figure, body_markdown}
+  3. LLM call (OpenAI-compatible Chat Completions OR Google Gemini; auto-selected by
+     which API key is set) -> structured metadata + article body markdown
   4. Python assembles papers/<date>-<slug>/index.qmd (pyyaml frontmatter + body)
 
 Usage:
@@ -18,6 +18,13 @@ Usage:
 MinerU parse results are cached under .mineru_cache/<sha256>/ so re-runs (including
 --regenerate) skip the slow/expensive MinerU API call. The cache is invalidated
 automatically when MINERU_MODEL or MINERU_LANGUAGE change.
+
+LLM backend (experimental): Google Gemini is used when GOOGLE_API_KEY is set,
+otherwise the OpenAI-compatible endpoint. Set LLM_BACKEND=openai|google to
+override. The OpenAI backend reads OPENAI_BASE_URL + OPENAI_API_KEY + MODEL; the
+Google backend reads GOOGLE_API_BASE_URL + GOOGLE_API_KEY + GOOGLE_API_MODEL.
+Gemini models are natively multimodal, so vision (attaching figures as images)
+is auto-enabled for the google backend.
 """
 from __future__ import annotations
 
@@ -61,6 +68,11 @@ QUARTO_BIN = os.environ.get("QUARTO_BIN") or shutil.which("quarto") or \
     str(Path.home() / ".local/opt/quarto-1.9.38/bin/quarto")
 
 
+def die(msg: str) -> "NoReturn":
+    print(f"error: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+
 def load_env(path: Path) -> None:
     """Tiny .env loader (KEY=VALUE lines); real os.environ wins over file."""
     if not path.exists():
@@ -81,17 +93,28 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 MODEL = os.environ.get("MODEL", "")
 SUPPORTS_VISION = os.environ.get("MODEL_SUPPORTS_VISION", "false").lower() == "true"
 SUPPORTS_STRICT_SCHEMA = os.environ.get("MODEL_SUPPORTS_STRICT_JSON_SCHEMA", "false").lower() == "true"
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
+GOOGLE_API_BASE_URL = os.environ.get("GOOGLE_API_BASE_URL") or None
+GOOGLE_API_MODEL = os.environ.get("GOOGLE_API_MODEL", "")
 
-
-def die(msg: str) -> "NoReturn":
-    print(f"error: {msg}", file=sys.stderr)
-    sys.exit(1)
+# LLM backend selection: an explicit LLM_BACKEND (openai|google) wins; otherwise
+# auto-detect by which API key is present. Gemini models are natively multimodal,
+# so vision (attaching figures as images) is auto-enabled for the google backend.
+BACKEND = (os.environ.get("LLM_BACKEND") or "").strip().lower()
+if BACKEND and BACKEND not in ("openai", "google"):
+    die(f"LLM_BACKEND must be 'openai' or 'google', got {BACKEND!r}")
+if not BACKEND:
+    BACKEND = "google" if GOOGLE_API_KEY else "openai"
+EFFECTIVE_VISION = SUPPORTS_VISION or (BACKEND == "google")
 
 
 def check_env() -> None:
-    missing = [k for k, v in [("MINERU_API_TOKEN", MINERU_TOKEN),
-                             ("OPENAI_API_KEY", OPENAI_API_KEY),
-                             ("MODEL", MODEL)] if not v]
+    required = [("MINERU_API_TOKEN", MINERU_TOKEN)]
+    if BACKEND == "google":
+        required += [("GOOGLE_API_KEY", GOOGLE_API_KEY), ("GOOGLE_API_MODEL", GOOGLE_API_MODEL)]
+    else:
+        required += [("OPENAI_API_KEY", OPENAI_API_KEY), ("MODEL", MODEL)]
+    missing = [k for k, v in required if not v]
     if missing:
         die(f"missing env vars: {', '.join(missing)} (set in .env)")
 
@@ -497,7 +520,7 @@ def build_user_message(paper_md: str, figs: list[Figure], examples: list[tuple[s
     """Returns the user message dict (content is str or multipart list for vision).
     The system prompt is NOT included — it is injected by call_llm based on approach."""
     user_text = build_user_text(paper_md, figs, examples)
-    if SUPPORTS_VISION and figs:
+    if EFFECTIVE_VISION and figs:
         content: list = [{"type": "text", "text": user_text}]
         for f in figs[:VISION_FIG_CAP]:
             try:
@@ -564,13 +587,26 @@ def _parse_delimiter_response(content: str) -> tuple[dict, str]:
 
 
 def call_llm(user_msg: dict) -> tuple[dict, str]:
-    """Dual-message LLM call: returns (metadata_dict, body_markdown_str).
+    """Dispatch to the configured LLM backend. Returns (metadata_dict, body_markdown).
+
+    Backend is auto-selected: Google Gemini if GOOGLE_API_KEY is set, else the
+    OpenAI-compatible endpoint. Force via LLM_BACKEND=openai|google if both keys
+    are present. Both backends share the dual-message design: a forced tool /
+    function call captures metadata, and the message content carries the article
+    body; a <<<METADATA>>>/<<<BODY>>> delimiter mode is the fallback."""
+    if BACKEND == "google":
+        return _call_llm_google(user_msg)
+    return _call_llm_openai(user_msg)
+
+
+def _call_llm_openai(user_msg: dict) -> tuple[dict, str]:
+    """OpenAI-compatible Chat Completions backend. See call_llm for the design.
 
     Primary approach: tool call for metadata + message content for body.
     Fallback (if tools unsupported): <<<METADATA>>> / <<<BODY>>> delimiters.
-    The body is always raw markdown — never JSON-escaped."""
+    The body is always raw markdown — never JSON-encoded."""
     client = OpenAI(base_url=OPENAI_BASE_URL, api_key=OPENAI_API_KEY)
-    print(f"[llm] calling {MODEL} (vision={SUPPORTS_VISION}, dual-message) ...")
+    print(f"[llm] calling {MODEL} via OpenAI-compatible API (vision={EFFECTIVE_VISION}, dual-message) ...")
 
     # --- Primary: tool-call approach ---
     msgs = [{"role": "system", "content": SYSTEM_PROMPT_TOOLS}, user_msg]
@@ -660,6 +696,183 @@ def _request_body_only(client: OpenAI, messages: list, metadata: dict) -> str:
         temperature=0.3,
     )
     return (resp.choices[0].message.content or "").strip()
+
+
+# --------------------------------------------------------------------------- #
+# Google Gemini backend (experimental)
+# --------------------------------------------------------------------------- #
+# Lazily imports google-genai so the OpenAI backend never requires it installed.
+# Mirrors _call_llm_openai's dual-message design: a forced function call captures
+# metadata, the text content carries the article body, with a delimiter fallback.
+
+def _openai_tool_to_gemini(oai_tool: dict) -> dict:
+    """Convert an OpenAI-style function tool to a Gemini FunctionDeclaration dict.
+
+    Gemini's schema is near-identical to OpenAI's but wants uppercase type enums
+    and the declaration without the {'type':'function','function':{...}} wrapper."""
+    fn = oai_tool["function"]
+    params = fn.get("parameters", {})
+
+    def norm(t):
+        return t.upper() if isinstance(t, str) else t
+
+    props = {}
+    for k, v in params.get("properties", {}).items():
+        v = dict(v)
+        if "type" in v:
+            v["type"] = norm(v["type"])
+        if v.get("type") == "ARRAY" and isinstance(v.get("items"), dict):
+            v["items"] = {**v["items"], "type": norm(v["items"].get("type", "STRING"))}
+        props[k] = v
+    return {
+        "name": fn["name"],
+        "description": fn["description"],
+        "parameters": {
+            "type": norm(params.get("type", "object")),
+            "properties": props,
+            "required": params.get("required", []),
+        },
+    }
+
+
+def _openai_msg_to_gemini_parts(user_msg: dict) -> list:
+    """Convert an OpenAI-style user message (str or multipart content list) into
+    Gemini Part objects. Image data URIs are decoded to inline_data Blobs."""
+    from google.genai import types
+    content = user_msg["content"]
+    if isinstance(content, str):
+        return [types.Part(text=content)]
+    parts = []
+    for item in content:
+        t = item.get("type")
+        if t == "text":
+            parts.append(types.Part(text=item["text"]))
+        elif t == "image_url":
+            url = item["image_url"]["url"]
+            if url.startswith("data:"):
+                header, b64 = url.split(",", 1)
+                mime = header.split(":")[1].split(";")[0]
+                parts.append(types.Part(inline_data=types.Blob(
+                    data=base64.b64decode(b64), mime_type=mime)))
+    return parts
+
+
+def _parse_gemini_response(resp) -> tuple[dict, str]:
+    """Extract (metadata_dict, body_text) from a Gemini GenerateContentResponse.
+
+    Walks candidate parts: function_call args become metadata; text parts are
+    joined into the article body."""
+    metadata: dict = {}
+    body_parts: list[str] = []
+    for cand in (resp.candidates or []):
+        if not cand.content or not cand.content.parts:
+            continue
+        for part in cand.content.parts:
+            if getattr(part, "text", None):
+                body_parts.append(part.text)
+            elif getattr(part, "function_call", None):
+                fc = part.function_call
+                if fc.name == "set_paper_metadata":
+                    metadata = dict(fc.args or {})
+    return metadata, "\n".join(body_parts).strip()
+
+
+def _request_body_only_google(client, contents: list, metadata: dict) -> str:
+    """Second Gemini call: write just the article body (metadata already captured)."""
+    from google.genai import types
+    meta_summary = ", ".join(f"{k}={metadata[k]!r}" for k in ["slug", "title", "subtitle"])
+    followup = contents + [
+        types.Content(role="model", parts=[types.Part(text="(metadata captured via function call)")]),
+        types.Content(role="user", parts=[types.Part(
+            text=f"The metadata has been captured ({meta_summary}). Now write ONLY the full "
+                 "article body as your message content — raw Quarto markdown following the "
+                 "canonical style. Do NOT call any tools. Do NOT output JSON.")]),
+    ]
+    cfg = types.GenerateContentConfig(
+        system_instruction=SYSTEM_PROMPT_TOOLS,
+        temperature=0.3,
+        max_output_tokens=12000,
+    )
+    resp = client.models.generate_content(model=GOOGLE_API_MODEL, contents=followup, config=cfg)
+    return (resp.text or "").strip()
+
+
+def _call_llm_google(user_msg: dict) -> tuple[dict, str]:
+    """Google Gemini backend (experimental). Mirrors _call_llm_openai's dual-message
+    design using Gemini function calling + multimodal inline images.
+
+    Reads GOOGLE_API_BASE_URL + GOOGLE_API_KEY + GOOGLE_API_MODEL (not the shared
+    MODEL / OPENAI_* vars). Lazily imports google-genai so the OpenAI backend
+    never requires it."""
+    from google import genai
+    from google.genai import types
+
+    http_opts = types.HttpOptions(base_url=GOOGLE_API_BASE_URL) if GOOGLE_API_BASE_URL else None
+    client = genai.Client(api_key=GOOGLE_API_KEY, http_options=http_opts)
+    print(f"[llm] calling {GOOGLE_API_MODEL} via Google Gemini "
+          f"(base_url={GOOGLE_API_BASE_URL or 'default'}, vision={EFFECTIVE_VISION}, dual-message) ...")
+    contents = [types.Content(role="user", parts=_openai_msg_to_gemini_parts(user_msg))]
+
+    tool = types.Tool(function_declarations=[_openai_tool_to_gemini(METADATA_TOOL)])
+    tool_cfg = types.ToolConfig(function_calling_config=types.FunctionCallingConfig(
+        mode="ANY", allowed_function_names=["set_paper_metadata"]))
+    base_cfg = types.GenerateContentConfig(
+        system_instruction=SYSTEM_PROMPT_TOOLS,
+        tools=[tool],
+        tool_config=tool_cfg,
+        temperature=0.3,
+        max_output_tokens=12000,
+    )
+
+    # --- Primary: forced function-call approach ---
+    try:
+        resp = client.models.generate_content(model=GOOGLE_API_MODEL, contents=contents, config=base_cfg)
+        metadata, body = _parse_gemini_response(resp)
+        if metadata:
+            if not body:
+                print("[llm] google function call returned but no content; requesting body...")
+                body = _request_body_only_google(client, contents, metadata)
+            if body:
+                _validate_metadata(metadata)
+                usage = resp.usage_metadata
+                print(f"[llm] ok (google: metadata via function_call, body via content, "
+                      f"tokens={usage.total_token_count if usage else '?'})")
+                return metadata, body
+            print("[llm] google function-call approach: metadata ok but body still empty")
+    except Exception as e:
+        print(f"[llm] google function-call approach failed: {e}")
+
+    # --- Fallback: delimiter approach ---
+    print("[llm] google falling back to delimiter approach...")
+    delim_cfg = types.GenerateContentConfig(
+        system_instruction=SYSTEM_PROMPT_DELIMITERS,
+        temperature=0.3,
+        max_output_tokens=12000,
+    )
+    raw = ""
+    cur_contents = contents
+    for attempt in range(2):
+        try:
+            resp = client.models.generate_content(model=GOOGLE_API_MODEL, contents=cur_contents, config=delim_cfg)
+            raw = resp.text or ""
+            metadata, body = _parse_delimiter_response(raw)
+            usage = resp.usage_metadata
+            print(f"[llm] ok (google delimiter, tokens={usage.total_token_count if usage else '?'})")
+            return metadata, body
+        except Exception as e:
+            print(f"[llm] google delimiter attempt {attempt+1} failed: {e}")
+            if raw:
+                print(f"[llm]   raw len={len(raw)} head={raw[:80]!r} tail={raw[-80:]!r}")
+            if attempt == 0:
+                cur_contents = cur_contents + [
+                    types.Content(role="model", parts=[types.Part(text=raw)]),
+                    types.Content(role="user", parts=[types.Part(
+                        text=f"Your output was invalid ({e}). Re-output with <<<METADATA>>> "
+                             "and <<<BODY>>> markers as instructed.")]),
+                ]
+            else:
+                die(f"Google LLM failed after all approaches: {e}")
+    die("unreachable")
 
 
 # --------------------------------------------------------------------------- #
