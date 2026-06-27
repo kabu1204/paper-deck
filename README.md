@@ -20,9 +20,10 @@ paper.pdf  ──MinerU──▶  markdown + figures  ──LLM──▶  index.
 
 ```
 generate.py                  # PDF -> index.qmd pipeline (MinerU + LLM + assembly)
+migrate.py                   # one-time batch migration of historical .md decks
 index.qmd                    # homepage: Quarto listing of all papers
 _quarto.yml                  # site config (theme: flatly, font: Lora)
-styles.css                   # venue-badge + font overrides
+styles.css                   # venue-badge, font, and title-block layout overrides
 papers/                      # published articles (one folder per paper)
   <date>-<slug>/
     index.qmd                # frontmatter + canonical article body
@@ -114,6 +115,23 @@ python generate.py --preview
 ```bash
 quarto preview
 ```
+
+### Migrate historical presentations
+
+`migrate.py` batch-converts existing `.md` presentation decks (with frontmatter + images) into canonical `papers/<date>-<slug>/index.qmd` articles:
+
+```bash
+# Migrate all source dirs at the repo root:
+python migrate.py
+
+# Migrate specific dirs:
+python migrate.py ariadne flashattn
+
+# Preview without writing:
+python migrate.py --dry-run
+```
+
+For each source directory, it parses the `.md` frontmatter, uses the file's modification date as the paper date, normalizes the body (strips `---` separators, `\centering`, fenced divs, `width=XX%`; adds `fig-align=center`; rewrites image paths to `assets/`; ensures blank lines around figures), copies referenced images, and generates heuristic metadata (categories, description, hero figure, background).
 
 ### Deploy
 
