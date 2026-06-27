@@ -12,11 +12,11 @@ format: html
 
 ## The number of cores is increasing.
 
-![](cores.png){ width=70% }
+![](cores.png)
 
 ## The devices are getting faster and quicker.
 
-![](ssds.png){ width=70% }
+![](ssds.png)
 
 ## XFS
 
@@ -61,7 +61,7 @@ format: html
 
 ## Scalability Analysis: Latency
 
-![](scalability-2.png){ width=80% }
+![](scalability-2.png)
 
 ## Scalability Analysis: Lock waiting time
 

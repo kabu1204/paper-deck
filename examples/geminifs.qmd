@@ -19,19 +19,19 @@ format: html
 
 - One redundant copy, CPU-centric, heavy synchronization cost
 
-![](./gpu-direct-gds.drawio.png){width=45%}
+![](./gpu-direct-gds.drawio.png)
 
 ## Existing GPU Storage Expansion Methods: CPU-initiated GPU Direct Storage
 
 - CPU-centric, heavy synchronization cost
 
-![](./gpu-direct-gds.drawio.png){width=40%}
+![](./gpu-direct-gds.drawio.png)
 
 ## Existing GPU Storage Expansion Methods: GPU-initiated GPU Direct Storage
 
 - GPU-centric, no filesystem semantic
 
-![](./gpu-direct-bam.drawio.png){width=40%}
+![](./gpu-direct-bam.drawio.png)
 
 ## Existing GPU Storage Expansion Methods: Conclusion
 
@@ -43,7 +43,7 @@ format: html
 
 ## Motivation
 
-![](./gpu-direct-geminifs.drawio.png){width=25%}
+![](./gpu-direct-geminifs.drawio.png)
 
 -  A lightweight GPU file system called Companion File System, which *coexists* with the host file system.
 -  On the host, the host file system is used for:
@@ -100,7 +100,7 @@ format: html
 
 ## System Architecture
 
-![](./overview.png){width=55%}
+![](./overview.png)
 
 - GPU Virtual Disk Format (GVDK) for metadata embedding
 - CPU/GPU Shared NVMe Driver
@@ -109,7 +109,7 @@ format: html
 
 ## CPU-Bypassing via Metadata Embedding
 
-![](layout.png){width=55%}
+![](layout.png)
 
 - GPU Virtual Disk Format (GVDK)
   - **Embedded Metadata**
@@ -183,9 +183,9 @@ format: html
 
 ## GPT2-124M training
 
-![](param.png){width=70%}
+![](param.png)
 
-![](train.png){width=70%}
+![](train.png)
 
 - Each training step consists of a forward pass and a backward pass
   - A checkpoint is saved after each step.

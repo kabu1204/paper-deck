@@ -24,7 +24,7 @@ format: html
 
 ## The KV Cache Memory Bottleneck
 
-![](assets/image-1.png){width=70%}
+![](assets/image-1.png)
 
 - **KV Cache size scales linearly with sequence length and batch size.**
 - Can exceed GPU memory, even more than model parameters.
@@ -39,7 +39,7 @@ format: html
 
 ## Key Observation: Attention Sparsity
 
-![](assets/image-2.png){width=50%}
+![](assets/image-2.png)
 
 - LLM attention matrices are highly sparse (>95%) during inference.
   - only 5% of the KV cache is sufficient for decoding the same output token
@@ -47,7 +47,7 @@ format: html
 
 ## Key Observation: Heavy Hitters (H₂)
 
-![](assets/image-3.png){width=70%}
+![](assets/image-3.png)
 
 - Accumulated attention scores follow a power-law distribution.
 - A small subset of tokens ("Heavy Hitters" - H₂) contributes most value.
@@ -55,14 +55,14 @@ format: html
 
 ## Key Observation: Importance of H₂
 
-![](assets/image-4.png){width=70%}
+![](assets/image-4.png)
 
 - Removing H₂ tokens drastically drops performance.
 - Retaining H₂ + recent tokens maintains accuracy effectively.
 
 ## Key Observation: Local Calculation is Sufficient
 
-![](assets/image-5.png){width=50%}
+![](assets/image-5.png)
 
 - Calculating H₂ importance using only *local* statistics (past attention) is as effective as using global (future) information.
 - Makes a practical, low-cost eviction policy feasible.
@@ -82,7 +82,7 @@ format: html
 
 ## H₂O: Eviction Policy
 
-![](assets/image-6.png){width=35%}
+![](assets/image-6.png)
 
 - **Score Calculation:** At each step, update accumulated attention score for cached tokens based on current attention `oᵢ`.
 - **Eviction:** If cache is full, evict the token (excluding recent ones) with the *lowest* accumulated score.

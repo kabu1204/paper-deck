@@ -89,7 +89,7 @@ format: html
 - Naive row-major layouts suffer severe bank conflicts when loading into tensor cores.
 - TK uses swizzled layouts (32B, 64B, 128B) to eliminate conflicts while maintaining hardware support.
 
-![](assets/fig4.png){width=70% fig-align=center}
+![](assets/fig4.png){fig-align=center}
 
 ## Block Parallelism: The LCSF Template
 
@@ -101,7 +101,7 @@ format: html
 - Load/store workers manage HBM to SRAM movement using TMA.
 - Compute workers operate on fast memory, overlapping with asynchronous I/O.
 
-![](assets/fig5.png){width=70% fig-align=center}
+![](assets/fig5.png){fig-align=center}
 
 ## Multi-stage Pipeline Buffers
 
@@ -113,7 +113,7 @@ format: html
 - Higher occupancy increases overlap but causes register contention.
 - TK parametrizes worker counts, letting developers easily tune the Pareto frontier.
 
-![](assets/fig6.png){width=70% fig-align=center}
+![](assets/fig6.png){fig-align=center}
 
 ## Grid Parallelism: Persistent Block Launch
 
@@ -132,14 +132,14 @@ format: html
 - A single 40-line TK GEMM kernel matches CuBLAS and CUTLASS performance.
 - Avoids the 600MB+ complexity of highly tuned CuBLAS variants.
 
-![](assets/fig7.png){width=70% fig-align=center}
+![](assets/fig7.png){fig-align=center}
 
 ## Workhorse Kernels: Attention
 
 - Matches FlashAttention-3 on non-causal forward passes.
 - Outperforms FA3 by 10-40% on causal and non-causal backward passes.
 
-![](assets/fig8.png){width=70% fig-align=center}
+![](assets/fig8.png){fig-align=center}
 
 ## Emerging Architectures: Linear Attention
 
@@ -151,7 +151,7 @@ format: html
 - Outperforms FlashFFTConv by up to 7.9x on long convolutions.
 - Beats Triton-based Mamba-2 kernels by over 3x through easy operation fusion.
 
-![](assets/fig9.png){width=80% fig-align=center}
+![](assets/fig9.png){fig-align=center}
 
 ## Profiling: Long Convolution
 
@@ -168,14 +168,14 @@ format: html
 - Supports FP8 precision GEMMs, matching CuBLAS performance.
 - Handles unaligned workloads via automatic padding without sacrificing performance.
 
-![](assets/fig10.png){width=60% fig-align=center}
+![](assets/fig10.png){fig-align=center}
 
 ## Extensibility: Consumer & Personal Hardware
 
 - Competitive performance on NVIDIA RTX 4090 and Apple M2 Pro.
 - Demonstrates cross-platform portability with minimal code changes.
 
-![](assets/fig11.png){width=70% fig-align=center}
+![](assets/fig11.png){fig-align=center}
 
 ## Simplicity: Library Size & Lines of Code
 

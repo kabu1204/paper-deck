@@ -85,7 +85,7 @@ image: assets/overview.png
   - **ITF:** Important Token Identification
   - **PKM:** Importance-Informed Prefix KV Management (Reordering & Caching)
 
-![](assets/overview.png){width=60%}
+![](assets/overview.png)
 
 ## IMPRESS Dataflow
 
@@ -108,7 +108,7 @@ image: assets/overview.png
 - **Observation:** Similarity persists across different importance sampling ratios and LLM model sizes/depths.
 - Similarity tends to be lower for smaller ratios, smaller models, and deeper layers, but still significant.
 
-![](assets/similarity-bar.png){width=80%}
+![](assets/similarity-bar.png)
 
 ## Similarity-Guided Important Token Identification (ITF)
 

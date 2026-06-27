@@ -53,7 +53,7 @@ format: html
 
 ## Overview
 
-![](assets/image.png){width=80% fig-align=center}
+![](assets/image.png){fig-align=center}
 
 - **Block-sparse format** for unified KV-cache storage
 - **Customizable attention template** with JIT compilation
@@ -61,7 +61,7 @@ format: html
 
 ## KV-Cache Storage: Block-Sparse Matrix as Unified Format
 
-![Page Table represented in BSR format](assets/image-1.png){width=70% fig-align=center}
+![Page Table represented in BSR format](assets/image-1.png){fig-align=center}
 
 - Page tables, radix trees, and sparse masks unified under **Block Sparse Row (BSR) format**
   - Each block is either zeros or non-zeros.
@@ -77,7 +77,7 @@ format: html
 
 ## Composable Formats for Memory Efficiency
 
-![Composable formats for shared-prefix decomposition](assets/image-2.png){width=55% fig-align=center}
+![Composable formats for shared-prefix decomposition](assets/image-2.png){fig-align=center}
 
 - Multiple block-sparse formats instead of single format
 - Shared prefixes: larger block sizes for shared memory access
@@ -85,7 +85,7 @@ format: html
 
 ## Data Transfer: Global to Shared Memory
 
-![](assets/image-3.png){width=80% fig-align=center}
+![](assets/image-3.png){fig-align=center}
 
 - Tiles transferred from scattered global memory to contiguous shared memory
 - Asynchronous copy instructions (LDGSTS) with 128B width
@@ -101,7 +101,7 @@ format: html
 
 ## Load-Balanced Runtime Scheduler
 
-![](assets/image-4.png){width=70% fig-align=center}
+![](assets/image-4.png){fig-align=center}
 
 - Splits each query tile's KV into chunks
 - Priority queue assigns chunks to CTAs balancing by cost
@@ -131,13 +131,13 @@ format: html
 
 ## End-to-End LLM Serving Performance
 
-![](assets/image-5.png){width=70% fig-align=center}
+![](assets/image-5.png){fig-align=center}
 
 - FlashInfer shows consistent ITL and TTFT improvements over Triton backend
 
 ## Input Dynamism
 
-![](assets/image-6.png){width=80% fig-align=center}
+![](assets/image-6.png){fig-align=center}
 
 - Batch size 16, three sequence length distributions
   - Constant (1024), Uniform (512 to 1024), Skewed (Zipf, avg 1024)
@@ -146,7 +146,7 @@ format: html
 
 ## Customizability: Long-Context Inference
 
-![](assets/image-7.png){width=70% fig-align=center}
+![](assets/image-7.png){fig-align=center}
 
 - Streaming-LLM with fused RoPE + attention kernel
 - **28-30% latency reduction** across different settings

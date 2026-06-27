@@ -36,7 +36,7 @@ format: html
 - Current hardware lacks native support for mixed-precision matrix multiplication (mpGEMM).
 - Existing systems resort to dequantizing low-bit weights to match high-precision activations.
 
-![](assets/fig9.png){width=70% fig-align=center}
+![](assets/fig9.png){fig-align=center}
 
 - (a) General practice: Dequantize weights, then perform high-precision Matmul.
 - (b) T-MAC: Bit-serial decomposition, precompute tables, and perform table lookup + sum.
@@ -66,7 +66,7 @@ format: html
 - T-MAC transforms data-type-centric multiplication to bit-wise table lookup.
 - Provides a unified and scalable mpGEMM solution for any mixed bit-width.
 
-![](assets/fig2.png){width=70% fig-align=center}
+![](assets/fig2.png){fig-align=center}
 
 - Offline: Bit-serial decomposition of weights, tiling, and permutation.
 - Online: Precompute LUT from activations, table look-up, and bit-serial aggregation.
@@ -75,7 +75,7 @@ format: html
 
 - Multiplication is transformed into bit-wise calculation based on linear equivalent transformation.
 
-![](assets/fig4.png){width=60% fig-align=center}
+![](assets/fig4.png){fig-align=center}
 
 - Diverse weight layouts are reduced to a unified one-bit matrix layout.
 - Enables linear scale-down of computation cost with bit-width reduction.
@@ -87,7 +87,7 @@ format: html
 - Activations are precomputed with all bit patterns and saved in a table.
 - mpGEMM is reduced to table lookup and addition, eliminating multiplications.
 
-![](assets/fig20.png){width=70% fig-align=center}
+![](assets/fig20.png){fig-align=center}
 
 - Left: T-MAC unpacks indices, looks up tables, splits/converts, and aggregates.
 - Right: General practice decodes weights and performs dot-product.
@@ -113,7 +113,7 @@ format: html
 - **Weight Permutation:** Permutes weight matrix offline to align tile loads with sequential memory transactions, maximizing DRAM bandwidth.
 - **Weight Interleaving:** Reorders packed weights to eliminate backward reordering overhead during little-endian unpacking.
 
-![](assets/fig11.png){width=70% fig-align=center}
+![](assets/fig11.png){fig-align=center}
 
 - Interleaved weights can be unpacked sequentially using simple AND and SHR+AND operations.
 
@@ -123,7 +123,7 @@ format: html
 - Only half of the table values need to be explicitly stored; the rest are reconstructed by negation.
 - Lossless compression that halves the table length and accelerates precomputation.
 
-![](assets/fig18.png){width=60% fig-align=center}
+![](assets/fig18.png){fig-align=center}
 
 - Mirror consolidation halves the table length; table quantization reduces the table width.
 
@@ -137,7 +137,7 @@ format: html
 
 - Utilizes 8-bit look-up instructions provided by ARM NEON and Intel AVX2.
 
-![](assets/fig3.png){width=50% fig-align=center}
+![](assets/fig3.png){fig-align=center}
 
 - NEON's 128-bit width perfectly accommodates $g=4$ tables.
 - AVX2 duplicates tables to fill 256-bit registers for parallel lookups.
@@ -154,7 +154,7 @@ format: html
 - Introduces a linear transformation $f(v_i)$ to bit values to speed up precomputation and reduce quantization error.
 - Selects $s_0 = -1$ and $s_1 = 1$ to circumvent float-multiply instructions and minimize LUT entry differences.
 
-![](assets/fig14.png){width=60% fig-align=center}
+![](assets/fig14.png){fig-align=center}
 
 - Adjusts the decomposition of $W$ to incorporate the transformed values and bias terms.
 
@@ -171,7 +171,7 @@ format: html
 - llama.cpp fails to gain speedup as bits decrease, even slowing down at 3-bit due to decoding overhead.
 - T-MAC achieves linear speedup with bit reduction across all devices.
 
-![](assets/fig1.png){width=80% fig-align=center}
+![](assets/fig1.png){fig-align=center}
 
 - Single-threaded mpGEMV: Up to 11.2x speedup for 1-bit.
 - Multi-threaded mpGEMV: Constrained by memory bandwidth but still achieves significant speedup (e.g., 4.0x at 2-bit).
@@ -182,13 +182,13 @@ format: html
 - T-MAC achieves maximum speedups of 4.0x, 5.3x, and 5.3x on RBP, Orin, and Surface for 2-bit.
 - M2-Ultra benefits from AMX coprocessor, but T-MAC still achieves 2.0x speedup for 1-bit.
 
-![](assets/fig16.png){width=80% fig-align=center}
+![](assets/fig16.png){fig-align=center}
 
 ## End-to-End Inference Throughput
 
 - Integrated T-MAC kernels into llama.cpp for real-world model evaluation.
 
-![](assets/fig13.png){width=70% fig-align=center}
+![](assets/fig13.png){fig-align=center}
 
 - Single-threaded: Up to 6.7x speedup on Raspberry Pi 5.
 - Multi-threaded: Peak of 71 tokens/sec on M2-Ultra and 11 tokens/sec on Raspberry Pi 5 for BitNet-3B.
@@ -197,7 +197,7 @@ format: html
 
 - Measured on M2-Ultra using multi-threaded inference.
 
-![](assets/fig7.png){width=70% fig-align=center}
+![](assets/fig7.png){fig-align=center}
 
 - Power consumption reduced by 10.3% to 17.3% across models.
 - Total energy consumption reduced by 20.6% to 61.2% due to combined power and latency gains.
@@ -206,7 +206,7 @@ format: html
 
 - Progressive application of optimizations on M2-Ultra multi-threaded GEMV.
 
-![](assets/fig12.png){width=70% fig-align=center}
+![](assets/fig12.png){fig-align=center}
 
 - **Table Quantization (TQ):** Makes performance competitive with llama.cpp.
 - **Tiling & Permutation:** Yields up to 1.45x and 1.39x speedups respectively.
@@ -216,7 +216,7 @@ format: html
 
 - Two error sources: table quantization (algorithmic) and fast aggregation (instruction execution).
 
-![](assets/fig8.png){width=60% fig-align=center}
+![](assets/fig8.png){fig-align=center}
 
 - Table quantization introduces negligible NMSE difference compared to llama.cpp.
 - Fast aggregation increases NMSE by 2.5x but is optional for latency-critical, accuracy-tolerant scenarios.
@@ -226,7 +226,7 @@ format: html
 
 - Compared T-MAC (CPU) with llama.cpp (GPU) on NVIDIA Jetson AGX Orin.
 
-![](assets/fig19.png){width=70% fig-align=center}
+![](assets/fig19.png){fig-align=center}
 
 - T-MAC significantly outperforms GPU on W1A16 and achieves comparable performance on W2A16/W3A16.
 - End-to-end: T-MAC (CPU) achieves 2.3x better energy efficiency than llama.cpp (GPU) despite slightly lower throughput.
