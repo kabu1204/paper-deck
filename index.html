@@ -83,7 +83,8 @@ ul.task-list li input[type="checkbox"] {
 
     const options = {
       valueNames: ['listing-title','listing-subtitle','listing-date','listing-author','listing-description','listing-image','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
+      page: 18,
+    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },
       searchColumns: ["listing-title","listing-author","listing-date","listing-image","listing-description","listing-categories"],
     };
 
@@ -168,7 +169,7 @@ window.Quarto = {
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(5)</span></div><div class="category" data-category="YXR0ZW50aW9u">attention <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Y3B1">cpu <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZGVlcC1sZWFybmluZw==">deep-learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZWRnZQ==">edge <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Z3B1">gpu <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Z3B1LW9wdGltaXphdGlvbg==">gpu-optimization <span class="quarto-category-count">(1)</span></div><div class="category" data-category="aW5mZXJlbmNl">inference <span class="quarto-category-count">(3)</span></div><div class="category" data-category="a2VybmVscw==">kernels <span class="quarto-category-count">(1)</span></div><div class="category" data-category="a3YtY2FjaGU=">kv-cache <span class="quarto-category-count">(3)</span></div><div class="category" data-category="bGxt">llm <span class="quarto-category-count">(3)</span></div><div class="category" data-category="bGxtLWluZmVyZW5jZQ==">llm-inference <span class="quarto-category-count">(1)</span></div><div class="category" data-category="cXVhbnRpemF0aW9u">quantization <span class="quarto-category-count">(1)</span></div><div class="category" data-category="c3RvcmFnZQ==">storage <span class="quarto-category-count">(1)</span></div><div class="category" data-category="c3lzdGVtcw==">systems <span class="quarto-category-count">(2)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(36)</span></div><div class="category" data-category="YXR0ZW50aW9u">attention <span class="quarto-category-count">(20)</span></div><div class="category" data-category="Y2FjaGluZw==">caching <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Y29tcGlsYXRpb24=">compilation <span class="quarto-category-count">(8)</span></div><div class="category" data-category="ZGF0YWJhc2U=">database <span class="quarto-category-count">(3)</span></div><div class="category" data-category="Z3B1">gpu <span class="quarto-category-count">(29)</span></div><div class="category" data-category="bGxt">llm <span class="quarto-category-count">(21)</span></div><div class="category" data-category="bWVtb3J5">memory <span class="quarto-category-count">(34)</span></div><div class="category" data-category="bmV0d29ya2luZw==">networking <span class="quarto-category-count">(6)</span></div><div class="category" data-category="cXVhbnRpemF0aW9u">quantization <span class="quarto-category-count">(1)</span></div><div class="category" data-category="c2VydmluZw==">serving <span class="quarto-category-count">(12)</span></div><div class="category" data-category="c3lzdGVtcw==">systems <span class="quarto-category-count">(36)</span></div><div class="category" data-category="dHJhaW5pbmc=">training <span class="quarto-category-count">(9)</span></div></div></div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
@@ -194,203 +195,1456 @@ window.Quarto = {
 
 
 
-
 <div class="quarto-listing quarto-listing-container-grid" id="listing-listing">
 <div class="list grid quarto-listing-cols-3">
-<div class="g-col-1" data-index="0" data-categories="bGxtJTJDcXVhbnRpemF0aW9uJTJDY3B1JTJDZWRnZSUyQ2luZmVyZW5jZQ==" data-listing-date-sort="1782518400000" data-listing-file-modified-sort="1782554255322" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1051">
-<a href="./papers/2026-06-27-t-mac/index.html" class="quarto-grid-link">
+<div class="g-col-1" data-index="0" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1782000000000" data-listing-file-modified-sort="1782561133038" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="813">
+<a href="./papers/2026-06-21-jenga/index.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
-<img loading="lazy" src="./papers/2026-06-27-t-mac/assets/fig2.png" class="thumbnail-image card-img" style="height: 150px;">
+<img loading="lazy" src="./papers/2026-06-21-jenga/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
 </p>
 <div class="card-body post-contents">
 <h5 class="no-anchor card-title listing-title">
-T-MAC: CPU Renaissance via Table Lookup for Low-Bit LLM Deployment on Edge
+Jenga: Effective Memory Management for Serving LLM with Heterogeneity
 </h5>
 <div class="card-subtitle listing-subtitle">
-ASPLOS 2024
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cXVhbnRpemF0aW9u'); return false;">quantization</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('Y3B1'); return false;">cpu</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZWRnZQ=='); return false;">edge</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('aW5mZXJlbmNl'); return false;">inference</div>
-
-</div>
-<div class="card-text listing-description delink">
-<p>LUT-based mpGEMM kernel: bit-wise table lookup replaces dequantization, achieving 4x throughput and 70% energy reduction on edge CPUs.</p>
-</div>
-<div class="card-attribution card-text-small justify">
-<div class="listing-author">
-Jianyu Wei, Shijie Cao, Ting Cao, Lingxiao Ma, Lei Wang, Yanyong Zhang, Mao Yang
-</div>
-<div class="listing-date">
-Jun 27, 2026
-</div>
-</div>
-</div>
-</div></a>
-</div>
-<div class="g-col-1" data-index="1" data-categories="Z3B1JTJDa2VybmVscyUyQ2RlZXAtbGVhcm5pbmclMkNzeXN0ZW1z" data-listing-date-sort="1782518400000" data-listing-file-modified-sort="1782554255334" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="707">
-<a href="./papers/2026-06-27-thunderkittens/index.html" class="quarto-grid-link">
-<div class="quarto-grid-item card h-100 card-left">
-<p class="card-img-top">
-<img loading="lazy" src="./papers/2026-06-27-thunderkittens/assets/fig3.png" class="thumbnail-image card-img" style="height: 150px;">
-</p>
-<div class="card-body post-contents">
-<h5 class="no-anchor card-title listing-title">
-THUNDERKITTENS: SIMPLE, FAST, AND Adorable KERNELS
-</h5>
-<div class="card-subtitle listing-subtitle">
-arXiv 2024
+SOSP ’25
 </div>
 <div class="listing-categories">
 
 <div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
 
-<div class="listing-category" onclick="window.quartoListingCategory('a2VybmVscw=='); return false;">kernels</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGVlcC1sZWFybmluZw=='); return false;">deep-learning</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
-
-</div>
-<div class="card-text listing-description delink">
-<p>Simple 16x16 tile abstractions for high-performance AI kernels matching SOTA.</p>
-</div>
-<div class="card-attribution card-text-small justify">
-<div class="listing-author">
-Benjamin F. Spector, Simran Arora, Aaryan Singhal, Arjun Parthasarathy, Daniel Y. Fu, Christopher Ré
-</div>
-<div class="listing-date">
-Jun 27, 2026
-</div>
-</div>
-</div>
-</div></a>
-</div>
-<div class="g-col-1" data-index="2" data-categories="bGxtLWluZmVyZW5jZSUyQ2F0dGVudGlvbiUyQ2dwdS1vcHRpbWl6YXRpb24lMkNrdi1jYWNoZSUyQ3N5c3RlbXM=" data-listing-date-sort="1766102400000" data-listing-file-modified-sort="1782554255310" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="565">
-<a href="./papers/2025-12-19-flashinfer/index.html" class="quarto-grid-link">
-<div class="quarto-grid-item card h-100 card-left">
-<p class="card-img-top">
-<img loading="lazy" src="./papers/2025-12-19-flashinfer/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
-</p>
-<div class="card-body post-contents">
-<h5 class="no-anchor card-title listing-title">
-FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving
-</h5>
-<div class="card-subtitle listing-subtitle">
-MLSys ’25
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('bGxtLWluZmVyZW5jZQ=='); return false;">llm-inference</div>
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
 
 <div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
 
-<div class="listing-category" onclick="window.quartoListingCategory('Z3B1LW9wdGltaXphdGlvbg=='); return false;">gpu-optimization</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('a3YtY2FjaGU='); return false;">kv-cache</div>
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
 
 <div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
 
 </div>
 <div class="card-text listing-description delink">
-<p>FlashInfer is a customizable attention engine for efficient LLM serving.</p>
+<p>Jenga: Effective Memory Management for Serving LLM with Heterogeneity</p>
 </div>
 <div class="card-attribution card-text-small justify">
 <div class="listing-author">
-Zihao Ye, Lequn Chen, Ruihang Lai, Wuwei Lin, Yineng Zhang, Stephanie Wang, Tianqi Chen, Baris Kasikci, Vinod Grover, Arvind Krishnamurthy, Luis Ceze
+Chen Zhang, Kuntai Du, Shu Liu, Woosuk Kwon, Xiangxi Mo, Yufeng Wang, Xiaoxuan Liu, Kaichao You, Zhuohan Li, Mingsheng Long, Jidong Zhai, Joseph Gonzalez, Ion Stoica
 </div>
 <div class="listing-date">
-Dec 19, 2025
+Jun 21, 2026
 </div>
 </div>
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="3" data-categories="bGxtJTJDaW5mZXJlbmNlJTJDa3YtY2FjaGU=" data-listing-date-sort="1746144000000" data-listing-file-modified-sort="1782554255303" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="547">
-<a href="./papers/2025-05-02-h2o/index.html" class="quarto-grid-link">
+<div class="g-col-1" data-index="1" data-categories="Z3B1JTJDbGxtJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3RyYWluaW5n" data-listing-date-sort="1779408000000" data-listing-file-modified-sort="1782561133026" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="600">
+<a href="./papers/2026-05-22-mooncake/index.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
-<img loading="lazy" src="./papers/2025-05-02-h2o/assets/image-3.png" class="thumbnail-image card-img" style="height: 150px;">
+<img loading="lazy" src="./papers/2026-05-22-mooncake/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
 </p>
 <div class="card-body post-contents">
 <h5 class="no-anchor card-title listing-title">
-H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models
-</h5>
-<div class="card-subtitle listing-subtitle">
-NeurIPS 2023
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('aW5mZXJlbmNl'); return false;">inference</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('a3YtY2FjaGU='); return false;">kv-cache</div>
-
-</div>
-<div class="card-text listing-description delink">
-<p>KV-cache eviction policy: keep recent tokens + Heavy Hitters (highest accumulated attention scores), achieving 5x reduction with comparable accuracy.</p>
-</div>
-<div class="card-attribution card-text-small justify">
-<div class="listing-author">
-Zhenyu Zhang, Ying Sheng, Tianyi Zhou, Tianlong Chen, Lianmin Zheng, Ruisi Cai, Zhao Song, Yuandong Tian, Christopher Ré, Clark Barrett, Zhangyang Wang, Beidi Chen
-</div>
-<div class="listing-date">
-May 2, 2025
-</div>
-</div>
-</div>
-</div></a>
-</div>
-<div class="g-col-1" data-index="4" data-categories="bGxtJTJDaW5mZXJlbmNlJTJDa3YtY2FjaGUlMkNzdG9yYWdl" data-listing-date-sort="1744329600000" data-listing-file-modified-sort="1782554255295" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="817">
-<a href="./papers/2025-04-11-impress/index.html" class="quarto-grid-link">
-<div class="quarto-grid-item card h-100 card-left">
-<p class="card-img-top">
-<img loading="lazy" src="./papers/2025-04-11-impress/assets/overview.png" class="thumbnail-image card-img" style="height: 150px;">
-</p>
-<div class="card-body post-contents">
-<h5 class="no-anchor card-title listing-title">
-IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference
+MOONCAKE: Trading More Storage for Less Computation — A KVCache-centric Architecture for Serving LLM Chatbot
 </h5>
 <div class="card-subtitle listing-subtitle">
 FAST ’25
 </div>
 <div class="listing-categories">
 
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
 <div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
 
-<div class="listing-category" onclick="window.quartoListingCategory('aW5mZXJlbmNl'); return false;">inference</div>
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
 
-<div class="listing-category" onclick="window.quartoListingCategory('a3YtY2FjaGU='); return false;">kv-cache</div>
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
 
-<div class="listing-category" onclick="window.quartoListingCategory('c3RvcmFnZQ=='); return false;">storage</div>
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
 
 </div>
 <div class="card-text listing-description delink">
-<p>Importance-informed multi-tier prefix KV storage: identify important KVs with probe heads, reorder for dense IO, score-based caching.</p>
+<p>MOONCAKE</p>
 </div>
 <div class="card-attribution card-text-small justify">
 <div class="listing-author">
-Weijian Chen, Shuibing He, Haoyang Qu, Ruidong Zhang, Siling Yang, and Ping Chen, Zhejiang University; Yi Zheng and Baoxing Huai, Huawei Cloud; Gang Chen, Zhejiang University
+Ruoyu Qin, Zheming Li, Weiran He, Jialei Cui, Feng Ren, Mingxing Zhang, Yongwei Wu, Weimin Zheng, Xinran Xu
 </div>
 <div class="listing-date">
-Apr 11, 2025
+May 22, 2026
 </div>
 </div>
 </div>
 </div></a>
 </div>
+<div class="g-col-1" data-index="2" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1778803200000" data-listing-file-modified-sort="1782561133019" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="627">
+<a href="./papers/2026-05-15-cacheblend/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2026-05-15-cacheblend/assets/2026-05-15-21-46-08.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+CacheBlend: Fast Large Language Model Serving for RAG with Cached Knowledge Fusion
+</h5>
+<div class="card-subtitle listing-subtitle">
+EuroSys ’25
 </div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>CacheBlend</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Jiayi Yao, Hanchen Li, Yuhan Liu, Siddhant Ray, Yihua Cheng, Qizheng Zhang, Kuntai Du, Shan Lu, and Junchen Jiang
+</div>
+<div class="listing-date">
+May 15, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="3" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDc3lzdGVtcyUyQ3RyYWluaW5n" data-listing-date-sort="1778198400000" data-listing-file-modified-sort="1782561133009" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="683">
+<a href="./papers/2026-05-08-vlcache/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2026-05-08-vlcache/assets/Pasted image 20260508202921.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+VLCache: Computing 2% Vision Tokens and Reusing 98% for Vision–Language Inference
+</h5>
+<div class="card-subtitle listing-subtitle">
+Preprint 2025
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>VLCache</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Shengling Qin, Hao Yu, Chenxin Wu, Zheng Li, et al.
+</div>
+<div class="listing-date">
+May 8, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="4" data-categories="Z3B1JTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3RyYWluaW5nJTJDcXVhbnRpemF0aW9u" data-listing-date-sort="1776988800000" data-listing-file-modified-sort="1782561132996" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="722">
+<a href="./papers/2026-04-24-dnn-mcu/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2026-04-24-dnn-mcu/assets/2026-04-24-22-12-59.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Lightweight Software Kernels and Hardware Extensions for Efficient Sparse Deep Neural Networks on Microcontrollers
+</h5>
+<div class="card-subtitle listing-subtitle">
+MLSys 2025
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('cXVhbnRpemF0aW9u'); return false;">quantization</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Lightweight Software Kernels and Hardware Extensions for Efficient Sparse Dee…</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Francesco Daghero, Daniele Jahier Pagliari, Francesco Conti, Luca Benini, Massimo Poncin, Alessio Burrello
+</div>
+<div class="listing-date">
+Apr 24, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="5" data-categories="Z3B1JTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3RyYWluaW5n" data-listing-date-sort="1776384000000" data-listing-file-modified-sort="1782561132978" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="726">
+<a href="./papers/2026-04-17-pmr/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2026-04-17-pmr/assets/2026-04-17-22-31-09.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+PMR: Fast Application Response via Parallel Memory Reclaim on Mobile Devices
+</h5>
+<div class="card-subtitle listing-subtitle">
+USENIX ATC ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>PMR: Fast Application Response via Parallel Memory Reclaim on Mobile Devices</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Wentong Li, Li-Pin Chang, Yu Mao, Liang Shi
+</div>
+<div class="listing-date">
+Apr 17, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="6" data-categories="Z3B1JTJDbGxtJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ25ldHdvcmtpbmc=" data-listing-date-sort="1772755200000" data-listing-file-modified-sort="1782561132963" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="717">
+<a href="./papers/2026-03-06-streambox/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2026-03-06-streambox/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+StreamBox: A Lightweight GPU SandBox for Serverless Inference Workflow
+</h5>
+<div class="card-subtitle listing-subtitle">
+USENIX ATC ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bmV0d29ya2luZw=='); return false;">networking</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>StreamBox: A Lightweight GPU SandBox for Serverless Inference Workflow</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Hao Wu, Yue Yu, Junxiao Deng, Shadi Ibrahim, Song Wu, Hao Fan, Ziyue Cheng, Hai Jin
+</div>
+<div class="listing-date">
+Mar 6, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="7" data-categories="Z3B1JTJDbGxtJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3RyYWluaW5n" data-listing-date-sort="1770336000000" data-listing-file-modified-sort="1782561132953" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="644">
+<a href="./papers/2026-02-06-heteroinfer/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2026-02-06-heteroinfer/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Characterizing Mobile SoC for Accelerating Heterogeneous LLM Inference
+</h5>
+<div class="card-subtitle listing-subtitle">
+SOSP ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Characterizing Mobile SoC for Accelerating Heterogeneous LLM Inference</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Le Chen, Dahu Feng, Erhu Feng, Yingrui Wang, Rong Zhao, Yubin Xia, Pinjie Xu, Haibo Chen
+</div>
+<div class="listing-date">
+Feb 6, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="8" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1769731200000" data-listing-file-modified-sort="1782561132940" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="611">
+<a href="./papers/2026-01-30-ktrans/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2026-01-30-ktrans/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+KTransformers: Unleashing the Full Potential of CPU/GPU Hybrid Inference for MoE Models
+</h5>
+<div class="card-subtitle listing-subtitle">
+SOSP ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>KTransformers</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Hongtao Chen, Weiyu Xie, Boxin Zhang, et al.
+</div>
+<div class="listing-date">
+Jan 30, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="9" data-categories="Z3B1JTJDc3lzdGVtcyUyQ3RyYWluaW5nJTJDc2VydmluZyUyQ2NvbXBpbGF0aW9u" data-listing-date-sort="1764288000000" data-listing-file-modified-sort="1782561132928" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="631">
+<a href="./papers/2025-11-28-rammer/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-11-28-rammer/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Rammer: Enabling Holistic Deep Learning Compiler Optimizations with rTasks
+</h5>
+<div class="card-subtitle listing-subtitle">
+OSDI ’20
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Rammer: Enabling Holistic Deep Learning Compiler Optimizations with rTasks</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Lingxiao Ma, Zhiqiang Xie, Zhi Yang, Jilong Xue, Youshan Miao, Wei Cui, Wenxiang Hu, Fan Yang, Lintao Zhang, and Lidong Zhou
+</div>
+<div class="listing-date">
+Nov 28, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="10" data-categories="Z3B1JTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3NlcnZpbmclMkNjb21waWxhdGlvbg==" data-listing-date-sort="1762473600000" data-listing-file-modified-sort="1782561132925" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="519">
+<a href="./papers/2025-11-07-preemptdb/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-11-07-preemptdb/assets/image-1.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Low-Latency Transaction Scheduling via Userspace Interrupts: Why Wait or Yield When You Can Preempt?
+</h5>
+<div class="card-subtitle listing-subtitle">
+SIGMOD 2025
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Low-Latency Transaction Scheduling via Userspace Interrupts</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Kaisong Huang, Jiatang Zhou, Zhuoyue Zhao, Dong Xie, and Tianzheng Wang
+</div>
+<div class="listing-date">
+Nov 7, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="11" data-categories="Z3B1JTJDbGxtJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ25ldHdvcmtpbmc=" data-listing-date-sort="1761264000000" data-listing-file-modified-sort="1782561132911" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="508">
+<a href="./papers/2025-10-24-nimble/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-10-24-nimble/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Nimble: Efficiently Compiling Dynamic Neural Networks for Model Inference
+</h5>
+<div class="card-subtitle listing-subtitle">
+MLSys ’21
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bmV0d29ya2luZw=='); return false;">networking</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Nimble: Efficiently Compiling Dynamic Neural Networks for Model Inference</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Haichen Shen, Jared Roesch, Zhi Chen, Wei Chen, Yong Wu, Mu Li, Vin Sharma, Zachary Tatlock, Yida Wang
+</div>
+<div class="listing-date">
+Oct 24, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="12" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1761264000000" data-listing-file-modified-sort="1782561132919" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="602">
+<a href="./papers/2025-10-24-relax/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-10-24-relax/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Relax: Composable Abstractions for End-to-End Dynamic Machine Learning
+</h5>
+<div class="card-subtitle listing-subtitle">
+ASPLOS ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Relax: Composable Abstractions for End-to-End Dynamic Machine Learning</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Ruihang Lai, Junru Shao, Siyuan Feng, Steven Lyubomirsky, Tianqi Chen, et al.
+</div>
+<div class="listing-date">
+Oct 24, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="13" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1761004800000" data-listing-file-modified-sort="1782561132910" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="38" data-listing-word-count-sort="7548">
+<a href="./papers/2025-10-21-llmsys/index.html" class="quarto-grid-link">
+</a><div class="quarto-grid-item card h-100 card-left"><a href="./papers/2025-10-21-llmsys/index.html" class="quarto-grid-link">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-10-21-llmsys" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+<ol start="0" type="1">
+<li>Executive brief (≤1 page)
+</li></ol></h5>
+
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>llmsys</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+
+</div>
+<div class="listing-date">
+Oct 21, 2025
+</div>
+</div>
+<p>:::</p>
+</div></a>
+<p>:::</p>
+<div class="g-col-1" data-index="14" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1757030400000" data-listing-file-modified-sort="1782561132905" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="594">
+<a href="./papers/2025-09-05-tk/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-09-05-tk/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+ThunderKittens: Simple, Fast, and Adorable Kernels
+</h5>
+<div class="card-subtitle listing-subtitle">
+ICLR 2025
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>ThunderKittens: Simple, Fast, and Adorable Kernels</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Benjamin F. Spector, Simran Arora, Aaryan Singhal, Arjun Parthasarathy, Daniel Y. Fu, Christopher Ré
+</div>
+<div class="listing-date">
+Sep 5, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="15" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1754006400000" data-listing-file-modified-sort="1782561132894" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="638">
+<a href="./papers/2025-08-01-pipethreader/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-08-01-pipethreader/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+PipeThreader: Software-Defined Pipelining for Efficient DNN Execution
+</h5>
+<div class="card-subtitle listing-subtitle">
+OSDI ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>PipeThreader: Software-Defined Pipelining for Efficient DNN Execution</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Yu Cheng, Lei Wang, and Yining Shi, Peking University; Yuqing Xia, Lingxiao Ma, Jilong Xue, and Yang Wang, Microsoft Research; Zhiwen Mo, Imperial College London and Microsoft Research; Feiyang Chen, Shanghai Jiao Tong University and Microsoft Research; Fan Yang and Mao Yang, Microsoft Research; Zhi Yang, Peking University
+</div>
+<div class="listing-date">
+Aug 1, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="16" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1752192000000" data-listing-file-modified-sort="1782561132882" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="654">
+<a href="./papers/2025-07-11-infllm/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-07-11-infllm/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+InfLLM: Training-Free Long-Context Extrapolation for LLMs with an Efficient Context Memory
+</h5>
+<div class="card-subtitle listing-subtitle">
+NIPS 2024
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>InfLLM</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Chaojun Xiao, Pengle Zhang, Xu Han, Guangxuan Xiao, Yankai Lin, Zhengyan Zhang, Zhiyuan Liu, Maosong Sun
+</div>
+<div class="listing-date">
+Jul 11, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="17" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1750377600000" data-listing-file-modified-sort="1782561132878" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="884">
+<a href="./papers/2025-06-20-smartmem/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./papers/2025-06-20-smartmem/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+SmartMem: Layout Transformation Elimination and Adaptation for Efficient DNN Execution on Mobile
+</h5>
+<div class="card-subtitle listing-subtitle">
+ASPLOS ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>SmartMem</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Wei Niu, Md Musfiqur Rahman Sanim, Zhihao Shu, Jiexiong Guan, Xipeng Shen, Miao Yin, Gagan Agrawal, and Bin Ren
+</div>
+<div class="listing-date">
+Jun 20, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="18" data-categories="Z3B1JTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ25ldHdvcmtpbmc=" data-listing-date-sort="1749772800000" data-listing-file-modified-sort="1782561132868" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="934">
+<a href="./papers/2025-06-13-fleet/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-06-13-fleet/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+More Apps, Faster Hot-Launch on Mobile Devices via Fore/Background-aware GC-Swap Co-design
+</h5>
+<div class="card-subtitle listing-subtitle">
+ASPLOS ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bmV0d29ya2luZw=='); return false;">networking</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>More Apps, Faster Hot-Launch on Mobile Devices via Fore/Background-aware GC-S…</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Jiacheng Huang, Yunmo Zhang, Junqiao Qiu, Yu Liang, Rachata Ausavarungnirun, Qingan Li, and Chun Jason Xue
+</div>
+<div class="listing-date">
+Jun 13, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="19" data-categories="YXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3NlcnZpbmclMkNjYWNoaW5n" data-listing-date-sort="1748563200000" data-listing-file-modified-sort="1782561132857" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="487">
+<a href="./papers/2025-05-30-ariadne/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-05-30-ariadne/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Ariadne: A Hotness-Aware and Size-Adaptive Compressed Swap Technique for Fast Application Relaunch and Reduced CPU Usage on Mobile Devices
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y2FjaGluZw=='); return false;">caching</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Ariadne</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Yu Liang, Aofeng Shen, Chun Jason Xue, Riwei Pan, Haiyu Mao, Nika Mansouri Ghiasi, Qingcai Jiang, Rakesh Nadig, Lei Li, Rachata Ausavarungnirun, Mohammad Sadrosadati, Onur Mutlu
+</div>
+<div class="listing-date">
+May 30, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="20" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1746748800000" data-listing-file-modified-sort="1782561132850" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="652">
+<a href="./papers/2025-05-09-flashattn/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-05-09-flashattn/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness
+</h5>
+<div class="card-subtitle listing-subtitle">
+NeurIPS 2022
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré
+</div>
+<div class="listing-date">
+May 9, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="21" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1743724800000" data-listing-file-modified-sort="1782561132845" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="677">
+<a href="./papers/2025-04-04-vattention/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-04-04-vattention/assets/pagedattn.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+vAttention: Dynamic Memory Management for Serving LLMs without PagedAttention
+</h5>
+<div class="card-subtitle listing-subtitle">
+ASPLOS ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>vAttention: Dynamic Memory Management for Serving LLMs without PagedAttention</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Ramya Prabhu, Ajay Nayak, Jayashree Mohan, Ramchandran Ramjee, and Ashish Panwar
+</div>
+<div class="listing-date">
+Apr 4, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="22" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1743120000000" data-listing-file-modified-sort="1782561132839" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1555">
+<a href="./papers/2025-03-28-llm-npu/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-03-28-llm-npu/assets/models.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Fast On-device LLM Inference with NPUs
+</h5>
+<div class="card-subtitle listing-subtitle">
+ASPLOS ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Fast On-device LLM Inference with NPUs</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Daliang Xu, Hao Zhang, Liming Yang, Ruiqi Liu, Gang Huang, Mengwei Xu and Xuanzhe Liu
+</div>
+<div class="listing-date">
+Mar 28, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="23" data-categories="Z3B1JTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3RyYWluaW5nJTJDc2VydmluZw==" data-listing-date-sort="1741305600000" data-listing-file-modified-sort="1782561132825" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="638">
+<a href="./papers/2025-03-07-lighiov/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-03-07-lighiov/assets/cmp.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+NVMePass: A Lightweight, High-performance and Scalable NVMe Virtualization Architecture with I/O Queues Passthrough
+</h5>
+<div class="card-subtitle listing-subtitle">
+HPCA ’25
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>NVMePass</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Yiquan Chen, Zhen Jin, Yijing Wang, Yi Chen, Hao Yu, Jiexiong Xu, Jinlong Chen, Wenhai Lin, Kanghua Fang, Chengkun Wei, Qiang Liu, Yuan Xie, Wenzhi Chen
+</div>
+<div class="listing-date">
+Mar 7, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="24" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1740700800000" data-listing-file-modified-sort="1782561132820" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1218">
+<a href="./papers/2025-02-28-fire-flyer/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-02-28-fire-flyer/assets/eos.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Fire-Flyer AI-HPC: A Cost-Effective Software-Hardware Co-Design for Deep Learning
+</h5>
+<div class="card-subtitle listing-subtitle">
+SC ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Fire-Flyer AI-HPC</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Wei An, Xiao Bi, Guanting Chen, Shanhuang Chen, Chengqi Deng, and etc.
+</div>
+<div class="listing-date">
+Feb 28, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="25" data-categories="bWVtb3J5JTJDc3lzdGVtcyUyQ3NlcnZpbmclMkNjb21waWxhdGlvbiUyQ2RhdGFiYXNl" data-listing-date-sort="1740096000000" data-listing-file-modified-sort="1782561132810" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="789">
+<a href="./papers/2025-02-21-mt2/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-02-21-mt2/assets/interfere-1.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+MT^2: Memory Bandwidth Regulation on Hybrid NVM/DRAM Platforms
+</h5>
+<div class="card-subtitle listing-subtitle">
+FAST ’22
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('ZGF0YWJhc2U='); return false;">database</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>MT^2: Memory Bandwidth Regulation on Hybrid NVM/DRAM Platforms</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Jifei Yi, Benchao Dong, Mingkai Dong, Ruizhe Tong, and Haibo Chen
+</div>
+<div class="listing-date">
+Feb 21, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="26" data-categories="bWVtb3J5JTJDc3lzdGVtcyUyQ3RyYWluaW5nJTJDc2VydmluZyUyQ2NvbXBpbGF0aW9u" data-listing-date-sort="1739491200000" data-listing-file-modified-sort="1782561132806" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="388">
+<a href="./papers/2025-02-14-spandb/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-02-14-spandb/assets/group-wal.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+SpanDB: A Fast, Cost-Effective LSM-tree Based KV Store on Hybrid Storage
+</h5>
+<div class="card-subtitle listing-subtitle">
+FAST ’21
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>SpanDB: A Fast, Cost-Effective LSM-tree Based KV Store on Hybrid Storage</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Hao Chen, Chaoyi Ruan, Cheng Li, Xiaosong Ma and Yinlong Xu.
+</div>
+<div class="listing-date">
+Feb 14, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="27" data-categories="Z3B1JTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3NlcnZpbmclMkNjb21waWxhdGlvbg==" data-listing-date-sort="1737072000000" data-listing-file-modified-sort="1782561132783" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="304">
+<a href="./papers/2025-01-17-neos/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-01-17-neos/assets/vector-service.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Neos: A NVMe-GPUs Direct Vector Service Buffer in User Space
+</h5>
+<div class="card-subtitle listing-subtitle">
+ICDE ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Neos: A NVMe-GPUs Direct Vector Service Buffer in User Space</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Yuchen Huang, Xiaopeng Fan, Song Yan, Chuliang Weng
+</div>
+<div class="listing-date">
+Jan 17, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="28" data-categories="bWVtb3J5JTJDc3lzdGVtcyUyQ3NlcnZpbmclMkNjb21waWxhdGlvbiUyQ2RhdGFiYXNl" data-listing-date-sort="1737072000000" data-listing-file-modified-sort="1782561132801" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="443">
+<a href="./papers/2025-01-17-scalexfs/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-01-17-scalexfs/assets/cores.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+ScaleXFS: Getting scalability of XFS back on the ring
+</h5>
+<div class="card-subtitle listing-subtitle">
+FAST ’22
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('ZGF0YWJhc2U='); return false;">database</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>ScaleXFS: Getting scalability of XFS back on the ring</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Dohyun Kim, Kwangwon Min, Joontaek Oh, and Youjip Won
+</div>
+<div class="listing-date">
+Jan 17, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="29" data-categories="Z3B1JTJDbWVtb3J5JTJDc3lzdGVtcyUyQ25ldHdvcmtpbmclMkNzZXJ2aW5n" data-listing-date-sort="1735862400000" data-listing-file-modified-sort="1782561132776" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="905">
+<a href="./papers/2025-01-03-ghost/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2025-01-03-ghost/assets/data-plane-os.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+ghOSt: Fast &amp; Flexible User-Space Delegation of Linux Scheduling
+</h5>
+<div class="card-subtitle listing-subtitle">
+SOSP ’21
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bmV0d29ya2luZw=='); return false;">networking</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>ghOSt: Fast &amp; Flexible User-Space Delegation of Linux Scheduling</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Jack Tigar Humphries, Neel Natu, Ashwin Chaugule, Ofir Weisse, Barret Rhoden, Josh Don, Luigi Rizzo, Oleg Rombakh, Paul Turner, and Christos Kozyrakis
+</div>
+<div class="listing-date">
+Jan 3, 2025
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="30" data-categories="YXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ25ldHdvcmtpbmclMkNzZXJ2aW5n" data-listing-date-sort="1734048000000" data-listing-file-modified-sort="1782561132766" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="933">
+<a href="./papers/2024-12-13-csal/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2024-12-13-csal/assets/cloud-local-disk.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+CSAL: the Next-Gen Local Disks for the Cloud
+</h5>
+<div class="card-subtitle listing-subtitle">
+EuroSys ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bmV0d29ya2luZw=='); return false;">networking</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>CSAL: the Next-Gen Local Disks for the Cloud</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Yanbo Zhou, Erci Xu, Li Zhang, Kapil Karkra and etc.
+</div>
+<div class="listing-date">
+Dec 13, 2024
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="31" data-categories="Z3B1JTJDbGxtJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3RyYWluaW5n" data-listing-date-sort="1732838400000" data-listing-file-modified-sort="1782561132758" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="659">
+<a href="./papers/2024-11-29-quantllm/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2024-11-29-quantllm/assets/quant.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Quant-LLM: Accelerating the Serving of Large Language Models via FP6-Centric Algorithm-System Co-Design on Modern GPUs
+</h5>
+<div class="card-subtitle listing-subtitle">
+ATC ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('dHJhaW5pbmc='); return false;">training</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Quant-LLM</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Haojun Xia, Zhen Zheng, Xiaoxia Wu and etc.
+</div>
+<div class="listing-date">
+Nov 29, 2024
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="32" data-categories="YXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ3NlcnZpbmclMkNjb21waWxhdGlvbg==" data-listing-date-sort="1732320000000" data-listing-file-modified-sort="1782561132737" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1189">
+<a href="./papers/2024-11-23-sgx/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2024-11-23-sgx/assets/sgx.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Inferring Fine-grained Control Flow Inside SGX Enclaves with Branch Shadowing
+</h5>
+<div class="card-subtitle listing-subtitle">
+USENIX Security ’17
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Inferring Fine-grained Control Flow Inside SGX Enclaves with Branch Shadowing</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Sangho Lee, Ming-Wei Shih, Prasun Gera, Taesoo Kim, Hyesoon Kim, and Marcus Peinado
+</div>
+<div class="listing-date">
+Nov 23, 2024
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="33" data-categories="bWVtb3J5JTJDc3lzdGVtcyUyQ3NlcnZpbmclMkNjb21waWxhdGlvbiUyQ2RhdGFiYXNl" data-listing-date-sort="1730419200000" data-listing-file-modified-sort="1782561132724" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="577">
+<a href="./papers/2024-11-01-uslope/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2024-11-01-uslope/assets/json-log.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+μSlope: High Compression and Fast Search on Semi-Structured Logs
+</h5>
+<div class="card-subtitle listing-subtitle">
+OSDI ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c2VydmluZw=='); return false;">serving</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('Y29tcGlsYXRpb24='); return false;">compilation</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('ZGF0YWJhc2U='); return false;">database</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>μSlope: High Compression and Fast Search on Semi-Structured Logs</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Rui Wang, Devin Gibson, Kirk Rodrigues, Yu Luo, Yun Zhang, Kaibo Wang, Yupeng Fu, Ting Chen, Ding Yuan
+</div>
+<div class="listing-date">
+Nov 1, 2024
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="34" data-categories="Z3B1JTJDbGxtJTJDYXR0ZW50aW9uJTJDbWVtb3J5JTJDc3lzdGVtcw==" data-listing-date-sort="1729209600000" data-listing-file-modified-sort="1782561132715" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="862">
+<a href="./papers/2024-10-18-gmlake/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2024-10-18-gmlake/assets/fragmentation-example.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+GMLake: Efficient and Transparent GPU Memory Defragmentation for<br>
+Large-scale DNN Training with Virtual Memory Stitching
+</h5>
+<div class="card-subtitle listing-subtitle">
+ASPLOS ’24
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('YXR0ZW50aW9u'); return false;">attention</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>GMLake</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Cong Guo, Rui Zhang, Jiale Xu, and etc
+</div>
+<div class="listing-date">
+Oct 18, 2024
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="35" data-categories="Z3B1JTJDbGxtJTJDbWVtb3J5JTJDc3lzdGVtcyUyQ25ldHdvcmtpbmc=" data-listing-date-sort="1561161600000" data-listing-file-modified-sort="1782561132700" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="501">
+<a href="./papers/2019-06-22-triton/index.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" data-src="./papers/2019-06-22-triton/assets/image.png" class="thumbnail-image card-img" style="height: 150px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Triton: An Intermediate Language and Compiler for Tiled Neural Network Computations
+</h5>
+<div class="card-subtitle listing-subtitle">
+MAPL ’19
+</div>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Z3B1'); return false;">gpu</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bGxt'); return false;">llm</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bWVtb3J5'); return false;">memory</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('c3lzdGVtcw=='); return false;">systems</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('bmV0d29ya2luZw=='); return false;">networking</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Triton</p>
+</div>
+<div class="card-attribution card-text-small justify">
+<div class="listing-author">
+Philippe Tillet, H. T. Kung, and David Cox
+</div>
+<div class="listing-date">
+Jun 22, 2019
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<p>:::</p>
 <div class="listing-no-matching d-none">No matching items</div>
+<nav id="listing-pagination" class="listing-pagination" aria-label="Page Navigation">
+  <ul class="pagination"></ul>
+</nav>
+<p>:::</p>
+<p>:::</p>
+
+</div>
+</div>
+</div>
 </div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

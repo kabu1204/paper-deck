@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ramya Prabhu, Ajay Nayak, Jayashree Mohan, Ramchandran Ramjee, and Ashish Panwar">
+<meta name="dcterms.date" content="2025-04-04">
+<meta name="description" content="vAttention: Dynamic Memory Management for Serving LLMs without PagedAttention">
+
+<title>vAttention: Dynamic Memory Management for Serving LLMs without PagedAttention – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><p>vAttention: Dynamic Memory Management for Serving LLMs without PagedAttention</p></h1>
+<p class="subtitle lead">ASPLOS ’25</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">gpu</div>
+    <div class="quarto-category">llm</div>
+    <div class="quarto-category">attention</div>
+    <div class="quarto-category">memory</div>
+    <div class="quarto-category">systems</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>vAttention: Dynamic Memory Management for Serving LLMs without PagedAttention</p>
+  </div>
+</div>
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Ramya Prabhu, Ajay Nayak, Jayashree Mohan, Ramchandran Ramjee, and Ashish Panwar </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            (Microsoft Research)
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 4, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="llm-inference-kv-cache" class="level2">
+<h2 class="anchored" data-anchor-id="llm-inference-kv-cache">LLM Inference &amp; KV Cache</h2>
+<ul>
+<li>Large Language Models (LLMs) generate text token-by-token.</li>
+<li><strong>KV Cache</strong>: Append-only tensors stored in GPU memory, reused across generation steps.</li>
+<li>Consumes the majority of GPU memory.</li>
+</ul>
+</section>
+<section id="the-memory-fragmentation-problem" class="level2">
+<h2 class="anchored" data-anchor-id="the-memory-fragmentation-problem">The Memory Fragmentation Problem</h2>
+<ul>
+<li>KV cache size grows dynamically (one token per step).</li>
+<li>Final size is unknown beforehand.</li>
+<li><strong>Static Allocation</strong>: Pre-allocating for max length leads to massive internal fragmentation.</li>
+<li>Wasted memory limits batch size and throughput.</li>
+</ul>
+</section>
+<section id="pagedattention-the-prior-solution" class="level2">
+<h2 class="anchored" data-anchor-id="pagedattention-the-prior-solution">PagedAttention: The Prior Solution</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/pagedattn.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Inspired by OS demand paging.</li>
+<li>Allocates KV cache in small, fixed-size <em>physical</em> blocks on demand.</li>
+<li>Greatly reduces fragmentation, increases memory utilization.</li>
+<li>Became the de facto standard (vLLM, TensorRT-LLM, etc.).</li>
+</ul>
+</section>
+<section id="problem-1-scattered-virtual-blocks" class="level2">
+<h2 class="anchored" data-anchor-id="problem-1-scattered-virtual-blocks">Problem 1: Scattered Virtual Blocks</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/pagedattn.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>PagedAttention manages <em>physical</em> memory dynamically.</li>
+<li><strong>Side Effect</strong>: Breaks the <em>virtual</em> memory contiguity of the KV cache.</li>
+<li>A request’s KV cache is scattered across non-contiguous virtual blocks.</li>
+</ul>
+</section>
+<section id="problem-2-requires-kernel-rewriting" class="level2">
+<h2 class="anchored" data-anchor-id="problem-2-requires-kernel-rewriting">Problem 2: Requires Kernel Rewriting</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/stack.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Standard attention kernels (FlashAttention, etc.) assume <em>contiguous</em> K and V tensors.</li>
+<li>PagedAttention requires kernels to be modified to handle non-contiguous blocks (pointer chasing).</li>
+<li>Complex, error-prone, creates maintenance burden.</li>
+<li>Porting new kernel optimizations is slow, often lags behind.</li>
+</ul>
+</section>
+<section id="problem-3-performance-overhead-gpu-kernel" class="level2">
+<h2 class="anchored" data-anchor-id="problem-3-performance-overhead-gpu-kernel">Problem 3: Performance Overhead (GPU kernel)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/overhead.png" class="img-fluid figure-img"></p>
+<figcaption>Overhead of PagedAttention in prefill kernels</figcaption>
+</figure>
+</div>
+<ul>
+<li>Extra instructions in the critical path for block lookups.</li>
+<li>Paged kernels can be significantly slower than non-paged versions (up to 42% in prefill).</li>
+</ul>
+</section>
+<section id="problem-3-performance-overhead-gpu-kernel-1" class="level2">
+<h2 class="anchored" data-anchor-id="problem-3-performance-overhead-gpu-kernel-1">Problem 3: Performance Overhead (GPU kernel)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/overhead2.png" class="img-fluid figure-img"></p>
+<figcaption>Latency of vLLM’s paged decode kernel is sensitive to block size</figcaption>
+</figure>
+</div>
+<ul>
+<li>Increased register pressure, potential cache misses.</li>
+<li>Large block size decreases L1 cache efficiency
+<ul>
+<li>Cache pollution &amp; lower hit rate</li>
+</ul></li>
+<li>Small block size increases CPU management overhead</li>
+</ul>
+</section>
+<section id="problem-4-performance-overhead-cpu-redundancy" class="level2">
+<h2 class="anchored" data-anchor-id="problem-4-performance-overhead-cpu-redundancy">Problem 4: Performance Overhead (CPU) &amp; Redundancy</h2>
+<ul>
+<li><strong>CPU Overhead</strong>: Serving framework needs to manage block tables and pass them to the GPU kernel on every iteration. Can be &gt;10% overhead.</li>
+<li><strong>Redundancy</strong>: User-space memory manager duplicates virtual-to-physical mapping logic already present in the OS/driver.</li>
+</ul>
+</section>
+<section id="motivation" class="level2">
+<h2 class="anchored" data-anchor-id="motivation">Motivation</h2>
+<ul>
+<li><strong>Goal</strong>: Achieve dynamic <em>physical</em> memory allocation (like PagedAttention) to avoid fragmentation while maintaining <em>virtual</em> memory contiguity for the KV cache.</li>
+<li><strong>Benefits</strong>:
+<ul>
+<li>Use standard, unmodified, highly-optimized attention kernels.</li>
+<li>Eliminate kernel maintenance burden.</li>
+<li>Reduce CPU/GPU overheads.</li>
+<li>Simplify the serving system design.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="system-design" class="level1">
+<h1>System Design</h1>
+<section id="vattention-core-idea" class="level2">
+<h2 class="anchored" data-anchor-id="vattention-core-idea">vAttention: Core Idea</h2>
+<ul>
+<li>Leverage <strong>CUDA Virtual Memory Management (VMM) APIs</strong>.</li>
+<li>These APIs allow <strong>decoupling</strong> virtual address space reservation from physical memory allocation and mapping.</li>
+<li>Similar to how modern OSes manage memory (mmap/mprotect).</li>
+</ul>
+</section>
+<section id="vattention-mechanism" class="level2">
+<h2 class="anchored" data-anchor-id="vattention-mechanism">vAttention: Mechanism</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/alloc.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Reserve Contiguous Virtual Buffer</strong>: Pre-reserve a large, contiguous virtual address space for the max batch’s KV cache.</li>
+<li><strong>Allocate Physical Pages On-Demand</strong>: Use <code>cuMemMap</code> etc. to allocate physical GPU pages on demand as a request generates tokens.</li>
+<li><strong>Map Physical to Virtual</strong>: Map the allocated physical pages into the correct offset within the contiguous virtual buffer.</li>
+<li><strong>Result</strong>: Kernels see a contiguous virtual tensor; physical memory is committed dynamically.</li>
+</ol>
+</section>
+<section id="vattention-integration" class="level2">
+<h2 class="anchored" data-anchor-id="vattention-integration">vAttention: Integration</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/integrate.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>vAttention library provides simple APIs (<code>init</code>, <code>alloc_reqid</code>, <code>step</code>, <code>free_reqid</code>).</li>
+<li>Serving framework (e.g., vLLM) calls <code>step</code> before each iteration.</li>
+<li>vAttention ensures physical pages are mapped for active requests.</li>
+<li>Uses standard PyTorch allocator for other tensors (activations, weights).</li>
+</ul>
+</section>
+<section id="optimization-1-hiding-vmm-api-latency" class="level2">
+<h2 class="anchored" data-anchor-id="optimization-1-hiding-vmm-api-latency">Optimization 1: Hiding VMM API Latency</h2>
+<ul>
+<li>CUDA VMM APIs (<code>cuMemMap</code>) can be slow (~tens of µs per call).</li>
+<li><strong>Decode Overlap</strong>: Predict next step’s memory need (1 token/req) and map pages in a background thread during current step’s computation.</li>
+<li><strong>Prefill Optimization</strong>:
+<ul>
+<li><strong>Deferred Reclamation</strong>: Don’t immediately free pages of completed requests.</li>
+<li><strong>Eager Allocation</strong>: Reuse freed pages for new requests, map extra pages ahead-of-time in background.</li>
+</ul></li>
+</ul>
+</section>
+<section id="optimization-2-mitigating-fragmentation-page-size" class="level2">
+<h2 class="anchored" data-anchor-id="optimization-2-mitigating-fragmentation-page-size">Optimization 2: Mitigating Fragmentation (Page Size)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/vmm.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Default CUDA VMM page size is often large (2MB), causing internal fragmentation.</li>
+<li><strong>Problem</strong>: CUDA VMM APIs are in closed-source driver.</li>
+<li><strong>Solution</strong>: Modify <em>open-source</em> UVM driver components to add new APIs (<code>vMemMap</code>, etc.) supporting smaller physical page sizes (64KB, 128KB, 256KB).</li>
+<li>Provides fine-grained physical allocation similar to PagedAttention block sizes.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<ul>
+<li><strong>Models</strong>: Yi-6B, Llama-3-8B, Yi-34B</li>
+<li><strong>Hardware</strong>: 1-2 NVIDIA A100 80GB GPUs (NVLink connected)</li>
+<li><strong>Framework</strong>: Modified vLLM</li>
+<li><strong>Baselines</strong>:
+<ul>
+<li>PagedAttention kernels (<code>FA2_Paged</code>, <code>FI_Paged</code>, vLLM)</li>
+<li>Non-paged kernels with vAttention (<code>FA2_vAttention</code>, <code>FI_vAttention</code>)</li>
+</ul></li>
+</ul>
+</section>
+<section id="prefill-throughput" class="level2">
+<h2 class="anchored" data-anchor-id="prefill-throughput">Prefill Throughput</h2>
+<!-- Figure 7. Prefill throughput. vAttention backed systems outperform... -->
+<!-- Table 6. Prefill completion and attention (in parenthesis) time... -->
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/prefill.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>non-paged kernels with vAttention achieves comparable or better results.</li>
+</ul>
+</section>
+<section id="decode-throughput" class="level2">
+<h2 class="anchored" data-anchor-id="decode-throughput">Decode Throughput</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/decode.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

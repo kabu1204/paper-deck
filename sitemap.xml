@@ -1,27 +1,151 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://kabu1204.github.io/paper-deck/papers/2026-06-27-thunderkittens/index.html</loc>
-    <lastmod>2026-06-27T09:57:35.334Z</lastmod>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-06-21-jenga/index.html</loc>
+    <lastmod>2026-06-27T11:52:13.038Z</lastmod>
   </url>
   <url>
-    <loc>https://kabu1204.github.io/paper-deck/papers/2025-12-19-flashinfer/index.html</loc>
-    <lastmod>2026-06-27T09:57:35.310Z</lastmod>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-05-15-cacheblend/index.html</loc>
+    <lastmod>2026-06-27T11:52:13.019Z</lastmod>
   </url>
   <url>
-    <loc>https://kabu1204.github.io/paper-deck/papers/2025-04-11-impress/index.html</loc>
-    <lastmod>2026-06-27T09:57:35.295Z</lastmod>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-04-24-dnn-mcu/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.996Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-03-06-streambox/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.963Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-01-30-ktrans/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.940Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-11-07-preemptdb/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.925Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-10-24-nimble/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.911Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-09-05-tk/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.905Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-07-11-infllm/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.882Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-06-13-fleet/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.868Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-05-09-flashattn/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.850Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-03-28-llm-npu/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.839Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-02-28-fire-flyer/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.820Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-02-14-spandb/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.806Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-01-17-neos/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.783Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2024-12-13-csal/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.766Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2024-11-23-sgx/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.737Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2024-10-18-gmlake/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.715Z</lastmod>
   </url>
   <url>
     <loc>https://kabu1204.github.io/paper-deck/index.html</loc>
-    <lastmod>2026-06-27T09:57:35.284Z</lastmod>
+    <lastmod>2026-06-27T11:52:12.695Z</lastmod>
   </url>
   <url>
-    <loc>https://kabu1204.github.io/paper-deck/papers/2025-05-02-h2o/index.html</loc>
-    <lastmod>2026-06-27T09:57:35.303Z</lastmod>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2019-06-22-triton/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.700Z</lastmod>
   </url>
   <url>
-    <loc>https://kabu1204.github.io/paper-deck/papers/2026-06-27-t-mac/index.html</loc>
-    <lastmod>2026-06-27T09:57:35.322Z</lastmod>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2024-11-01-uslope/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.724Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2024-11-29-quantllm/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.758Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-01-03-ghost/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.776Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-01-17-scalexfs/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.801Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-02-21-mt2/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.810Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-03-07-lighiov/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.825Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-04-04-vattention/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.845Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-05-30-ariadne/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.857Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-06-20-smartmem/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.878Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-08-01-pipethreader/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.894Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-10-21-llmsys/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.910Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-10-24-relax/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.919Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.928Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-02-06-heteroinfer/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.953Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-04-17-pmr/index.html</loc>
+    <lastmod>2026-06-27T11:52:12.978Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-05-08-vlcache/index.html</loc>
+    <lastmod>2026-06-27T11:52:13.009Z</lastmod>
+  </url>
+  <url>
+    <loc>https://kabu1204.github.io/paper-deck/papers/2026-05-22-mooncake/index.html</loc>
+    <lastmod>2026-06-27T11:52:13.026Z</lastmod>
   </url>
 </urlset>

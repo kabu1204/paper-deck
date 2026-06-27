@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jiacheng Huang, Yunmo Zhang, Junqiao Qiu, Yu Liang, Rachata Ausavarungnirun, Qingan Li, and Chun Jason Xue">
+<meta name="dcterms.date" content="2025-06-13">
+<meta name="description" content="More Apps, Faster Hot-Launch on Mobile Devices via Fore/Background-aware GC-S…">
+
+<title>More Apps, Faster Hot-Launch on Mobile Devices via Fore/Background-aware GC-Swap Co-design – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><p>More Apps, Faster Hot-Launch on Mobile Devices via Fore/Background-aware GC-Swap Co-design</p></h1>
+<p class="subtitle lead">ASPLOS ’24</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">gpu</div>
+    <div class="quarto-category">attention</div>
+    <div class="quarto-category">memory</div>
+    <div class="quarto-category">systems</div>
+    <div class="quarto-category">networking</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    More Apps, Faster Hot-Launch on Mobile Devices via Fore/Background-aware GC-S…
+  </div>
+</div>
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Jiacheng Huang, Yunmo Zhang, Junqiao Qiu, Yu Liang, Rachata Ausavarungnirun, Qingan Li, and Chun Jason Xue </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            (CityU &amp; WHU &amp; ETHZ &amp; KMUTNB &amp; MBZUAI)
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">June 13, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="app-launching-is-critical-for-user-experience" class="level2">
+<h2 class="anchored" data-anchor-id="app-launching-is-critical-for-user-experience">App Launching is Critical for User Experience</h2>
+<ul>
+<li><strong>Hot-launch</strong>: Switching to a cached background app. (Fast)</li>
+<li><strong>Cold-launch</strong>: Starting an app from scratch. (Slow)</li>
+<li>Goal: Maximize the number of fast hot-launches.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image.png" class="img-fluid figure-img"></p>
+<figcaption>Hot launch is much faster than cold launch</figcaption>
+</figure>
+</div>
+</section>
+<section id="limited-memory" class="level2">
+<h2 class="anchored" data-anchor-id="limited-memory">Limited Memory</h2>
+<ul>
+<li>Caching more apps requires more memory than available in DRAM.</li>
+<li><strong>Solution</strong>: Use <strong>swap</strong> to offload memory pages to slower flash storage.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-1.png" class="img-fluid figure-img"></p>
+<figcaption>Architecture of Android systems</figcaption>
+</figure>
+</div>
+</section>
+<section id="two-layer-memory-management" class="level2">
+<h2 class="anchored" data-anchor-id="two-layer-memory-management">Two-Layer Memory Management</h2>
+<ul>
+<li><strong>Android Runtime (ART)</strong>: A Java Virtual Machine
+<ul>
+<li><strong>GC</strong>: trace-based concurrent-copying GC.
+<ul>
+<li>The GC performs liveness analysis of objects by traversing the object reference graph and copies live objects to a new memory location.</li>
+<li><em>Regions</em>: a segment of continuous memory containing allocated objects</li>
+<li><em>Mutator threads</em>: all threads except GC threads.</li>
+<li><em>Roots</em>: root objects that directly/indirectly reference all objects</li>
+<li><em>Card table</em>: mapping objects to regions</li>
+</ul></li>
+</ul></li>
+<li><strong>Linux Swap</strong>: extends memory using LRU-based swap</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-1.png" class="img-fluid figure-img"></p>
+<figcaption>Architecture of Android systems</figcaption>
+</figure>
+</div>
+</section>
+<section id="the-problem-swap-degrades-hot-launch-performance" class="level2">
+<h2 class="anchored" data-anchor-id="the-problem-swap-degrades-hot-launch-performance">The Problem: Swap Degrades Hot-Launch Performance</h2>
+<ul>
+<li>Enabling swap allows more apps to be cached, but it makes hot-launches much slower, especially tail latency.</li>
+<li>Existing methods like Linux Swap and Marvin suffer from this.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-2.png" class="img-fluid figure-img"></p>
+<figcaption>The 90th percentile tail hot-launch time of Marvin and Linux swap.</figcaption>
+</figure>
+</div>
+</section>
+<section id="root-cause-1-gc-swap-conflict" class="level2">
+<h2 class="anchored" data-anchor-id="root-cause-1-gc-swap-conflict">Root Cause 1: GC-Swap Conflict</h2>
+<ul>
+<li>When an app is in the background, its Garbage Collector (GC) still runs.</li>
+<li>The GC traces all live objects, forcing pages that were swapped out to be read back into DRAM.</li>
+<li>This causes high I/O and negates the benefit of swap.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-3.png" class="img-fluid figure-img"></p>
+<figcaption>The accessed objects over time.</figcaption>
+</figure>
+</div>
+</section>
+<section id="prior-work-marvin" class="level2">
+<h2 class="anchored" data-anchor-id="prior-work-marvin">Prior Work: Marvin</h2>
+<ul>
+<li><strong>Goal</strong>: Solve the GC-Swap conflict.</li>
+<li><strong>Mechanism</strong>:
+<ul>
+<li><strong>Decouples an object’s references from its data.</strong></li>
+<li><em>Creates a small “stub” in DRAM containing the references.</em></li>
+<li>Swaps out the object’s data to flash.</li>
+<li>The GC can then trace using the stubs in DRAM, avoiding swap-ins.</li>
+</ul></li>
+<li><strong>Limitations</strong>:
+<ul>
+<li><strong>Inefficient</strong>: Object-level stubs don’t match page-level swap.</li>
+<li><strong>Long Pauses</strong>: Requires long “stop-the-world” (STW) pauses.</li>
+<li><strong>Launch-Agnostic</strong>: Still uses a generic swap policy, leading to slow hot-launches.</li>
+</ul></li>
+</ul>
+</section>
+<section id="root-cause-2-launch-agnostic-swapping" class="level2">
+<h2 class="anchored" data-anchor-id="root-cause-2-launch-agnostic-swapping">Root Cause 2: Launch-Agnostic Swapping</h2>
+<ul>
+<li>The standard Linux swap mechanism uses a generic LRU policy.</li>
+<li>It is <strong>unaware of hot-launch-critial pages</strong>.</li>
+<li>As a result, it may swap out essential pages, causing major delays when the app is relaunched.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-4.png" class="img-fluid figure-img"></p>
+<figcaption>The accessed objects over time</figcaption>
+</figure>
+</div>
+</section>
+<section id="observation-1-forebackground-object-characteristics" class="level2">
+<h2 class="anchored" data-anchor-id="observation-1-forebackground-object-characteristics">Observation 1: Fore/Background Object Characteristics</h2>
+<ul>
+<li><strong>Foreground Objects (FGO)</strong>: Allocated when app is in foreground. They are numerous and long-lived.</li>
+<li><strong>Background Objects (BGO)</strong>: Allocated when app is in background. They are few and short-lived.</li>
+<li><strong>Insight</strong>: GC should focus on BGOs, leaving FGOs untouched in the background.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-5.png" class="img-fluid figure-img"></p>
+<figcaption>Foreground and background objects have different lifetime and memory footprints.</figcaption>
+</figure>
+</div>
+</section>
+<section id="observation-2-hot-launch-access-patterns" class="level2">
+<h2 class="anchored" data-anchor-id="observation-2-hot-launch-access-patterns">Observation 2: Hot-Launch Access Patterns</h2>
+<ul>
+<li>A small, predictable subset of objects are re-accessed during a hot-launch.
+<ul>
+<li><strong>Near Root Objects (NRO)</strong>: objects near the roots of the GC reference graph</li>
+<li><strong>Foreground Young Objects (FYO)</strong>: objects allocated just before the app is switched to background</li>
+</ul></li>
+<li>These objects account for ~68% of re-accesses but only ~15% of heap memory.</li>
+<li><strong>Insight</strong>: We can selectively keep these critical objects in memory.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-6.png" class="img-fluid figure-img"></p>
+<figcaption>The re-access analysis of NRO and FYO during hot-launches.</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="system-design" class="level1">
+<h1>System Design</h1>
+<section id="fleet-a-gc-swap-co-design-framework" class="level2">
+<h2 class="anchored" data-anchor-id="fleet-a-gc-swap-co-design-framework">Fleet: A GC-Swap Co-design Framework</h2>
+<ul>
+<li><strong>Key Idea</strong>: Use runtime information to make both GC and Swap aware of the app’s foreground/background state and hot-launch needs.</li>
+<li><strong>Two Components</strong>:
+<ol type="1">
+<li><strong>Background-object GC (BGC)</strong>: A GC that only traces background objects.</li>
+<li><strong>Runtime-Guided Swap (RGS)</strong>: A swap scheme guided by hot-launch access patterns.</li>
+</ol></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-7.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="background-object-gc-bgc" class="level2">
+<h2 class="anchored" data-anchor-id="background-object-gc-bgc">Background-object GC (BGC)</h2>
+<ul>
+<li><strong>Goal</strong>: Solve the GC-Swap conflict.</li>
+<li><strong>Mechanism</strong>:
+<ul>
+<li>Divides objects into FGO and BGO.</li>
+<li>When an app is in the background, BGC restricts its tracing range <strong>only to BGOs</strong>.</li>
+<li>Uses a card table to track references from FGOs to BGOs.</li>
+</ul></li>
+<li><strong>Result</strong>: Avoids touching swapped-out FGOs, preventing unnecessary swap-ins.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-8.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="runtime-guided-swap-rgs" class="level2">
+<h2 class="anchored" data-anchor-id="runtime-guided-swap-rgs">Runtime-Guided Swap (RGS)</h2>
+<ul>
+<li><strong>Goal</strong>: Make swapping launch-aware.</li>
+<li><strong>Mechanism</strong>:
+<ol type="1">
+<li><strong>Object Grouping</strong>: After an app is backgrounded, a one-time GC classifies objects into three types:
+<ul>
+<li><code>Launch</code> (NRO, FYO)</li>
+<li><code>Working Set</code> (currently used)</li>
+<li><code>Cold</code> (all others)</li>
+</ul></li>
+<li><strong>Page Swapping</strong>: RGS informs the OS kernel of this classification.
+<ul>
+<li>Kernel actively swaps out <code>Cold</code> pages.</li>
+<li>Kernel keeps <code>Launch</code> pages in DRAM.</li>
+</ul></li>
+</ol></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-9.png" class="img-fluid figure-img"></p>
+<figcaption>The object grouping procedure of the RGS.</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="experiment-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-setup">Experiment Setup</h2>
+<ul>
+<li><strong>Environment</strong>
+<ul>
+<li>Google Pixel 3
+<ul>
+<li>4GB LPDDR4X RAM, Snapdragon 845</li>
+<li>2GB Flash-based Swap Partition</li>
+</ul></li>
+<li>Android 10 (AOSP)
+<ul>
+<li>Linux Kernel 4.9</li>
+</ul></li>
+</ul></li>
+<li><strong>Workloads</strong>
+<ul>
+<li><strong>Commercial Apps</strong>
+<ul>
+<li>18 popular apps from 4 categories (Communication, Multimedia, Tools, Games).</li>
+</ul></li>
+<li><strong>Manually Created Apps</strong>
+<ul>
+<li>Used to test caching capacity without app-specific bias.</li>
+<li>Small object apps (512B) &amp; Large object apps (2048B).</li>
+</ul></li>
+</ul></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-11.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="app-caching-capacity" class="level2">
+<h2 class="anchored" data-anchor-id="app-caching-capacity">App Caching Capacity</h2>
+<ul>
+<li>Fleet caches more apps than Android.</li>
+<li>For commercial apps, Fleet caches a maximum of 17 apps, a <strong>1.21x improvement</strong> over Android with swap.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-10.png" class="img-fluid figure-img"></p>
+<figcaption>Caching capacity for different types of apps.</figcaption>
+</figure>
+</div>
+</section>
+<section id="gc-working-set-reduction" class="level2">
+<h2 class="anchored" data-anchor-id="gc-working-set-reduction">GC Working Set Reduction</h2>
+<ul>
+<li>BGC significantly reduces the GC’s memory footprint in the background.</li>
+<li>On average, Fleet’s GC accesses <strong>7x fewer objects</strong> than Android’s GC when an app is in the background.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-12.png" class="img-fluid figure-img"></p>
+<figcaption>The analysis of GC working set.</figcaption>
+</figure>
+</div>
+</section>
+<section id="hot-launch-performance-under-high-memory-pressure" class="level2">
+<h2 class="anchored" data-anchor-id="hot-launch-performance-under-high-memory-pressure">Hot-Launch Performance under high memory pressure</h2>
+<ul>
+<li>Fleet provides significantly faster hot-launches under memory pressure.</li>
+<li>On average, Fleet’s median hot-launch time is <strong>1.59x faster</strong> than Android and <strong>2.62x faster</strong> than Marvin.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-13.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="runtime-overhead" class="level2">
+<h2 class="anchored" data-anchor-id="runtime-overhead">Runtime Overhead</h2>
+<ul>
+<li>Fleet’s impact on runtime performance is minimal.</li>
+<li>Frame rendering (Jank ratio, FPS) is comparable to the original Android system.</li>
+<li>CPU, memory, and power overhead are negligible.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-14.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

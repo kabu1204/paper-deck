@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Yanbo Zhou, Erci Xu, Li Zhang, Kapil Karkra and etc.">
+<meta name="dcterms.date" content="2024-12-13">
+<meta name="description" content="CSAL: the Next-Gen Local Disks for the Cloud">
+
+<title>CSAL: the Next-Gen Local Disks for the Cloud – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><p>CSAL: the Next-Gen Local Disks for the Cloud</p></h1>
+<p class="subtitle lead">EuroSys ’24</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">attention</div>
+    <div class="quarto-category">memory</div>
+    <div class="quarto-category">systems</div>
+    <div class="quarto-category">networking</div>
+    <div class="quarto-category">serving</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>CSAL: the Next-Gen Local Disks for the Cloud</p>
+  </div>
+</div>
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Yanbo Zhou, Erci Xu, Li Zhang, Kapil Karkra and etc. </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            (Alibaba &amp; Solidigm)
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 13, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background-and-motivation" class="level1">
+<h1>Background and Motivation</h1>
+<section id="cloud-local-disk" class="level2">
+<h2 class="anchored" data-anchor-id="cloud-local-disk">Cloud Local Disk</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/cloud-local-disk.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<p>There are trend that customers choose cloud local disks for their VMs for higher performance.</p>
+<ul>
+<li>Disks are local to the host. (not cloud disk attached through network)</li>
+<li>Logical Volume Manager (LVM) wraps local disks as multiple logical disks.</li>
+<li>VMs can subscribe and mount logical disks.</li>
+</ul>
+<section id="cloud-local-disk-resource-granularity" class="level3">
+<h3 class="anchored" data-anchor-id="cloud-local-disk-resource-granularity">Cloud Local Disk: Resource granularity</h3>
+<ul>
+<li>Cloud vendors usually set a proportion of the whole physical resources as the finest granularity.</li>
+<li>The user can subscribe one or multiple such proportion(s), to avoid oversubscription.</li>
+<li>For example,
+<ul>
+<li>AWS D3.xlarge has 4 vCPUs, 32GB memory and 6TB local disk (3x2TB HDDs)</li>
+<li>AWS D3.8xlarge has 32 vCPUs, 256GB memory and 48TB local disk (24x2TB HDDs)</li>
+</ul></li>
+</ul>
+</section>
+<section id="cloud-local-disk-resource-granularity-1" class="level3">
+<h3 class="anchored" data-anchor-id="cloud-local-disk-resource-granularity-1">Cloud Local Disk: Resource granularity</h3>
+<ul>
+<li>However, the capacity of local disk multiplies, the performance doesn’t.
+<ul>
+<li>The storage performance of local disks cannot catch up with multiplied computing resources.</li>
+</ul></li>
+</ul>
+</section>
+<section id="cloud-local-disk-challenges" class="level3">
+<h3 class="anchored" data-anchor-id="cloud-local-disk-challenges">Cloud Local Disk: Challenges</h3>
+<ul>
+<li>Recent datacenter-grade CPUs has more and more cores.
+<ul>
+<li>Cloud vendors can now provide more VM instances.</li>
+</ul></li>
+<li>Easy to add more memory</li>
+<li>Challenging to <strong>scaling up both the capacity and performance of the storage.</strong>
+<ul>
+<li>Western Digital’s 22TB CMR HDD still provides 250MB/s bandwidth, similar to its 8TB SKU and earlier products.</li>
+<li>NVMe SSDs provide enough performance but the capacities are limited. =&gt; higher cost</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="high-density-nand-flash-ssds" class="level2">
+<h2 class="anchored" data-anchor-id="high-density-nand-flash-ssds">High-density NAND Flash SSDs</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/storage-comparison.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>NAND density has gradually increasing from SLC to QLC.</li>
+<li>QLC-based SSDs:
+<ul>
+<li>comparable capacities to HDDs</li>
+<li>10x higher throughput</li>
+</ul></li>
+</ul>
+</section>
+<section id="preliminary-attempts" class="level2">
+<h2 class="anchored" data-anchor-id="preliminary-attempts">Preliminary Attempts</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/attempts.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Lagacy approach: 8x2TB HDDs</li>
+<li>Drop-in replacement: 1 QLC SSD to replace 8 HDDs</li>
+<li>QLC with Open-CAS</li>
+<li>QLC with dm-zoned</li>
+</ul>
+<section id="evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="evaluation">Evaluation</h3>
+<ul>
+<li>8 VMs, each with 7 vCPUs and 28GB memory</li>
+<li>Each VM is assigned with one logical device.</li>
+<li>FIO inside VMs</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/attempt-eval.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="analysis-of-attemp-1-drop-in-replacement" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-attemp-1-drop-in-replacement">Analysis of Attemp 1 Drop-in Replacement</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/attempt-eval.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Bad performance</li>
+<li>NAND-level write amplification
+<ul>
+<li>frequent small writes =&gt; significant amplification triggered by GC</li>
+<li>sharing the same QLC SSD causes different data with different lifespans to be stored in the same erase block</li>
+</ul></li>
+</ul>
+</section>
+<section id="analysis-of-attemp-1-drop-in-replacement-1" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-attemp-1-drop-in-replacement-1">Analysis of Attemp 1 Drop-in Replacement</h3>
+<ul>
+<li>Bad performance</li>
+<li>Device-level write amplification
+<ul>
+<li>Large capacity: large L2P table</li>
+<li>QLC SSDs usually adopt a much larger indirection unit size (64KB vs.&nbsp;4KB in TLC SSDs)</li>
+<li>Miss-sized or Miss-aligned write causes amplification</li>
+</ul></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/non-optimal-write.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="analysis-of-attemp-1-drop-in-replacement-2" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-attemp-1-drop-in-replacement-2">Analysis of Attemp 1 Drop-in Replacement</h3>
+<ul>
+<li>Bad performance</li>
+<li>NAND-level write amplification
+<ul>
+<li>frequent small writes =&gt; significant amplification triggered by GC</li>
+<li>sharing the same QLC SSD causes different data with different lifespans to be stored in the same erase block</li>
+</ul></li>
+<li>Device-level write amplification
+<ul>
+<li>Large capacity: large L2P table</li>
+<li>QLC SSDs usually adopt a much larger indirection unit size (64KB vs.&nbsp;4KB in TLC SSDs)</li>
+<li>Miss-sized or Miss-aligned write causes amplification</li>
+</ul></li>
+<li>Endurance</li>
+</ul>
+</section>
+<section id="analysis-of-attemp-2-write-back-cache" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-attemp-2-write-back-cache">Analysis of Attemp 2 Write-Back Cache</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/opencas.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Use a high performance SSD (HP-SSD) as write-back cache to absorb small writes
+<ul>
+<li>HP-SSD: Intel P5800X, 800GB</li>
+<li>64KB cache granularity</li>
+</ul></li>
+</ul>
+</section>
+<section id="analysis-of-attemp-2-write-back-cache-1" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-attemp-2-write-back-cache-1">Analysis of Attemp 2 Write-Back Cache</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/attempt-eval.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Good random performance, still bad seqential throughput</li>
+<li>High cost</li>
+</ul>
+</section>
+<section id="analysis-of-attemp-3-zns-based-solution" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-attemp-3-zns-based-solution">Analysis of Attemp 3 ZNS-based Solution</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/zns.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Linux dm-zoned to manage mapping tables in the host</li>
+<li>a series of random zones backed by HP-SSD</li>
+<li>a series of sequential zones backed by ZNS-SSD</li>
+<li>Seq writes directly go to sequential zones</li>
+<li>Random write first go to random zones, later migrated to sequential zones in bulk (an entire zone).</li>
+</ul>
+</section>
+<section id="analysis-of-attemp-3-zns-based-solution-1" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-attemp-3-zns-based-solution-1">Analysis of Attemp 3 ZNS-based Solution</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/attempt-eval.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Small sequential writes can be merged in write-back cache solution</li>
+<li>Directly appending large sequential writes to sequential zones avoid paying extra effort</li>
+<li>10MB/s random write throughput
+<ul>
+<li>One-by-one zone migration design in Linux dm-zoned</li>
+<li>Under high-pressure workloads, the dm-zoned would be constantly busy with migrating zones.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/overview.png" class="img-fluid figure-img"></p>
+<figcaption>CSAL Overview</figcaption>
+</figure>
+</div>
+<ul>
+<li>Two-level L2P table for fine-grained address mapping on ZNS SSDs</li>
+<li>Fast and highly endurable SSD as a log-structured write cache to aggregate data and flush to underlying ZNS QLS SSDs</li>
+<li>Mapping page with 4KB granularity to alliviate device-level WA</li>
+<li>CSAL groups data with similar lifespans to QLC SSDsm reducing NAND-level WA</li>
+</ul>
+</section>
+<section id="two-level-l2p-table" class="level2">
+<h2 class="anchored" data-anchor-id="two-level-l2p-table">Two-Level L2P table</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/l2ptable.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>A 16TB SSD requires 32MB first-level table and 16GB second-level tables.</li>
+<li>The first level table constantly resides in host memory.</li>
+<li>Second level tables are cached in memory (2GB).</li>
+</ul>
+</section>
+<section id="csal-data-flow" class="level2">
+<h2 class="anchored" data-anchor-id="csal-data-flow">CSAL Data Flow</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/dataflow.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>User writes</strong>: append to current open chunk of log-structured write cache.</li>
+<li><strong>Compaction</strong>: aggregate valid data by VMs and then flush to isolated zones of QLC.</li>
+<li><strong>Garbage collection</strong>: reclaim zone spaces by VMs.</li>
+</ul>
+</section>
+<section id="on-disk-layout-of-hp-ssd" class="level2">
+<h2 class="anchored" data-anchor-id="on-disk-layout-of-hp-ssd">On-disk Layout of HP-SSD</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/disk-layout.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>VSS contains:
+<ul>
+<li>SID</li>
+<li>Chunk status: open/close/free</li>
+<li>LBA</li>
+</ul></li>
+<li>Only one chunk is open for write anytime</li>
+</ul>
+</section>
+<section id="runtime-metadata" class="level2">
+<h2 class="anchored" data-anchor-id="runtime-metadata">Runtime metadata</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/metadata.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Free chunk list</li>
+<li>Current open chunk’s P2L to speedup compaction and crash recovery</li>
+</ul>
+</section>
+<section id="crash-consistency" class="level2">
+<h2 class="anchored" data-anchor-id="crash-consistency">Crash consistency</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/crash.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Case 1: an earlier version in QLC SSD and an updated version in the open chunk of HP-SSD</li>
+<li>Case 2: crash during compaction</li>
+<li>Case 3: frequent updates on the same LBA</li>
+</ul>
+</section>
+<section id="crash-recovery-optimization" class="level2">
+<h2 class="anchored" data-anchor-id="crash-recovery-optimization">Crash recovery optimization</h2>
+<ol type="1">
+<li>P2L table after one chunk is filled up</li>
+<li>Checkpoint</li>
+</ol>
+</section>
+</section>
+<section id="evaluation-1" class="level1">
+<h1>Evaluation</h1>
+<section id="environment-setup" class="level2">
+<h2 class="anchored" data-anchor-id="environment-setup">Environment Setup</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/setup.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Software:
+<ul>
+<li>8 VMs, each owns one 2TB logical device</li>
+<li>Hypervisor: QEMU + Vhost-NVMe</li>
+<li>FIO</li>
+</ul></li>
+<li>Implementation:
+<ul>
+<li>Non-ZNS QLC SSD uses SPDK’s zone bdev functionality</li>
+<li>CSAL is implemented as a SPDK bdev
+<ul>
+<li>it has been merged into SPDK mainline</li>
+</ul></li>
+</ul></li>
+</ul>
+</section>
+<section id="uniform-writes" class="level2">
+<h2 class="anchored" data-anchor-id="uniform-writes">Uniform Writes</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/uniform-write.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Higher performance under random writes than all candidates.</li>
+<li>Comparable performance as HDDs under sequential writes.</li>
+</ul>
+</section>
+<section id="skewed-writes" class="level2">
+<h2 class="anchored" data-anchor-id="skewed-writes">Skewed Writes</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/zipf.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Up to 6x higher performance compared to Open-CAS under Zipf 1.2 (heavy skewed).</li>
+<li>Open-CAS suffers performance loss due to large granularity of indirection units (64K).</li>
+</ul>
+</section>
+<section id="write-amplification" class="level2">
+<h2 class="anchored" data-anchor-id="write-amplification">Write Amplification</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/wa.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>More skewed distribution leads to less data flushed to underlying QLC.</li>
+<li>Raw QLC and Open-CAS are bounded by 64K indirection units (device-level WA).</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

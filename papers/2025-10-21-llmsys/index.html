@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="">
+<meta name="dcterms.date" content="2025-10-21">
+<meta name="description" content="llmsys">
+
+<title>index – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+  <div class="quarto-categories">
+    <div class="quarto-category">gpu</div>
+    <div class="quarto-category">llm</div>
+    <div class="quarto-category">attention</div>
+    <div class="quarto-category">memory</div>
+    <div class="quarto-category">systems</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    llmsys
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 21, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Below is a compact executive brief. Per your <strong>reporting format</strong>, the <strong>evidence table</strong> comes first in the main body, followed by math digest, the replicable mini‑audit, synthesis/taxonomy, and a repro kit.</p>
+<section id="executive-brief-1-page" class="level2">
+<h2 class="anchored" data-anchor-id="executive-brief-1-page">0) Executive brief (≤1 page)</h2>
+<p><strong>What’s solid (2023→2025):</strong></p>
+<ul>
+<li><strong>Outliers are real and structured.</strong> Channel‑wise activation outliers (persistent high‑variance channels) hamper A‑quant; token‑wise “massive activations” are rarer but drive W/A/KV low‑bit failures. Mitigations with <strong>migration</strong> (SmoothQuant), <strong>channel re‑centering/scaling</strong> (OS+), and <strong>orthogonal rotations</strong> (QuaRot/SpinQuant/DFRot) consistently reduce error and enable <strong>W4A4</strong> on many LLMs; K/V behave differently and benefit from <strong>asymmetric schemes</strong> (K per‑channel, V per‑token) at <strong>2‑bit</strong> (KIVI). (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</li>
+<li><strong>Attention is sparse and skewed.</strong> Heads show <strong>redundancy</strong> (many are prunable/shareable) and <strong>sink</strong> bias (BOS/initial tokens collect attention mass), which both affect long‑context stability and KV policies (StreamingLLM). (<a href="https://arxiv.org/abs/1905.10650?utm_source=chatgpt.com" title="Are Sixteen Heads Really Better than One?">arXiv</a>)</li>
+<li><strong>Similarity reveals structure.</strong> Across layers/heads, Q/K/V projections have low effective rank and high inter‑head similarity in places; <strong>CKA/PWCCA</strong> reliably capture cross‑layer/head redundancy for clustering/pruning diagnostics. (<a href="https://arxiv.org/abs/1905.00414?utm_source=chatgpt.com" title="Similarity of Neural Network Representations Revisited">arXiv</a>)</li>
+<li><strong>KV cache is the serving bottleneck.</strong> Quantization and redundancy‑aware dropping/compression (e.g., H2O heavy‑hitters; LeanKV unified quant+prune) materially cut memory/latency with minor accuracy loss; <strong>K and V need different treatment</strong>. (<a href="https://proceedings.neurips.cc/paper_files/paper/2023/file/6ceefa7b15572587b78ecfcebb2827f8-Paper-Conference.pdf?utm_source=chatgpt.com" title="H2O: Heavy-Hitter Oracle for Efficient Generative Inference ... - NeurIPS">NeurIPS Proceedings</a>)</li>
+<li><strong>Kernel reality matters.</strong> Practical wins depend on <strong>SDPA/FlashAttention</strong> for dense and <strong>xFormers BlockSparse</strong> (or Triton) for sparse/rotated paths; mis‑matched kernels can negate algorithmic gains. (<a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html?utm_source=chatgpt.com" title="torch.nn.functional.scaled_dot_product_attention — PyTorch 2.9 ...">PyTorch Documentation</a>)</li>
+</ul>
+<p><strong>What’s unsettled (and where papers disagree):</strong></p>
+<ul>
+<li><strong>Rotations: random vs learned.</strong> QuaRot shows random (Hadamard/orthogonal) rotations suffice for 4‑bit end‑to‑end on some families; SpinQuant/DFRot find <strong>rotation choice is crucial</strong>, with <strong>learned</strong> rotations (Cayley) or refined criteria outperforming random by large margins on hard models (e.g., Llama‑3‑8B). Likely causes: calibration set composition, token‑wise outliers (“massive activations”), and layernorm variants. (<a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/b5b939436789f76f08b9d0da5e81af7c-Paper-Conference.pdf?utm_source=chatgpt.com" title="QuaRot: Outlier-Free 4-Bit Inference in Rotated LLMs">NeurIPS Proceedings</a>)</li>
+<li><strong>Attention sinks: artifact or useful feature?</strong> StreamingLLM <strong>uses</strong> sinks to stabilize long‑context; newer analyses argue sinks are tied to softmax normalization and may be <strong>non‑informative “key biases”</strong>—replace softmax and sinks diminish. Practical implication: mitigation (prefix/cushion tokens) can help quantization/KV policies but may mask training‑time causes. (<a href="https://arxiv.org/abs/2309.17453?utm_source=chatgpt.com" title="Efficient Streaming Language Models with Attention Sinks">arXiv</a>)</li>
+<li><strong>Head redundancy on modern LLMs.</strong> Classical results (BERT/MT) show heavy redundancy; 2024–2025 work shows <strong>shareability</strong> but also head specialization emerging in later layers/tasks. Need updated audits on Llama‑2/3, Mistral, Qwen‑2, Gemma‑2. (<a href="https://arxiv.org/abs/1905.10650?utm_source=chatgpt.com" title="Are Sixteen Heads Really Better than One?">arXiv</a>)</li>
+</ul>
+<p><strong>Actionable diagnostics (what to run first on your checkpoints):</strong></p>
+<ol type="1">
+<li><strong>Outlier audit:</strong> per‑layer/head kurtosis + Hill tail index; token‑ vs channel‑wise split; <strong>L∞/L2</strong> per‑channel heatmaps.</li>
+<li><strong>Q/K/V spectra:</strong> SVD decay + <strong>stable rank</strong>; mutual coherence; principal angles between <strong>col(W_Q), col(W_K)</strong>.</li>
+<li><strong>Attention sparsity:</strong> entropy/top‑k mass; <strong>sink ratio</strong> to BOS/pos‑0; head clustering via <strong>CKA/PWCCA</strong>.</li>
+<li><strong>Quant probes:</strong> per‑tensor vs per‑channel vs per‑token <strong>INT8/4/2</strong> (with/without rotations/permutations), plus <strong>KV‑only</strong> quant; correlate <strong>ΔMSE→ΔPPL/accuracy</strong>. (We provide runnable PyTorch ≥2.x code below.)</li>
+</ol>
+</section>
+<section id="evidence-table-jan2023-oct202025-recent-20242025" class="level2">
+<h2 class="anchored" data-anchor-id="evidence-table-jan2023-oct202025-recent-20242025">1) Evidence table (Jan‑2023 → Oct‑20‑2025; <em>recent</em> = 2024–2025)</h2>
+<blockquote class="blockquote">
+<p>Abbrev. columns: <strong>Model(s)</strong>, <strong>Layers/Heads</strong>, <strong>Phenomenon</strong>, <strong>Math insight</strong>, <strong>Method/controls</strong>, <strong>Code/data</strong>, <strong>Headline</strong>, <strong>Caveats</strong>.</p>
+</blockquote>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Paper (venue/date)</th>
+<th style="text-align: right;">Model(s)</th>
+<th style="text-align: right;">Layers/Heads</th>
+<th>Phenomenon</th>
+<th>Math insight</th>
+<th>Method &amp; controls</th>
+<th>Code/data</th>
+<th>Headline result(s)</th>
+<th>Caveats</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>LLM.int8()</strong> (NeurIPS’22) (<a href="https://arxiv.org/abs/2208.07339?utm_source=chatgpt.com" title="LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale">arXiv</a>)</td>
+<td style="text-align: right;">OPT 6.7B–175B</td>
+<td style="text-align: right;">Attn/FFN proj.</td>
+<td>Channel‑wise outliers; mixed precision</td>
+<td>Decomposition: vector‑wise INT8 + FP16 “outlier matrix”</td>
+<td>Compare 8b vs FP16 on z‑shot tasks</td>
+<td>bitsandbytes</td>
+<td>Maintains FP16 accuracy w/ 8‑bit by isolating outliers</td>
+<td>Often slower than FP16+Flash; not A‑quant</td>
+</tr>
+<tr class="even">
+<td><strong>SmoothQuant</strong> (ICML’23) <em>recentish</em> (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</td>
+<td style="text-align: right;">OPT‑175B etc.</td>
+<td style="text-align: right;">All</td>
+<td>Activation migration</td>
+<td>Equivalent scaling: (W’ = W(s),&nbsp;A’ = A/s)</td>
+<td>PTQ w/ calibration; W8A8</td>
+<td>GitHub</td>
+<td>Near‑lossless <strong>W8A8</strong>; speedups vs FP16</td>
+<td>Choice of α, calib set sensitive</td>
+</tr>
+<tr class="odd">
+<td><strong>Outlier Suppression+</strong> (EMNLP’23 Findings) <em>recentish</em> (<a href="https://arxiv.org/abs/2304.09145?utm_source=chatgpt.com" title="Outlier Suppression+: Accurate quantization of large language models by equivalent and optimal shifting and scaling">arXiv</a>)</td>
+<td style="text-align: right;">BERT/OPT/BLOOM/LLaMA</td>
+<td style="text-align: right;">All</td>
+<td>Channel asymmetry &amp; concentration</td>
+<td>Channel‑wise shift (re‑centering) + scale (burden balance); equivalence claims</td>
+<td>PTQ comparisons at 8/6/4‑bit</td>
+<td>GitHub</td>
+<td>Near‑FP at 8/6‑bit; +SOTA 4‑bit BERT</td>
+<td>Migration side‑effects need care</td>
+</tr>
+<tr class="even">
+<td><strong>AdaDim (Per‑IC)</strong> (ICLR’24) <strong>recent</strong> (<a href="https://arxiv.org/abs/2309.15531?utm_source=chatgpt.com" title="Rethinking Channel Dimensions to Isolate Outliers for Low-bit Weight Quantization of Large Language Models">arXiv</a>)</td>
+<td style="text-align: right;">LLaMA etc.</td>
+<td style="text-align: right;">All</td>
+<td>Outliers affect <strong>input</strong> dims</td>
+<td>Per‑input‑channel grouping isolates outliers</td>
+<td>RTN/GPTQ variants; MMLU/CSR/Math</td>
+<td>GitHub</td>
+<td>Per‑IC + GPTQ/RTN improves 4b</td>
+<td>Implementation complexity</td>
+</tr>
+<tr class="odd">
+<td><strong>AWQ</strong> (MLSys’24 Best Paper) <strong>recent</strong> (<a href="https://proceedings.mlsys.org/paper_files/paper/2024/hash/42a452cbafa9dd64e9ba4aa95cc1ef21-Abstract-Conference.html?utm_source=chatgpt.com" title="AWQ: Activation-aware Weight Quantization for On-Device LLM ... - MLSys">MLSys Proceedings</a>)</td>
+<td style="text-align: right;">LLaMA/Mistral/VLMs</td>
+<td style="text-align: right;">All</td>
+<td>Weight saliency via activations</td>
+<td>Per‑channel scaling protects salient weight channels</td>
+<td>Weight‑only PTQ; edge GPUs</td>
+<td>GitHub</td>
+<td>W4 weight‑only w/ strong z‑shot; good generalization</td>
+<td>Weight‑only; no A/KV quant</td>
+</tr>
+<tr class="even">
+<td><strong>QuaRot</strong> (NeurIPS’24) <strong>recent</strong> (<a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/b5b939436789f76f08b9d0da5e81af7c-Paper-Conference.pdf?utm_source=chatgpt.com" title="QuaRot: Outlier-Free 4-Bit Inference in Rotated LLMs">NeurIPS Proceedings</a>)</td>
+<td style="text-align: right;">LLaMA‑2–70B</td>
+<td style="text-align: right;">All</td>
+<td>Outlier removal by rotations</td>
+<td>Orthogonal/Hadamard rotations preserve function; reduce heavy tails</td>
+<td>Full <strong>W4A4KV4</strong> PTQ</td>
+<td>GitHub</td>
+<td>End‑to‑end <strong>4‑bit</strong> incl.&nbsp;KV; ≤0.5 PPL ↑</td>
+<td>Random rotation choice is variable</td>
+</tr>
+<tr class="odd">
+<td><strong>SpinQuant</strong> (ICLR’25) <strong>recent</strong> (<a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/e5b1c0d4866f72393c522c8a00eed4eb-Abstract-Conference.html?utm_source=chatgpt.com" title="SpinQuant: LLM Quantization with Learned Rotations">ICLR Proceedings</a>)</td>
+<td style="text-align: right;">LLaMA‑2/3, Mistral</td>
+<td style="text-align: right;">All</td>
+<td>Learned rotations</td>
+<td>Cayley optimization of orthogonal R; large variance across random R</td>
+<td>WA/KV 4‑bit vs SmoothQuant/QuaRot</td>
+<td>GitHub</td>
+<td>Closes z‑shot gap to <strong>2.9 pts</strong> on L2‑7B; &gt;QuaRot on L3‑8B</td>
+<td>Requires training‑like tuning of R</td>
+</tr>
+<tr class="even">
+<td><strong>DFRot</strong> (2024 arXiv/OpenReview) <strong>recent</strong> (<a href="https://arxiv.org/abs/2412.00648?utm_source=chatgpt.com" title="DFRot: Achieving Outlier-Free and Massive Activation-Free for Rotated LLMs with Refined Rotation">arXiv</a>)</td>
+<td style="text-align: right;">LLaMA‑3‑8B</td>
+<td style="text-align: right;">All</td>
+<td>“Massive activations” long tail</td>
+<td>Explains Hadamard&gt;random‑orth on W4A4; weighted loss for rare massive tokens</td>
+<td>Learn refined R via Procrustes</td>
+<td>PDF/GitHub</td>
+<td>+0.21–0.25 PPL on hard WA/KV settings</td>
+<td>Needs careful loss reweighting</td>
+</tr>
+<tr class="odd">
+<td><strong>PrefixQuant</strong> (OpenReview’24) <strong>recent</strong> (<a href="https://arxiv.org/abs/2410.05265?utm_source=chatgpt.com" title="PrefixQuant: Eliminating Outliers by Prefixed Tokens for Large Language Models Quantization">arXiv</a>)</td>
+<td style="text-align: right;">LLaMA‑3‑8B/70B</td>
+<td style="text-align: right;">All</td>
+<td>Token‑wise outliers</td>
+<td>Offline identify high‑freq outlier tokens; <strong>prefix</strong> them to isolate</td>
+<td>Static per‑tensor W4A4KV4 vs dynamic</td>
+<td>GitHub</td>
+<td>Static &gt; dynamic; up to <strong>2.74× prefill</strong></td>
+<td>Adds prefix overhead; domain drift?</td>
+</tr>
+<tr class="even">
+<td><strong>CMPQ</strong> (arXiv’24) <strong>recent</strong> (<a href="https://arxiv.org/abs/2410.13056?utm_source=chatgpt.com" title="Channel-Wise Mixed-Precision Quantization for Large Language Models">arXiv</a>)</td>
+<td style="text-align: right;">Several LLMs</td>
+<td style="text-align: right;">All</td>
+<td>Channel‑wise mixed precision</td>
+<td>Non‑uniform, channel‑wise bit allocation from activation stats</td>
+<td>PTQ under bit budgets</td>
+<td>arXiv</td>
+<td>Integer &amp; fractional mixed bits improve W‑only</td>
+<td>Storage/controller complexity</td>
+</tr>
+<tr class="odd">
+<td><strong>KIVI</strong> (ICML’24) <strong>recent</strong> (<a href="https://proceedings.mlr.press/v235/liu24bz.html?utm_source=chatgpt.com" title="KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache">Proceedings of Machine Learning Research</a>)</td>
+<td style="text-align: right;">LLaMA/Falcon/Mistral</td>
+<td style="text-align: right;">KV</td>
+<td>K vs V asymmetry</td>
+<td><strong>K per‑channel</strong>; <strong>V per‑token</strong> at <strong>2‑bit</strong></td>
+<td>No‑tune PTQ; throughput tests</td>
+<td>GitHub</td>
+<td><strong>2.6×</strong> less peak mem; <strong>2.35–3.47×</strong> throughput</td>
+<td>Focuses on KV; calibration details</td>
+</tr>
+<tr class="even">
+<td><strong>LeanKV</strong> (arXiv’24) <strong>recent</strong> (<a href="https://arxiv.org/abs/2412.03131?utm_source=chatgpt.com" title="Unifying KV Cache Compression for Large Language Models with LeanKV">arXiv</a>)</td>
+<td style="text-align: right;">vLLM impl.; many LLMs</td>
+<td style="text-align: right;">KV</td>
+<td>Unified KV compression</td>
+<td>Hetero‑KV precision; per‑head dynamic sparsity; unified paging</td>
+<td>System+PTQ eval</td>
+<td>arXiv</td>
+<td><strong>3–5×</strong> KV shrink w/ ≈no loss; up to <strong>6.9×</strong> throughput</td>
+<td>System complexity; new runtime</td>
+</tr>
+<tr class="odd">
+<td><strong>H2O</strong> (NeurIPS’23) (<a href="https://proceedings.neurips.cc/paper_files/paper/2023/file/6ceefa7b15572587b78ecfcebb2827f8-Paper-Conference.pdf?utm_source=chatgpt.com" title="H2O: Heavy-Hitter Oracle for Efficient Generative Inference ... - NeurIPS">NeurIPS Proceedings</a>)</td>
+<td style="text-align: right;">OPT/LLaMA/GPT‑NeoX</td>
+<td style="text-align: right;">Attn/KV</td>
+<td>Heavy‑hitters in attention</td>
+<td>Submodular greedy w/ theoretical approx.</td>
+<td>Eviction policy; real KV dropping</td>
+<td>GitHub</td>
+<td><strong>29×</strong> perf vs baselines (simulated), <strong>1.9×</strong> latency ↓</td>
+<td>Depends on “heavy‑hitter” oracle</td>
+</tr>
+<tr class="even">
+<td><strong>StreamingLLM</strong> (ICLR’24) <strong>recent</strong> (<a href="https://proceedings.iclr.cc/paper_files/paper/2024/hash/5e5fd18f863cbe6d8ae392a93fd271c9-Abstract-Conference.html?utm_source=chatgpt.com" title="Efficient Streaming Language Models with Attention Sinks">ICLR Proceedings</a>)</td>
+<td style="text-align: right;">LLaMA/MPT/Falcon</td>
+<td style="text-align: right;">Attn</td>
+<td><strong>Attention sink</strong></td>
+<td>Keep initial sink tokens; windowed KV</td>
+<td>Long streaming stress</td>
+<td>GitHub</td>
+<td>Stable to <strong>4M</strong> tokens; <strong>22.2×</strong> speedup vs recompute</td>
+<td>Sinks may be non‑semantic</td>
+</tr>
+<tr class="odd">
+<td><strong>When Attention Sink Emerges</strong> (arXiv’24) <strong>recent</strong> (<a href="https://arxiv.org/abs/2410.10781?utm_source=chatgpt.com" title="When Attention Sink Emerges in Language Models: An Empirical View">arXiv</a>)</td>
+<td style="text-align: right;">up to 1B</td>
+<td style="text-align: right;">Attn</td>
+<td>Sink is key‑bias + softmax artifact</td>
+<td>Replace softmax (e.g., sigmoid) → sinks vanish (≤1B)</td>
+<td>Train/probe variations</td>
+<td>GitHub</td>
+<td>Universal sinks; emerge during pretrain</td>
+<td>Scale/generalization open</td>
+</tr>
+<tr class="even">
+<td><strong>Head‑wise Shareable Attention</strong> (EMNLP‑Findings’24) <strong>recent</strong> (<a href="https://aclanthology.org/2024.findings-emnlp.144/?utm_source=chatgpt.com" title="Head-wise Shareable Attention for Large Language Models">ACL Anthology</a>)</td>
+<td style="text-align: right;">LLMs (varied)</td>
+<td style="text-align: right;">Heads</td>
+<td>Head weight sharing</td>
+<td>Two sharing schemes (DirectShare/PostShare)</td>
+<td>Finetune &amp; eval</td>
+<td>PDF</td>
+<td>Good accuracy with head sharing</td>
+<td>May affect specialized heads</td>
+</tr>
+<tr class="odd">
+<td><strong>Are Sixteen Heads…</strong> (NeurIPS’19) (<a href="https://proceedings.neurips.cc/paper_files/paper/2019/file/2c601ad9d2ff9bc8b282670cdd54f69f-Paper.pdf?utm_source=chatgpt.com" title="Are Sixteen Heads Really Better than One? - NeurIPS">NeurIPS Proceedings</a>)</td>
+<td style="text-align: right;">BERT/MT</td>
+<td style="text-align: right;">Heads</td>
+<td>Redundancy</td>
+<td>Layerwise best‑head prunes many heads</td>
+<td>Head pruning</td>
+<td>PDF</td>
+<td>Many heads removable at test time</td>
+<td>Older models; not LLMs</td>
+</tr>
+<tr class="even">
+<td><strong>Attention Heads: Survey</strong> (2024→Patterns’25) <strong>recent</strong> (<a href="https://arxiv.org/abs/2409.03752?utm_source=chatgpt.com" title="Attention Heads of Large Language Models: A Survey">arXiv</a>)</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">Heads</td>
+<td>Taxonomy of heads</td>
+<td>Modeling‑free vs required; typology</td>
+<td>Survey</td>
+<td>GitHub</td>
+<td>Consolidates head functions &amp; eval methods</td>
+<td>Survey; few new numbers</td>
+</tr>
+<tr class="odd">
+<td><strong>CKA/PWCCA</strong> (ICML’19 / NeurIPS’18)</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">Repr.</td>
+<td>Similarity metrics</td>
+<td>CKA invariances; PWCCA projection weighting</td>
+<td>Open code</td>
+<td>GitHub</td>
+<td>Robust representational similarity</td>
+<td>Not LLM‑specific per se (<a href="https://arxiv.org/abs/1905.00414?utm_source=chatgpt.com" title="Similarity of Neural Network Representations Revisited">arXiv</a>)</td>
+</tr>
+<tr class="even">
+<td><strong>PAMM</strong> (arXiv’25) <strong>recent</strong> (<a href="https://arxiv.org/abs/2502.01068?utm_source=chatgpt.com" title="FastKV: KV Cache Compression for Fast Long-Context Processing with Token-Selective Propagation">arXiv</a>)</td>
+<td style="text-align: right;">Q/K/V proj.</td>
+<td style="text-align: right;">QKV</td>
+<td>Memory reduction</td>
+<td>Parameter allocation across QKV</td>
+<td>Analyzer/proposal</td>
+<td>arXiv</td>
+<td>Q/K/V need only a fraction of memory</td>
+<td>Early preprint</td>
+</tr>
+<tr class="odd">
+<td><strong>LongBench (v1/v2)</strong> (ACL’24/’25) <strong>recent</strong> (<a href="https://aclanthology.org/2024.acl-long.172.pdf?utm_source=chatgpt.com" title="LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding">ACL Anthology</a>)</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">Eval</td>
+<td>Long‑context bench</td>
+<td>21 tasks (v1); v2 up to 2M words</td>
+<td>GitHub</td>
+<td>Standard long‑context eval suite</td>
+<td>Zero‑shot grading noisy</td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>LRA</strong> (ICLR’21)</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">Eval</td>
+<td>Long‑range probes</td>
+<td>1k–16k synthetic+real tasks</td>
+<td>JAX/Flax code</td>
+<td>GitHub</td>
+<td>Classic efficient‑xformer testbed</td>
+<td>Not LLM‑scale (<a href="https://iclr.cc/virtual/2021/poster/3225?utm_source=chatgpt.com" title="Long Range Arena : A Benchmark for Efficient Transformers">ICLR</a>)</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="methods-digest-mathfirst" class="level2">
+<h2 class="anchored" data-anchor-id="methods-digest-mathfirst">2) Methods digest (math‑first)</h2>
+<p><strong>Outliers.</strong></p>
+<ul>
+<li><em>Channel‑wise activation outliers</em>: let (X_{l,h,c,t}) denote hidden state after RMSNorm entering attention/FFN (layer (l), head (h), channel (c), token (t)). Channel‑wise outliers: heavy‑tail in (X_{,,c,}) across tokens; quantify by <strong>kurtosis</strong> ( <em>c), <strong>trimmed moments</strong>, and <strong>Hill tail index</strong> ( <em>c = ( </em>{i=1}^m X</em>{(i)} - X_{(m)} )^{-1}) on the top‑(m) order stats (on (|X|)).</li>
+<li><em>Token‑wise (“massive”) outliers</em>: rare tokens where (<em>c |X</em>{t,c}|) far exceeds typical—measure via <strong>per‑token</strong> ( |X_t|_/|X_t|_2) and tail index over tokens. <strong>PrefixQuant/DFRot</strong> target this regime. (<a href="https://arxiv.org/abs/2410.05265?utm_source=chatgpt.com" title="PrefixQuant: Eliminating Outliers by Prefixed Tokens for Large Language Models Quantization">arXiv</a>)</li>
+</ul>
+<p><strong>Sparsity (attention).</strong></p>
+<ul>
+<li><strong>ℓ0 rate</strong>: (s = _i (|a_i|&gt;)).</li>
+<li><strong>Top‑k mass</strong>: (M_k = <em>{i=1}^k a</em>{(i)}), (a) sorted desc.</li>
+<li><strong>Entropy</strong>: (H(a) = -_i a_ia_i).</li>
+<li><strong>Sink ratio</strong>: (r_{} = ) averaged over heads. (High (r_{}) ↔︎ StreamingLLM effect.) (<a href="https://proceedings.iclr.cc/paper_files/paper/2024/hash/5e5fd18f863cbe6d8ae392a93fd271c9-Abstract-Conference.html?utm_source=chatgpt.com" title="Efficient Streaming Language Models with Attention Sinks">ICLR Proceedings</a>)</li>
+</ul>
+<p><strong>Quantization error.</strong></p>
+<ul>
+<li><strong>Uniform quantizer</strong> with step (): round‑to‑nearest MSE (E|x - Q(x)|^2 = ) (no clipping) per scalar; with clipping to ([]), add saturation error (E[(|x|-)_+^2]).</li>
+<li><strong>Per‑tensor vs per‑channel vs per‑token</strong>: scale (s) fitted over (i) whole tensor, (ii) each output channel, or (iii) each token slice. <strong>SmoothQuant</strong> migrates scales between A and W; <strong>KIVI</strong>: K per‑channel, V per‑token. <strong>Rotations</strong> (R) (orthogonal) preserve ( |x|_2) but <strong>redistribute coordinates</strong>, shrinking max‑norm and improving per‑tensor quant. (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</li>
+</ul>
+<p><strong>Similarity (Q/K/V &amp; activations).</strong></p>
+<ul>
+<li><strong>Cosine</strong> for columns (u,v): ( ).</li>
+<li><strong>CKA</strong> (linear): ( (X,Y) = ).</li>
+<li><strong>PWCCA</strong>: projection‑weighted average of CCA correlations (weights ∝ representation energy). (<a href="https://proceedings.mlr.press/v97/kornblith19a/kornblith19a.pdf?utm_source=chatgpt.com" title="Similarity of Neural Network Representations Revisited">Proceedings of Machine Learning Research</a>)</li>
+<li><strong>Stable rank</strong>: ( (W)=) (effective dimensionality).</li>
+<li><strong>Mutual coherence</strong>: ((W)=_{ij} ) for column‑normalized (W) (smaller→more “diverse” features). (<a href="https://en.wikipedia.org/wiki/Mutual_coherence_%28linear_algebra%29?utm_source=chatgpt.com" title="Mutual coherence (linear algebra)">Wikipedia</a>)</li>
+</ul>
+<p><strong>Softmax stats &amp; normalization.</strong> Let (q,k_i N(0, I)) (isotropy) with dim (d_k). Pre‑softmax scores (s_i=) ⇒ (s_i N(0,1)). For (n) keys, (s_i ) (Gumbel extremer), so attention concentrates as (n↑) even under isotropy. <strong>RMSNorm/LayerNorm</strong> flatten per‑token variance, shrinking tails in (q,k), decreasing clipping error—but channel‑wise outliers persist post‑affine scaling, motivating <strong>migration/rotation</strong>. (Empirically validated across SmoothQuant/QuaRot/SpinQuant.) (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</p>
+<p><strong>Kernel support reality.</strong></p>
+<ul>
+<li>Dense attn paths rely on <strong>PyTorch SDPA</strong> (Flash‑like kernels CPU/GPU) for stability/speed; sparse windows &amp; block‑sparse patterns rely on <strong>xFormers BlockSparse/Triton</strong>. Rotations often applied offline (parameter/fused‑weight transforms) to avoid runtime overhead. (<a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html?utm_source=chatgpt.com" title="torch.nn.functional.scaled_dot_product_attention — PyTorch 2.9 ...">PyTorch Documentation</a>)</li>
+</ul>
+</section>
+<section id="replicable-miniaudit-open-weights" class="level2">
+<h2 class="anchored" data-anchor-id="replicable-miniaudit-open-weights">3) Replicable mini‑audit (open weights)</h2>
+<p><strong>Targets:</strong> Llama‑2/3‑7B, Mistral‑7B, Mixtral‑8×7B (MoE), Qwen‑2‑7B, Gemma‑2‑9B. <strong>Compute reality:</strong> KV (fp16) per token per layer ≈ (2 H d_h ) bytes. Example (32 layers, 32 heads, (d_h=128)): <strong>~0.5 MB/token</strong>; 8k tokens ≈ <strong>4 GB</strong> just for KV. <strong>2‑bit KIVI</strong> gives ≈<strong>8×</strong> KV shrink (plus hetero treatment). (<a href="https://proceedings.mlr.press/v235/liu24bz.html?utm_source=chatgpt.com" title="KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache">Proceedings of Machine Learning Research</a>)</p>
+<section id="metrics-we-compute" class="level3">
+<h3 class="anchored" data-anchor-id="metrics-we-compute">3.1 Metrics we compute</h3>
+<ul>
+<li><strong>Outliers/activations:</strong> per layer/head histograms, skew/kurtosis; <strong>Hill tail index</strong> per channel; <strong>L∞/L2</strong> per channel; fraction of tokens with (|x_t|_&gt; (x_t)) (e.g., ()).</li>
+<li><strong>KV stats:</strong> K vs V per‑channel variance; per‑token variance; <strong>key‑key similarity matrix</strong> (cosine); redundancy from eigenspectrum.</li>
+<li><strong>Q/K/V matrices:</strong> SVD spectrum; <strong>stable rank</strong>; <strong>mutual coherence</strong>; <strong>principal angles</strong> between ((W_Q)) and ((W_K)).</li>
+<li><strong>Head similarity:</strong> intra‑layer &amp; cross‑layer <strong>CKA/PWCCA</strong>; head clustering; % duplicate heads.</li>
+<li><strong>Attention sparsity:</strong> per head <strong>entropy</strong>, <strong>top‑k mass</strong>, <strong>sink ratio</strong> to BOS/pos‑0.</li>
+<li><strong>Quant probes:</strong> W/A/KV INT8/4/2: (i) per‑tensor, (ii) per‑channel, (iii) per‑token; with <strong>QuaRot/SpinQuant</strong> rotations, <strong>DuQuant</strong> rotation+permutation; record <strong>ΔMSE→ΔPPL/accuracy</strong> and layer/head heatmaps. (<a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/b5b939436789f76f08b9d0da5e81af7c-Paper-Conference.pdf?utm_source=chatgpt.com" title="QuaRot: Outlier-Free 4-Bit Inference in Rotated LLMs">NeurIPS Proceedings</a>)</li>
+</ul>
+</section>
+<section id="minimal-pytorch-2.x-code-sketch" class="level3">
+<h3 class="anchored" data-anchor-id="minimal-pytorch-2.x-code-sketch">3.2 Minimal PyTorch ≥2.x code (sketch)</h3>
+<blockquote class="blockquote">
+<p>This is <strong>runnable</strong> with HuggingFace Transformers and torch ≥2.x; uses SDPA; for BlockSparse, install xFormers. We include only core snippets here.</p>
+</blockquote>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setup</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch, math, numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoModelForCausalLM, AutoTokenizer</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>torch.set_float32_matmul_precision(<span class="st">"high"</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>model_name <span class="op">=</span> <span class="st">"meta-llama/Llama-2-7b-hf"</span>  <span class="co"># swap: mistralai/Mistral-7B-v0.1, Qwen/Qwen2-7B, ...</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>tok <span class="op">=</span> AutoTokenizer.from_pretrained(model_name, use_fast<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> AutoModelForCausalLM.from_pretrained(model_name, torch_dtype<span class="op">=</span>torch.bfloat16, device_map<span class="op">=</span><span class="st">"auto"</span>, low_cpu_mem_usage<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>model.<span class="bu">eval</span>()</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Outlier stats on MLP in/out and attn residuals (per layer/head/channel) ---</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> hill_tail_index(x, topm<span class="op">=</span><span class="dv">2048</span>):</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># x: 1D tensor of abs-values</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> x.flatten().<span class="bu">abs</span>()</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    x_sorted, _ <span class="op">=</span> torch.sort(x, descending<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    xm <span class="op">=</span> x_sorted[:topm]</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Hill estimator (requires xm&gt;0)</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    eps <span class="op">=</span> <span class="fl">1e-12</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(<span class="fl">1.0</span> <span class="op">/</span> (torch.mean(torch.log(xm <span class="op">+</span> eps)) <span class="op">-</span> torch.log(xm[<span class="op">-</span><span class="dv">1</span>] <span class="op">+</span> eps)))</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="at">@torch.no_grad</span>()</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> audit_activations(input_ids):</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    hooks, stats <span class="op">=</span> [], <span class="bu">dict</span>()</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> make_hook(name):</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        <span class="kw">def</span> _hook(mod, inp, out):</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>            x <span class="op">=</span> out.detach().<span class="bu">float</span>()</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>            <span class="co"># per-token channel metrics</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>            l2 <span class="op">=</span> torch.linalg.vector_norm(x, <span class="bu">ord</span><span class="op">=</span><span class="dv">2</span>, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>            linf <span class="op">=</span> x.<span class="bu">abs</span>().amax(dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>            massive <span class="op">=</span> (linf <span class="op">/</span> (x.<span class="bu">pow</span>(<span class="dv">2</span>).mean(dim<span class="op">=-</span><span class="dv">1</span>).sqrt() <span class="op">+</span> <span class="fl">1e-6</span>) <span class="op">&gt;</span> <span class="dv">6</span>).<span class="bu">float</span>().mean().item()</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>            <span class="co"># channel-wise</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>            xch <span class="op">=</span> x.reshape(<span class="op">-</span><span class="dv">1</span>, x.shape[<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>            kurt <span class="op">=</span> torch.mean(torch.mean((xch <span class="op">-</span> xch.mean(<span class="dv">0</span>))<span class="op">**</span><span class="dv">4</span>, <span class="dv">0</span>) <span class="op">/</span> (xch.var(<span class="dv">0</span>) <span class="op">+</span> <span class="fl">1e-6</span>)<span class="op">**</span><span class="dv">2</span>).item()</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>            tail <span class="op">=</span> hill_tail_index(xch.<span class="bu">abs</span>(), topm<span class="op">=</span><span class="bu">min</span>(<span class="dv">4096</span>, xch.numel()))</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>            stats[name] <span class="op">=</span> <span class="bu">dict</span>(massive_frac<span class="op">=</span><span class="bu">float</span>(massive), kurtosis<span class="op">=</span>kurt, hill_tail<span class="op">=</span>tail)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> _hook</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># register after each RMSNorm before attention/MLP (Llama/Mistral style)</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, block <span class="kw">in</span> <span class="bu">enumerate</span>(model.model.layers):</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>        hooks.append(block.input_layernorm.register_forward_hook(make_hook(<span class="ss">f"layer</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">/pre_attn"</span>)))</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>        hooks.append(block.post_attention_layernorm.register_forward_hook(make_hook(<span class="ss">f"layer</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">/pre_mlp"</span>)))</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    _ <span class="op">=</span> model(torch.tensor([tok.encode(<span class="st">"A short calibration passage about LLMs."</span>)] , device<span class="op">=</span>model.device))</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> h <span class="kw">in</span> hooks: h.remove()</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> stats</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> audit_activations(<span class="va">None</span>)</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">list</span>(stats.items())[:<span class="dv">2</span>])</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Q/K/V spectral &amp; coherence metrics ---</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> spectral_metrics_linear(linear):</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> linear.weight.detach().<span class="bu">float</span>().cpu()  <span class="co"># [out, in]</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    <span class="co"># SVD (truncated for speed)</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>    k <span class="op">=</span> <span class="bu">min</span>(<span class="dv">512</span>, <span class="bu">min</span>(W.shape)<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>    U, S, Vt <span class="op">=</span> torch.linalg.svd(W, full_matrices<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    S <span class="op">=</span> S[:k]</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>    srank <span class="op">=</span> <span class="bu">float</span>((S<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>() <span class="op">/</span> (S.<span class="bu">max</span>()<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> <span class="fl">1e-9</span>))</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>    <span class="co"># mutual coherence over columns (approx via random subset)</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> F.normalize(W.T, dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> torch.randperm(cols.shape[<span class="dv">0</span>])[:<span class="dv">2048</span>]</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>    C <span class="op">=</span> cols[idx] <span class="op">@</span> cols[idx].T</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> <span class="bu">float</span>(C.<span class="bu">abs</span>().fill_diagonal_(<span class="dv">0</span>).<span class="bu">max</span>())</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {<span class="st">"stable_rank"</span>: srank, <span class="st">"mutual_coherence"</span>: mu, <span class="st">"sv_ratio"</span>: <span class="bu">float</span>((S[:<span class="dv">10</span>].<span class="bu">sum</span>()<span class="op">/</span>S.<span class="bu">sum</span>()).item())}</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>l0 <span class="op">=</span> model.model.layers[<span class="dv">0</span>].self_attn</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>q_metrics <span class="op">=</span> spectral_metrics_linear(l0.q_proj)<span class="op">;</span> k_metrics <span class="op">=</span> spectral_metrics_linear(l0.k_proj)<span class="op">;</span> v_metrics <span class="op">=</span> spectral_metrics_linear(l0.v_proj)</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(q_metrics, k_metrics, v_metrics)</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Principal angles between col-spaces of W_Q and W_K ---</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> principal_angles(Wa, Wb, k<span class="op">=</span><span class="dv">128</span>):</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>    <span class="co"># orthonormal bases via QR</span></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>    Qa, _ <span class="op">=</span> torch.linalg.qr(Wa.detach().<span class="bu">float</span>().T, mode<span class="op">=</span><span class="st">'reduced'</span>)</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>    Qb, _ <span class="op">=</span> torch.linalg.qr(Wb.detach().<span class="bu">float</span>().T, mode<span class="op">=</span><span class="st">'reduced'</span>)</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>    S <span class="op">=</span> torch.linalg.svdvals(Qa.T <span class="op">@</span> Qb)</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> torch.arccos(torch.clamp(S, <span class="dv">0</span>, <span class="dv">1</span>)).cpu().numpy()  <span class="co"># in radians</span></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>angles <span class="op">=</span> principal_angles(l0.q_proj.weight, l0.k_proj.weight)</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"median angle (deg):"</span>, <span class="bu">float</span>(np.median(angles)<span class="op">*</span><span class="dv">180</span><span class="op">/</span>np.pi))</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Attention sparsity &amp; sink mass (single batch) ---</span></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a><span class="at">@torch.no_grad</span>()</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> attention_stats(prompt<span class="op">=</span><span class="st">"..."</span>):</span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tok(prompt, return_tensors<span class="op">=</span><span class="st">"pt"</span>).to(model.device)</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> model.model(<span class="op">**</span>ids, output_attentions<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>    ent, topk, sink <span class="op">=</span> [], [], []</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> L, att <span class="kw">in</span> <span class="bu">enumerate</span>(out.attentions):  <span class="co"># [bs, heads, q, k]</span></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>        probs <span class="op">=</span> att[<span class="dv">0</span>]  <span class="co"># [H, T, T]</span></span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>        H,T,_ <span class="op">=</span> probs.shape</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a>        <span class="co"># entropy per head</span></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>        e <span class="op">=</span> (<span class="op">-</span>probs <span class="op">*</span> (probs.clamp_min(<span class="fl">1e-9</span>)).log()).<span class="bu">sum</span>(<span class="op">-</span><span class="dv">1</span>).mean(<span class="op">-</span><span class="dv">1</span>)  <span class="co"># [H]</span></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a>        ent.append(e.cpu())</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>        <span class="co"># top-k mass</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>        topk.append(torch.topk(probs, k<span class="op">=</span><span class="bu">min</span>(<span class="dv">8</span>,T), dim<span class="op">=-</span><span class="dv">1</span>).values.<span class="bu">sum</span>(<span class="op">-</span><span class="dv">1</span>).mean(<span class="op">-</span><span class="dv">1</span>).cpu())</span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>        <span class="co"># sink ratio (BOS or pos-0)</span></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>        sink.append(probs[...,<span class="dv">0</span>].mean(<span class="op">-</span><span class="dv">1</span>).cpu())</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(ent<span class="op">=</span>torch.stack(ent), topk<span class="op">=</span>torch.stack(topk), sink<span class="op">=</span>torch.stack(sink))</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(attention_stats(<span class="st">"Long input "</span> <span class="op">*</span> <span class="dv">2048</span>)[<span class="st">"sink"</span>].mean().item())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Quantization probes (sketch):</strong> implement per‑tensor/per‑channel/per‑token uniform quantizers; optionally wrap weight/activation tensors with <strong>orthogonal R</strong> (Hadamard/Cayley‑learned). Use a small <strong>calibration set</strong> (e.g., 128 snippets from C4/WikiText‑2) to fit ranges and record <strong>ΔPPL</strong> on WikiText‑2 and <strong>task deltas</strong> on HellaSwag/MMLU. Compare <strong>KIVI</strong>‑style KV (K per‑channel, V per‑token <span class="citation" data-cites="2">@2</span>‑bit) vs symmetric 4‑bit per‑tensor, and <strong>QuaRot/SpinQuant</strong> rotations.</p>
+<p><strong>Benchmarks &amp; metrics:</strong></p>
+<ul>
+<li><em>Quality</em>: WikiText‑2/PIQA/HellaSwag/MMLU zero‑shot; <strong>LongBench (v1/v2)</strong> for long‑context QA/sum/code; <strong>LRA</strong> only as aux long‑range probe. (<a href="https://aclanthology.org/2024.acl-long.172.pdf?utm_source=chatgpt.com" title="LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding">ACL Anthology</a>)</li>
+<li><em>Systems</em>: wall‑clock latency/token, throughput (tokens/s), <strong>peak VRAM</strong>, prefill vs decode breakdown; max stable context.</li>
+<li><em>Ablations</em>: RMSNorm vs LayerNorm (across models), GELU vs SwiGLU, context length (8k→128k), with/without sink prefix.</li>
+</ul>
+</section>
+</section>
+<section id="synthesis-taxonomy" class="level2">
+<h2 class="anchored" data-anchor-id="synthesis-taxonomy">4) Synthesis &amp; taxonomy</h2>
+<p><strong>A. Outlier types → techniques</strong></p>
+<ul>
+<li><strong>Channel‑wise</strong> (persistent high‑var channels): SmoothQuant (migrate), OS+ (shift/scale), AdaDim (per‑IC), AWQ (salient‑channel scaling). <strong>Quant target</strong>: A &amp; W; <strong>Kernel</strong>: SDPA unchanged (weight‑side transforms). (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</li>
+<li><strong>Token‑wise (“massive”)</strong> (rare extreme tokens): DFRot (rotation optimized for tail), PrefixQuant (prefix outliers, static per‑tensor). <strong>Targets</strong>: W/A/KV; <strong>Note</strong>: improves static quant significantly. (<a href="https://arxiv.org/abs/2412.00648?utm_source=chatgpt.com" title="DFRot: Achieving Outlier-Free and Massive Activation-Free for Rotated LLMs with Refined Rotation">arXiv</a>)</li>
+<li><strong>Hidden‑state heavy tails (residual)</strong>: QuaRot/SpinQuant (global rotations) flatten tails; <strong>DuQuant</strong> adds permutation to balance blocks. <strong>Targets</strong>: end‑to‑end W/A/KV at 4‑bit. (<a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/b5b939436789f76f08b9d0da5e81af7c-Paper-Conference.pdf?utm_source=chatgpt.com" title="QuaRot: Outlier-Free 4-Bit Inference in Rotated LLMs">NeurIPS Proceedings</a>)</li>
+</ul>
+<p><strong>B. KV targets &amp; redundancy</strong></p>
+<ul>
+<li><strong>Asymmetry (K vs V)</strong>: KIVI’s analysis supports <strong>K per‑channel</strong> vs <strong>V per‑token</strong> (2‑bit) → large mem/throughput wins with small quality loss; LeanKV unifies mixed precision and per‑head sparsity; H2O evicts KVs by attention heavy‑hitters with submodular guarantees. (<a href="https://proceedings.mlr.press/v235/liu24bz.html?utm_source=chatgpt.com" title="KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache">Proceedings of Machine Learning Research</a>)</li>
+</ul>
+<p><strong>C. Head behaviors</strong></p>
+<ul>
+<li><strong>Redundant/duplicate heads</strong> (early layers) ↔︎ good pruning/shareability; <strong>induction‑like &amp; sink‑biased heads</strong> more in early/mid; later layers more specialized → be cautious with sharing/pruning there. Use <strong>CKA/PWCCA</strong> to cluster and <strong>angle/coherence</strong> metrics on (W_Q,W_K). (<a href="https://arxiv.org/abs/1905.10650?utm_source=chatgpt.com" title="Are Sixteen Heads Really Better than One?">arXiv</a>)</li>
+</ul>
+<p><strong>D. Contradictions &amp; likely causes</strong></p>
+<ul>
+<li>Rotation methods disagree because of (i) <strong>calibration corpus</strong> (coverage of rare massive tokens), (ii) <strong>normalization</strong> (RMSNorm vs LayerNorm shifts tail structure), (iii) <strong>bit allocation</strong> interaction (CMPQ/AWQ vs pure rotations), (iv) <strong>task mix</strong> (reasoning vs knowledge). Re‑test on identical settings with our mini‑audit (below).</li>
+</ul>
+</section>
+<section id="repro-kit-links-configs-licensing-notes" class="level2">
+<h2 class="anchored" data-anchor-id="repro-kit-links-configs-licensing-notes">5) Repro kit (links, configs, licensing notes)</h2>
+<ul>
+<li><strong>LLM.int8()</strong>: paper &amp; code; bitsandbytes supports vector‑wise + FP16 outlier mat. (Check repository for license.) (<a href="https://arxiv.org/abs/2208.07339?utm_source=chatgpt.com" title="LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale">arXiv</a>)</li>
+<li><strong>SmoothQuant</strong>: paper + <strong>GitHub</strong> (PTQ scripts; migration α). (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</li>
+<li><strong>OS+</strong>: paper + <strong>GitHub</strong> (channel shift/scale). (<a href="https://arxiv.org/abs/2304.09145?utm_source=chatgpt.com" title="Outlier Suppression+: Accurate quantization of large language models by equivalent and optimal shifting and scaling">arXiv</a>)</li>
+<li><strong>AdaDim</strong>: paper + <strong>GitHub</strong> (RTN/GPTQ glue). (<a href="https://iclr.cc/virtual/2024/poster/18921?utm_source=chatgpt.com" title="Rethinking Channel Dimensions to Isolate Outliers for Low-bit ... - ICLR">ICLR</a>)</li>
+<li><strong>AWQ</strong>: MLSys’24 paper + <strong>GitHub</strong> model zoo. (<a href="https://proceedings.mlsys.org/paper_files/paper/2024/hash/42a452cbafa9dd64e9ba4aa95cc1ef21-Abstract-Conference.html?utm_source=chatgpt.com" title="AWQ: Activation-aware Weight Quantization for On-Device LLM ... - MLSys">MLSys Proceedings</a>)</li>
+<li><strong>QuaRot</strong>: paper + <strong>GitHub</strong> (offline rotations). (<a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/b5b939436789f76f08b9d0da5e81af7c-Paper-Conference.pdf?utm_source=chatgpt.com" title="QuaRot: Outlier-Free 4-Bit Inference in Rotated LLMs">NeurIPS Proceedings</a>)</li>
+<li><strong>SpinQuant</strong>: paper + <strong>GitHub</strong> (Cayley rotation learning). (<a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/e5b1c0d4866f72393c522c8a00eed4eb-Abstract-Conference.html?utm_source=chatgpt.com" title="SpinQuant: LLM Quantization with Learned Rotations">ICLR Proceedings</a>)</li>
+<li><strong>DFRot</strong>: paper + <strong>GitHub</strong>. (<a href="https://jingyangxiang.github.io/DFRotPage/static/pdfs/DFRot.pdf?utm_source=chatgpt.com" title="DFRot: Achieving Outlier-Free and Massive Activation-Free for Rotated ...">Jingyang Xiang</a>)</li>
+<li><strong>PrefixQuant</strong>: paper + <strong>GitHub</strong>. (<a href="https://arxiv.org/abs/2410.05265?utm_source=chatgpt.com" title="PrefixQuant: Eliminating Outliers by Prefixed Tokens for Large Language Models Quantization">arXiv</a>)</li>
+<li><strong>CMPQ</strong>: paper/code. (<a href="https://arxiv.org/abs/2410.13056?utm_source=chatgpt.com" title="Channel-Wise Mixed-Precision Quantization for Large Language Models">arXiv</a>)</li>
+<li><strong>KIVI</strong>: paper + <strong>GitHub</strong> (<strong>2‑bit</strong> KV; K per‑channel, V per‑token). (<a href="https://proceedings.mlr.press/v235/liu24bz.html?utm_source=chatgpt.com" title="KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache">Proceedings of Machine Learning Research</a>)</li>
+<li><strong>LeanKV</strong>: paper (vLLM integration). (<a href="https://arxiv.org/abs/2412.03131?utm_source=chatgpt.com" title="Unifying KV Cache Compression for Large Language Models with LeanKV">arXiv</a>)</li>
+<li><strong>H2O</strong>: NeurIPS’23 paper + <strong>GitHub</strong>. (<a href="https://proceedings.neurips.cc/paper_files/paper/2023/file/6ceefa7b15572587b78ecfcebb2827f8-Paper-Conference.pdf?utm_source=chatgpt.com" title="H2O: Heavy-Hitter Oracle for Efficient Generative Inference ... - NeurIPS">NeurIPS Proceedings</a>)</li>
+<li><strong>StreamingLLM</strong>: ICLR’24 paper + <strong>GitHub</strong>. (<a href="https://proceedings.iclr.cc/paper_files/paper/2024/hash/5e5fd18f863cbe6d8ae392a93fd271c9-Abstract-Conference.html?utm_source=chatgpt.com" title="Efficient Streaming Language Models with Attention Sinks">ICLR Proceedings</a>)</li>
+<li><strong>CKA/PWCCA</strong>: papers + <strong>Google Research</strong> code. (<a href="https://arxiv.org/abs/1905.00414?utm_source=chatgpt.com" title="Similarity of Neural Network Representations Revisited">arXiv</a>)</li>
+<li><strong>Kernels</strong>: <strong>PyTorch SDPA</strong> docs; <strong>xFormers BlockSparse</strong> tutorial. (Mind backend selection, mask sparsity thresholds). (<a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html?utm_source=chatgpt.com" title="torch.nn.functional.scaled_dot_product_attention — PyTorch 2.9 ...">PyTorch Documentation</a>)</li>
+<li><strong>Long‑context eval</strong>: <strong>LongBench(v1/v2)</strong>, <strong>LRA</strong>. (<a href="https://aclanthology.org/2024.acl-long.172.pdf?utm_source=chatgpt.com" title="LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding">ACL Anthology</a>)</li>
+</ul>
+<blockquote class="blockquote">
+<p><strong>Licensing:</strong> most repos above are open source (MIT/Apache/BSD variants). Verify LICENSE files before redistribution or integration.</p>
+</blockquote>
+</section>
+<section id="concrete-experiment-plan-to-run-now" class="level2">
+<h2 class="anchored" data-anchor-id="concrete-experiment-plan-to-run-now">6) Concrete experiment plan (to run now)</h2>
+<ol type="1">
+<li><p><strong>Subproblem:</strong> dense open LLMs for long‑context inference (8k–128k), no fine‑tune.</p></li>
+<li><p><strong>Prior art mapping (compute):</strong></p>
+<ul>
+<li>Baselines: FP16 SDPA; FP16 + StreamingLLM sinks; <strong>W8A8 SmoothQuant</strong>; <strong>W4 AWQ</strong>; <strong>KV‑2b KIVI</strong>.</li>
+<li>Rotations: <strong>QuaRot</strong> (random), <strong>SpinQuant/DFRot</strong> (learned).</li>
+<li>Sparsity: <strong>H2O</strong> eviction; (optional) BlockSparse with hand‑crafted patterns (xFormers). (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</li>
+</ul></li>
+<li><p><strong>Hypotheses:</strong></p>
+<ul>
+<li><em>Safe</em>: On Llama‑2/3‑7B, <strong>KIVI‑2b</strong> KV + <strong>W4 AWQ</strong> weights gives ≤0.5 PPL ↑ on WT2 and ≥1.7× throughput at 8k context. (<a href="https://proceedings.mlr.press/v235/liu24bz.html?utm_source=chatgpt.com" title="KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache">Proceedings of Machine Learning Research</a>)</li>
+<li><em>Ambitious</em>: <strong>SpinQuant</strong> rotations reduce ΔPPL by ≥30% vs QuaRot on Llama‑3‑8B under <strong>W4A4KV4</strong> with the <strong>same</strong> calibration set. (<a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/e5b1c0d4866f72393c522c8a00eed4eb-Abstract-Conference.html?utm_source=chatgpt.com" title="SpinQuant: LLM Quantization with Learned Rotations">ICLR Proceedings</a>)</li>
+<li><em>Hybrid</em>: For models with high <strong>sink ratio</strong> and heavy tail index (Hill (&lt; 2)), <strong>PrefixQuant</strong> + KIVI beats pure rotations at W4A4KV4. (<a href="https://arxiv.org/abs/2410.05265?utm_source=chatgpt.com" title="PrefixQuant: Eliminating Outliers by Prefixed Tokens for Large Language Models Quantization">arXiv</a>)</li>
+</ul></li>
+<li><p><strong>Design:</strong></p>
+<ul>
+<li><strong>Datasets</strong>: WT2 PPL; HellaSwag, PIQA, MMLU; <strong>LongBench v1/v2</strong>.</li>
+<li><strong>Metrics</strong>: Accuracy/PPL + <strong>latency/throughput/peak VRAM</strong>; stability (NaNs/clip counts).</li>
+<li><strong>Ablations</strong>: RMSNorm vs LayerNorm (across chosen models), SwiGLU vs GELU (model family), context length scaling.</li>
+</ul></li>
+<li><p><strong>Prototype kernels:</strong> prefer <strong>PyTorch SDPA</strong> (GPU) for dense; <strong>xFormers BlockSparse</strong> if testing fixed layouts; rotate weights <strong>offline</strong> to keep kernels unchanged. (<a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html?utm_source=chatgpt.com" title="torch.nn.functional.scaled_dot_product_attention — PyTorch 2.9 ...">PyTorch Documentation</a>)</p></li>
+<li><p><strong>Evaluate &amp; iterate:</strong> record <strong>per‑layer/head</strong> error maps (W/A/K/V), relate to <strong>CKA/PWCCA clusters</strong>, and to <strong>sink ratio</strong> &amp; <strong>Q/K angles</strong>.</p></li>
+</ol>
+<section id="appendix-brief-derivations-checks" class="level3">
+<h3 class="anchored" data-anchor-id="appendix-brief-derivations-checks">Appendix: brief derivations &amp; checks</h3>
+<ul>
+<li><strong>Softmax with √(d_k) scaling:</strong> Var((q^k/)=1). Without scaling, Var grows with (d_k) → extreme maxima increase → unstable attention entropy.</li>
+<li><strong>RMSNorm/LayerNorm &amp; quant:</strong> per‑token normalization caps tokenwise variance; it does <strong>not</strong> fix channel‑wise outliers (which are per‑channel global)—hence migration (SmoothQuant) and per‑IC grouping (AdaDim). (<a href="https://arxiv.org/abs/2211.10438?utm_source=chatgpt.com" title="[2211.10438] SmoothQuant: Accurate and Efficient Post-Training ...">arXiv</a>)</li>
+<li><strong>Why rotations help per‑tensor quant:</strong> orthogonal (R) equalizes coordinate energies; for sub‑exponential coordinates, ( E|Rx|<em>) decreases vs (|x|</em>) → smaller clipping ranges for fixed bit budget; borne out empirically by QuaRot/SpinQuant/DFRot. (<a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/b5b939436789f76f08b9d0da5e81af7c-Paper-Conference.pdf?utm_source=chatgpt.com" title="QuaRot: Outlier-Free 4-Bit Inference in Rotated LLMs">NeurIPS Proceedings</a>)</li>
+</ul>
+</section>
+<section id="notes-on-scope-recency-and-omissions" class="level3">
+<h3 class="anchored" data-anchor-id="notes-on-scope-recency-and-omissions">Notes on scope, recency, and omissions</h3>
+<ul>
+<li>We emphasized <strong>2024–2025</strong> results (flagged as <strong>recent</strong>). For long‑context benchmarks we included <strong>LongBench v2</strong> (2024/2025). (<a href="https://arxiv.org/abs/2412.15204?utm_source=chatgpt.com" title="LongBench v2: Towards Deeper Understanding and Reasoning on Realistic Long-context Multitasks">arXiv</a>)</li>
+<li>Some emerging postings (e.g., PAMM; additional “sink‑free attention” variants) are early preprints; treat claims cautiously. (<a href="https://arxiv.org/abs/2502.01068?utm_source=chatgpt.com" title="FastKV: KV Cache Compression for Fast Long-Context Processing with Token-Selective Propagation">arXiv</a>)</li>
+</ul>
+<p>If you want, I can tailor the mini‑audit scripts to a specific checkpoint first (e.g., <strong>Qwen‑2‑7B</strong> with <strong>W4A4+KIVI‑2b</strong>), and produce <strong>plots</strong> you listed: per‑layer tail indices, entropy curves, CKA heatmaps, and KV similarity maps.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

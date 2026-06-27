@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Shengling Qin, Hao Yu, Chenxin Wu, Zheng Li, et al.">
+<meta name="dcterms.date" content="2026-05-08">
+<meta name="description" content="VLCache">
+
+<title>VLCache: Computing 2% Vision Tokens and Reusing 98% for Vision–Language Inference – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><p>VLCache: Computing 2% Vision Tokens and Reusing 98% for Vision–Language Inference</p></h1>
+<p class="subtitle lead">Preprint 2025</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">gpu</div>
+    <div class="quarto-category">llm</div>
+    <div class="quarto-category">attention</div>
+    <div class="quarto-category">systems</div>
+    <div class="quarto-category">training</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    VLCache
+  </div>
+</div>
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Shengling Qin, Hao Yu, Chenxin Wu, Zheng Li, et al. </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            (Qwen Team, Alibaba Inc.&nbsp;&amp; TairKVCache Team, Alibaba Cloud)
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 8, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="the-cost-of-vision-language-models-vlms" class="level2">
+<h2 class="anchored" data-anchor-id="the-cost-of-vision-language-models-vlms">The Cost of Vision-Language Models (VLMs)</h2>
+<ul>
+<li>VLMs achieve remarkable performance in complex multimodal tasks.</li>
+<li><strong>Bottleneck:</strong> High prefill latency due to long sequences of image tokens processed by Vision Transformers (ViT) and Large Language Models (LLMs).</li>
+<li><strong>Standard Solution:</strong> Key-Value (KV) caching.
+<ul>
+<li>Requires an exact “prefix match” to reuse cached context.</li>
+</ul></li>
+</ul>
+</section>
+<section id="limitations-of-existing-kv-cache-reuse" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-of-existing-kv-cache-reuse">Limitations of Existing KV Cache Reuse</h2>
+<ul>
+<li>When the text prompt changes but the image remains the same (prefix mismatch), strict KV caching fails.</li>
+<li><strong>Position-Independent Reuse (CacheBlend, MPIC, KVShare):</strong>
+<ul>
+<li>Allows reusing KV cache despite different initial sequences.</li>
+<li>Relies on partial recomputation of tokens to fix “reuse errors”.</li>
+</ul></li>
+<li><strong>Problem:</strong> Current methods use heuristic, static metrics (e.g., attention distance) to select which tokens to recompute, missing the structural nuances of the model.</li>
+</ul>
+</section>
+<section id="observation-1-cumulative-reuse-error-effect" class="level2">
+<h2 class="anchored" data-anchor-id="observation-1-cumulative-reuse-error-effect">Observation 1: Cumulative Reuse Error Effect</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/Pasted image 20260508202921.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Reuse errors are not independent; they propagate and accumulate sequentially to later tokens.</li>
+<li><strong>Insight:</strong> Prioritizing <em>earlier</em> image tokens for recomputation cancels out a large portion of upstream errors and suppresses downstream accumulation.</li>
+</ul>
+</section>
+<section id="observation-2-layer-wise-importance-difference" class="level2">
+<h2 class="anchored" data-anchor-id="observation-2-layer-wise-importance-difference">Observation 2: Layer-wise Importance Difference</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/Pasted image 20260508203019.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Different transformer layers have varying sensitivities to cache staleness.</li>
+<li><strong>Insight:</strong> Applying a uniform, static recomputation rate across all layers is sub-optimal. Some layers require high recomputation, while others can tolerate near 100% reuse.</li>
+</ul>
+</section>
+</section>
+<section id="system-design" class="level1">
+<h1>System Design</h1>
+<section id="overview-of-vlcache" class="level2">
+<h2 class="anchored" data-anchor-id="overview-of-vlcache">Overview of VLCache</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/Pasted image 20260508203043.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>An end-to-end vision token KV cache reuse pipeline.</li>
+<li>Bypasses ViT computation via request-level embedding caching.</li>
+<li>Dynamically computes only 2–5% of vision tokens in the LLM while reusing 95–98%.</li>
+</ul>
+</section>
+<section id="contiguous-partial-attention" class="level2">
+<h2 class="anchored" data-anchor-id="contiguous-partial-attention">Contiguous Partial Attention</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/Pasted image 20260508203107.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Reuses the stored encoder and KV cache for the vast majority of tokens.</li>
+<li>Evaluates the query tokens and a small, targeted subset of early tokens.</li>
+<li>Attention and MLP computations for reused tokens are skipped entirely.</li>
+<li>Forms contiguous computation regions, making kernel execution hardware-friendly.</li>
+</ul>
+</section>
+<section id="dynamic-layer-aware-recomputation" class="level2">
+<h2 class="anchored" data-anchor-id="dynamic-layer-aware-recomputation">Dynamic Layer-Aware Recomputation</h2>
+<ul>
+<li><strong>Objective:</strong> Allocate a fixed token recomputation budget across layers to maximize accuracy.</li>
+<li><strong>Method:</strong>
+<ol type="1">
+<li>Generate a proxy dataset and inject “mismatched” KV cache.</li>
+<li>Measure output text logit deviation (MSE loss) to calculate layer “sensitivity scores”.</li>
+<li>Use a greedy algorithm to assign higher recomputation rates to highly sensitive layers.</li>
+</ol></li>
+</ul>
+</section>
+<section id="the-monotonic-constraint" class="level2">
+<h2 class="anchored" data-anchor-id="the-monotonic-constraint">The Monotonic Constraint</h2>
+<ul>
+<li>VLCache enforces that the recomputation rate must be <strong>monotonically non-increasing</strong> across layers (i.e., shallower layers <span class="math inline">\(\ge\)</span> deeper layers).</li>
+<li><strong>Why?</strong>
+<ul>
+<li>VLCache reuses hidden states from upper layers.</li>
+<li>If a deeper layer recomputes a token that was skipped in a shallower layer, the required hidden state wouldn’t exist, breaking the reuse assumption.</li>
+</ul></li>
+</ul>
+</section>
+<section id="system-integration-sglang" class="level2">
+<h2 class="anchored" data-anchor-id="system-integration-sglang">System Integration (SGLang)</h2>
+<ul>
+<li>Implemented as a plugin within the <strong>SGLang</strong> framework.</li>
+<li><strong>Global Hash Matching:</strong> Entirely bypasses ViT by checking global concatenated pixel hashes against a distributed key-value store (Tair KVCache Store).</li>
+<li><strong>Per-Image Hashing &amp; Masking:</strong>
+<ul>
+<li>Assigns hashes to individual images for modular KV cache management.</li>
+<li>Constructs a binary computation mask at each layer to filter tokens using Block Sparse Attention.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="environment-setup" class="level2">
+<h2 class="anchored" data-anchor-id="environment-setup">Environment Setup</h2>
+<ul>
+<li><strong>Hardware:</strong> NVIDIA H20-3e GPU.</li>
+<li><strong>Framework:</strong> Custom SGLang implementation.</li>
+<li><strong>Models Evaluated:</strong> Qwen3-VL-8B, Qwen3-VL-32B, Qwen2.5-VL-7B, Qwen2.5-VL-32B.</li>
+<li><strong>Workload:</strong> Realistic multimodal queries with varying total input lengths (1K to 20K image tokens).</li>
+<li><strong>Baselines:</strong> Full recomputation, ViT-skip only, Static Recomputation, CacheBlend, KVShare.</li>
+</ul>
+</section>
+<section id="acceleration-results-time-to-first-token-ttft" class="level2">
+<h2 class="anchored" data-anchor-id="acceleration-results-time-to-first-token-ttft">Acceleration Results: Time-To-First-Token (TTFT)</h2>
+<ul>
+<li>Achieves massive TTFT speedups across model scales.</li>
+<li><strong>Qwen3-VL-8B:</strong> Up to 1.86x speedup at 20K tokens.</li>
+<li><strong>Qwen3-VL-32B:</strong> Up to 3.18x speedup at 20K tokens.</li>
+<li><strong>Qwen2.5-VL-7B:</strong> Up to 15.82x speedup at 20K tokens (due to ViT architectural differences).</li>
+<li>High sequence lengths benefit the most due to <span class="math inline">\(O(n^2)\)</span> attention complexity reduction.</li>
+</ul>
+</section>
+<section id="accuracy-preservation" class="level2">
+<h2 class="anchored" data-anchor-id="accuracy-preservation">Accuracy Preservation</h2>
+<ul>
+<li>Evaluated across diverse benchmarks (MMMU, MathVista, HallusionBench, DocVQA, etc.).</li>
+<li>With an average recomputation rate of only <strong>3.5%</strong> (<span class="math inline">\(\bar{r} = 0.035\)</span>):
+<ul>
+<li>Mean accuracy stays within 0.1-0.5% of the full-recompute baseline.</li>
+<li>VLCache’s dynamic allocation strictly outperforms uniform static recomputation budgets.</li>
+</ul></li>
+</ul>
+</section>
+<section id="validating-the-cumulative-error-observation" class="level2">
+<h2 class="anchored" data-anchor-id="validating-the-cumulative-error-observation">Validating the Cumulative Error Observation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/Pasted image 20260508203144.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Experiment:</strong> Compared allocating the 30% recomputation budget to the <em>first</em> tokens vs the <em>last</em> tokens.</li>
+<li><strong>Result:</strong> Recomputing earlier tokens significantly reduces accumulated error, confirming the theoretical foundation of the framework.</li>
+</ul>
+</section>
+<section id="comparison-with-sota-baselines" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-with-sota-baselines">Comparison with SOTA Baselines</h2>
+<ul>
+<li>Compared against <strong>CacheBlend</strong> (KV-cache distance matching) and <strong>KVShare</strong> (Attention-map distance matching) on Qwen3-VL-8B.</li>
+<li><strong>Results:</strong>
+<ul>
+<li>VLCache consistently outperforms both baselines across 10%, 20%, and 30% budgets.</li>
+<li>Demonstrates superior robustness without relying on localized heuristic distance metrics.</li>
+</ul></li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Chen Zhang, Kuntai Du, Shu Liu, Woosuk Kwon, Xiangxi Mo, Yufeng Wang, Xiaoxuan Liu, Kaichao You, Zhuohan Li, Mingsheng Long, Jidong Zhai, Joseph Gonzalez, Ion Stoica">
+<meta name="dcterms.date" content="2026-06-21">
+<meta name="description" content="Jenga: Effective Memory Management for Serving LLM with Heterogeneity">
+
+<title>Jenga: Effective Memory Management for Serving LLM with Heterogeneity – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><p>Jenga: Effective Memory Management for Serving LLM with Heterogeneity</p></h1>
+<p class="subtitle lead">SOSP ’25</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">gpu</div>
+    <div class="quarto-category">llm</div>
+    <div class="quarto-category">attention</div>
+    <div class="quarto-category">memory</div>
+    <div class="quarto-category">systems</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>Jenga: Effective Memory Management for Serving LLM with Heterogeneity</p>
+  </div>
+</div>
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Chen Zhang, Kuntai Du, Shu Liu, Woosuk Kwon, Xiangxi Mo, Yufeng Wang, Xiaoxuan Liu, Kaichao You, Zhuohan Li, Mingsheng Long, Jidong Zhai, Joseph Gonzalez, Ion Stoica </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            (Tsinghua University &amp; UC Berkeley &amp; UChicago)
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">June 21, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="llm-serving-and-the-memory-bottleneck" class="level2">
+<h2 class="anchored" data-anchor-id="llm-serving-and-the-memory-bottleneck">LLM Serving and the Memory Bottleneck</h2>
+<ul>
+<li><strong>Batching is crucial</strong> for high-throughput LLM serving.</li>
+<li>Batching imposes heavy pressure on GPU memory capacity due to the <strong>KV cache</strong> (intermediate token embeddings).</li>
+<li><strong>PagedAttention</strong> is the industry standard:
+<ul>
+<li>Divides memory into fixed-size pages.</li>
+<li>Relies on two assumptions: <strong>Fixed-size embeddings</strong> and <strong>Full attention</strong> across all layers.</li>
+</ul></li>
+</ul>
+</section>
+<section id="the-rise-of-heterogeneous-llms" class="level2">
+<h2 class="anchored" data-anchor-id="the-rise-of-heterogeneous-llms">The Rise of Heterogeneous LLMs</h2>
+<ul>
+<li>Modern LLMs invalidate PagedAttention’s core assumptions.</li>
+<li><strong>Traditional LLMs:</strong> Homogeneous layers, uniform memory usage.</li>
+<li><strong>Heterogeneous LLMs:</strong> Mix of full attention, sliding window, and Mamba layers. Memory usage varies drastically across layers and request lengths.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="source-of-heterogeneity-1-embedding-sizes" class="level2">
+<h2 class="anchored" data-anchor-id="source-of-heterogeneity-1-embedding-sizes">Source of Heterogeneity 1: Embedding Sizes</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Vision Language Models (VLMs):</strong> Image tokens and text tokens have naturally different embedding sizes.</li>
+<li><strong>Speculative Decoding:</strong> Running a small draft model and a large target model concurrently requires managing two vastly different KV cache sizes.</li>
+</ul>
+</section>
+<section id="source-of-heterogeneity-2-attention-mechanisms" class="level2">
+<h2 class="anchored" data-anchor-id="source-of-heterogeneity-2-attention-mechanisms">Source of Heterogeneity 2: Attention Mechanisms</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Sparse/Sliding Window Attention:</strong> Only attends to a subset of recent prefix tokens.</li>
+<li><strong>State Space Models (Mamba):</strong> Uses a large, fixed-size tensor to capture history, independent of sequence length.</li>
+<li><strong>Full Attention:</strong> Attends to all previous tokens.</li>
+</ul>
+</section>
+<section id="the-problem-severe-memory-fragmentation" class="level2">
+<h2 class="anchored" data-anchor-id="the-problem-severe-memory-fragmentation">The Problem: Severe Memory Fragmentation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>PagedAttention</strong> forces different-sized embeddings into a single fixed page size.</li>
+<li><strong>Max Page:</strong> Wastes memory for smaller embeddings.</li>
+<li><strong>Static Partition:</strong> Cannot adapt to dynamic workload changes (e.g., varying ratios of text vs.&nbsp;image tokens).</li>
+<li><strong>Result:</strong> Up to 79.6% memory waste in models like Llama 3.2 Vision.</li>
+</ul>
+</section>
+<section id="the-problem-inefficient-prefix-caching" class="level2">
+<h2 class="anchored" data-anchor-id="the-problem-inefficient-prefix-caching">The Problem: Inefficient Prefix Caching</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-4.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Cache hit dependency:</strong> Efficient attention layers (like sliding windows) only need a small subset of recent tokens to generate the next token.</li>
+<li>Forcing them to cache the entire sequence wastes memory.</li>
+<li><strong>Trade-off:</strong> Allocating memory to cache inactive tokens improves cache hit rates but limits the maximum batch size for active requests.</li>
+</ul>
+</section>
+</section>
+<section id="system-design" class="level1">
+<h1>System Design</h1>
+<section id="jenga-system-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="jenga-system-architecture">Jenga System Architecture</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-5.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>A heterogeneity-aware memory management framework.</li>
+<li><strong>Layer Property Interface:</strong> Abstracts the behavior of different attention mechanisms.</li>
+<li><strong>LCM Allocator:</strong> Avoids fragmentation across heterogeneous layers.</li>
+<li><strong>Customized Cache Managers:</strong> Optimizes prefix caching per attention type.</li>
+</ul>
+</section>
+<section id="layer-property-interface" class="level2">
+<h2 class="anchored" data-anchor-id="layer-property-interface">Layer Property Interface</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-6.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Jenga models attention behaviors through three attributes:
+<ul>
+<li><code>page_size()</code>: Memory footprint per token.</li>
+<li><code>active_pages()</code>: Pages needed to compute future tokens (guides eviction).</li>
+<li><code>possible_prefix()</code>: Valid prefix cache hit lengths.</li>
+</ul></li>
+<li>Automatically parses model structures without manual configuration.</li>
+</ul>
+</section>
+<section id="lcm-based-two-level-memory-allocation" class="level2">
+<h2 class="anchored" data-anchor-id="lcm-based-two-level-memory-allocation">LCM-based Two-Level Memory Allocation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-7.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Large Pages (Global):</strong> Size is the <strong>Least Common Multiple (LCM)</strong> of all layer page sizes (e.g., LCM of 256 and 384 is 768).</li>
+<li><strong>Small Pages (Layer-Specific):</strong> Customized allocators partition large pages into exact small pages needed for specific layer types.</li>
+<li>Completely eliminates external fragmentation and minimizes internal fragmentation.</li>
+</ul>
+</section>
+<section id="execution-with-new-memory-layout" class="level2">
+<h2 class="anchored" data-anchor-id="execution-with-new-memory-layout">Execution with New Memory Layout</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-8.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>PagedAttention:</strong> Uses a <em>layer-page</em> partition (allocates fixed-size tensors for each layer).</li>
+<li><strong>Jenga:</strong> Uses a <em>page-layer</em> partition.</li>
+<li>Preserves the original PagedAttention worker interfaces with minimal changes to the inference engine.</li>
+</ul>
+</section>
+<section id="customizable-prefix-caching" class="level2">
+<h2 class="anchored" data-anchor-id="customizable-prefix-caching">Customizable Prefix Caching</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-9.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Smart Eviction:</strong> Jenga overrides the “last access time” based on layer properties.</li>
+<li>For sliding window layers, tokens <em>outside</em> the window are not updated, making them a higher priority for LRU eviction.</li>
+<li>Maintains balanced eviction across different layers to prevent bottlenecking the overall cache hit rate.</li>
+</ul>
+</section>
+<section id="common-page-pool" class="level2">
+<h2 class="anchored" data-anchor-id="common-page-pool">Common Page Pool</h2>
+<ul>
+<li><strong>The Trade-off:</strong> Increasing batch size evicts prefix caches, lowering hit rates.</li>
+<li><strong>Solution:</strong> Jenga introduces a “Common Page Pool” to protect highly reusable pages.</li>
+<li><strong>Common Prefix Predictor:</strong> Analyzes request arrival intervals and shared prefixes to predict which tokens will be reused (e.g., system prompts).</li>
+<li>High-value pages are kept in the common pool; the rest are aggressively freed to maximize batch size.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="environment-setup" class="level2">
+<h2 class="anchored" data-anchor-id="environment-setup">Environment Setup</h2>
+<ul>
+<li><strong>Implementation:</strong> ~4,000 LoC integrated into vLLM v0.8.3.</li>
+<li><strong>Hardware:</strong> NVIDIA H100 80GB and NVIDIA L4 24GB GPUs.</li>
+<li><strong>Models:</strong> Llama 3.2 Vision, Gemma-3, Ministral, Llama 4, Jamba-1.5, Character.ai.</li>
+<li><strong>Baselines:</strong>
+<ul>
+<li>vLLM (PagedAttention)</li>
+<li>Static Partition</li>
+<li>Max Page</li>
+</ul></li>
+</ul>
+</section>
+<section id="end-to-end-throughput" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-throughput">End-to-End Throughput</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-10.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Jenga achieves up to <strong>1.73x speedup</strong> (1.46x average) on H100.</li>
+<li>Jenga achieves up to <strong>2.16x speedup</strong> (1.65x average) on L4.</li>
+<li>Outperforms naive extensions (Static Partition / Max Page) across all heterogeneous models.</li>
+</ul>
+</section>
+<section id="end-to-end-latency" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-latency">End-to-End Latency</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-11.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Evaluated on Llama 3.2 Vision Model.</li>
+<li>At low request rates, Jenga matches vLLM latency (no overhead).</li>
+<li>At high request rates, Jenga reduces end-to-end latency by up to <strong>1.90x</strong> and Time-To-First-Token (TTFT) by up to <strong>23.40x</strong> due to larger batch sizes and reduced queuing delay.</li>
+</ul>
+</section>
+<section id="memory-fragmentation-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="memory-fragmentation-analysis">Memory Fragmentation Analysis</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-12.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li><strong>vLLM:</strong> Wastes 38.2% of KV cache memory on average (fails to free sliding window tokens outside the window).</li>
+<li><strong>Jenga:</strong> Reduces KV cache memory waste to <strong>0.04%</strong>.</li>
+<li>Dynamically adjusts memory allocation between full-attention and sliding-window layers based on workload.</li>
+</ul>
+</section>
+<section id="case-study-speculative-decoding" class="level2">
+<h2 class="anchored" data-anchor-id="case-study-speculative-decoding">Case Study: Speculative Decoding</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/image-13.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
+</figure>
+</div>
+<ul>
+<li>Speculative decoding runs a small draft model and a large target model simultaneously.</li>
+<li>Jenga automatically handles the different KV cache sizes with negligible fragmentation.</li>
+<li>Achieves an average <strong>1.58x throughput improvement</strong> on heterogeneous LLMs compared to manually-designed memory allocation strategies.</li>
+</ul>
+</section>
+<section id="maximum-context-length" class="level2">
+<h2 class="anchored" data-anchor-id="maximum-context-length">Maximum Context Length</h2>
+<ul>
+<li><strong>Model:</strong> Llama 4 (109B, 10M-context model)</li>
+<li><strong>Hardware:</strong> Single 8xH200 GPU node.</li>
+<li><strong>vLLM:</strong> Fails to fit the full context (OOM at 3.7M tokens).</li>
+<li><strong>Jenga:</strong> Reduces per-request memory usage by 4x by freeing inactive pages.</li>
+<li><strong>Result:</strong> Successfully supports the full <strong>14.7M context length</strong> on a single node.</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
