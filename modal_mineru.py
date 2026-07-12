@@ -111,7 +111,8 @@ def parse_pdf_remote(pdf_bytes: bytes, dpi: int = 200,
 # --------------------------------------------------------------------------- #
 
 def parse(pdf_path: Path, *, use_cache: bool = True, dpi: int = 200,
-          backend: str = "vlm-engine") -> MinerUResult:
+          backend: str = "vlm-engine", _app_already_running: bool = False
+          ) -> MinerUResult:
     """Parse a PDF via Modal mineru.
 
     Mirrors the interface of ``generate.py``:mineru_parse() so the two are
@@ -131,10 +132,15 @@ def parse(pdf_path: Path, *, use_cache: bool = True, dpi: int = 200,
             pass
 
     print(f"[modal-mineru] calling remote (dpi={dpi}, backend={backend}) ...")
-    with app.run():
+    if _app_already_running:
         zip_bytes = parse_pdf_remote.remote(
             pdf_path.read_bytes(), dpi=dpi, backend=backend,
         )
+    else:
+        with app.run():
+            zip_bytes = parse_pdf_remote.remote(
+                pdf_path.read_bytes(), dpi=dpi, backend=backend,
+            )
 
     cache_dir.mkdir(parents=True, exist_ok=True)
     for p in cache_dir.iterdir():
@@ -185,7 +191,8 @@ def main(pdf: str, dpi: int = 300, no_cache: bool = False):
     if not pdf_path.exists():
         print(f"error: {pdf} not found")
         return
-    result = parse(pdf_path, use_cache=not no_cache, dpi=dpi)
+    result = parse(pdf_path, use_cache=not no_cache, dpi=dpi,
+                   _app_already_running=True)
     text = result.full_md.read_text(encoding="utf-8")
     print(f"\nfull.md ({len(text)} chars):\n{'-' * 50}")
     print(text[:1500])
