@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Siyuan Feng, Wuwei Lin, Zihao Ye, Bohan Hou, Junru Shao, Lianmin Zheng, Hongyi Jin, Ruihang Lai, Yong Yu, Cody Hao Yu, Tianqi Chen">
+<meta name="dcterms.date" content="2026-07-05">
+<meta name="description" content="A compiler abstraction that isolates tensorized computations into blocks, enabling automatic scheduling and optimization for specialized hardware intrinsics.">
+
+<title>TensorIR: An Abstraction for Automatic Tensorized Program Optimization – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">TensorIR: An Abstraction for Automatic Tensorized Program Optimization</h1>
+<p class="subtitle lead">ASPLOS 2023</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">compiler</div>
+    <div class="quarto-category">tensor</div>
+    <div class="quarto-category">optimization</div>
+    <div class="quarto-category">gpu</div>
+    <div class="quarto-category">codegen</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A compiler abstraction that isolates tensorized computations into blocks, enabling automatic scheduling and optimization for specialized hardware intrinsics.
+  </div>
+</div>
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Siyuan Feng, Wuwei Lin, Zihao Ye, Bohan Hou, Junru Shao, Lianmin Zheng, Hongyi Jin, Ruihang Lai, Yong Yu, Cody Hao Yu, Tianqi Chen </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            (SJTU, OctoML, UW, CMU, UC Berkeley, AWS)
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 5, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="the-rise-of-hardware-specialization" class="level2">
+<h2 class="anchored" data-anchor-id="the-rise-of-hardware-specialization">The Rise of Hardware Specialization</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Deep learning deployment spans from servers to embedded devices.</li>
+<li>Modern accelerators (TPUs, NPUs, GPUs) increasingly rely on specialized high-dimensional tensor computation instructions.</li>
+<li>These instructions (e.g., Tensor Cores) replace traditional scalar/vector units to meet heavy throughput requirements.</li>
+</ul>
+</section>
+<section id="the-engineering-bottleneck" class="level2">
+<h2 class="anchored" data-anchor-id="the-engineering-bottleneck">The Engineering Bottleneck</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Currently, domain experts manually optimize tensorized programs using a divide-and-conquer approach.</li>
+<li>Experts craft highly optimized micro-kernels (e.g., Intel MKL-DNN, NVIDIA cuDNN) for specific hardware.</li>
+<li>This requires massive engineering effort and struggles to keep pace with rapidly evolving ML models and hardware.</li>
+</ul>
+</section>
+<section id="limitations-of-existing-ml-compilers" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-of-existing-ml-compilers">Limitations of Existing ML Compilers</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Existing compilers (TVM, Halide, MLIR) typically use a bottom-up approach focused on scalar operations.</li>
+<li>They search over loop nest transformations but lack native abstractions for opaque tensorized computation primitives.</li>
+<li>Top-down polyhedral approaches also struggle to automatically map to arbitrary hardware tensor intrinsics.</li>
+</ul>
+</section>
+<section id="the-tensorized-program-optimization-challenge" class="level2">
+<h2 class="anchored" data-anchor-id="the-tensorized-program-optimization-challenge">The Tensorized Program Optimization Challenge</h2>
+<ul>
+<li><strong>Abstraction:</strong> Compilers need a way to pragmatically capture equivalent tensorized computations and multi-dimensional memory accesses.</li>
+<li><strong>Search Space:</strong> The combination of loop tiling, threading, data layouts, and tensorized computations creates a massive optimization design space.</li>
+<li><strong>Goal:</strong> Bring automatic program optimization to tensorized programs to unlock domain-specific hardware acceleration without manual micro-kernel writing.</li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="the-tensorir-abstraction" class="level2">
+<h2 class="anchored" data-anchor-id="the-tensorir-abstraction">The TensorIR Abstraction</h2>
+<ul>
+<li>TensorIR introduces a new construct called a <code>block</code> into the loop nests.</li>
+<li>A block divides and isolates a tensorized computation region from the outer loop nests.</li>
+<li>Tensor computation becomes a first-class citizen, enabling independent transformations on both outer and inner problems.</li>
+</ul>
+</section>
+<section id="block-signatures" class="level2">
+<h2 class="anchored" data-anchor-id="block-signatures">Block Signatures</h2>
+<ul>
+<li>Unlike scalar computations, dependencies cannot be easily extracted from opaque tensor bodies.</li>
+<li>Block signatures explicitly store iterator domains, access regions, and read/write dependencies.</li>
+<li>This provides sufficient information to safely transform outer loops without inspecting the block’s inner body.</li>
+</ul>
+</section>
+<section id="reduction-blocks" class="level2">
+<h2 class="anchored" data-anchor-id="reduction-blocks">Reduction Blocks</h2>
+<ul>
+<li>Reduction computations (e.g., matrix multiplication accumulation) require initialization and update steps.</li>
+<li>TensorIR introduces an optional initialization statement for blocks performing reductions.</li>
+<li>This allows the scheduler to jointly optimize tiling and compute locations for both steps.</li>
+</ul>
+</section>
+<section id="scheduling-transformations" class="level2">
+<h2 class="anchored" data-anchor-id="scheduling-transformations">Scheduling Transformations</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>TensorIR provides primitives to transform programs into equivalent optimized schedules.</li>
+<li>Supports standard loop transformations: tiling, splitting, reordering, and compute location mutation.</li>
+<li>Dependencies are calculated purely by inspecting the block signature, preserving block isolation.</li>
+</ul>
+</section>
+<section id="blockization" class="level2">
+<h2 class="anchored" data-anchor-id="blockization">Blockization</h2>
+<ul>
+<li>TensorIR introduces <code>blockization</code> to isolate a sub-region computation into a new sub-block.</li>
+<li>Converts a scalar-based program into a tensorized computation candidate.</li>
+<li>Enables the compiler to dynamically create block hierarchies that match hardware tensor intrinsics.</li>
+</ul>
+</section>
+<section id="correctness-validation" class="level2">
+<h2 class="anchored" data-anchor-id="correctness-validation">Correctness Validation</h2>
+<ul>
+<li><strong>Loop Nest Validation:</strong> Ensures iterator bindings match domain constraints and producer-consumer relations are valid.</li>
+<li><strong>Threading Validation:</strong> Checks thread bindings, cooperative memory accesses, and execution scopes (e.g., warp-level for Tensor Cores).</li>
+<li>Validation filters out invalid programs during automatic search, ensuring semantic equivalence.</li>
+</ul>
+</section>
+<section id="auto-scheduling-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="auto-scheduling-architecture">Auto-Scheduling Architecture</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>TensorIR includes a tensorization-aware automatic scheduler.</li>
+<li>Takes a workload description and hardware tensor intrinsic descriptions as inputs.</li>
+<li>Generates tensorization candidates, builds program sketches, and uses evolutionary search to find the optimal schedule.</li>
+</ul>
+</section>
+<section id="abstraction-for-tensor-intrinsics" class="level2">
+<h2 class="anchored" data-anchor-id="abstraction-for-tensor-intrinsics">Abstraction for Tensor Intrinsics</h2>
+<ul>
+<li>Hardware instructions are described using a <code>TensorIntrin</code> construct.</li>
+<li>Contains two blocks: one for computation semantics and one for the low-level backend implementation.</li>
+<li>Specifies data types, memory layouts, storage scopes, and contiguity constraints.</li>
+</ul>
+</section>
+<section id="tensorization-candidate-generation" class="level2">
+<h2 class="anchored" data-anchor-id="tensorization-candidate-generation">Tensorization Candidate Generation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Matches the program body to possible <code>TensorIntrin</code> descriptions.</li>
+<li>Uses a <code>ReIndex</code> transformation to rewrite complex buffer access expressions (e.g., Conv2D) into intermediate iterators.</li>
+<li>Calculates characteristic vectors to map workload iterators to intrinsic iterators.</li>
+</ul>
+</section>
+<section id="loop-reorganization" class="level2">
+<h2 class="anchored" data-anchor-id="loop-reorganization">Loop Reorganization</h2>
+<ul>
+<li>Reorganizes the block instance space to match the sub-problem size of the tensor intrinsic.</li>
+<li>Performs necessary padding on computation blocks and input/output operands.</li>
+<li>Tiles and blockizes inner loops to isolate the corresponding tensor computations.</li>
+</ul>
+</section>
+<section id="data-movement-as-a-first-class-citizen" class="level2">
+<h2 class="anchored" data-anchor-id="data-movement-as-a-first-class-citizen">Data Movement as a First-Class Citizen</h2>
+<ul>
+<li>Tensor intrinsics vastly improve compute throughput, making data movement the primary bottleneck.</li>
+<li>TensorIR inserts <code>AutoCopy</code> blocks to decouple data movement from computation schedules.</li>
+<li>Allows independent optimization of memory schedules (e.g., cooperative fetching, vectorization, stride padding).</li>
+</ul>
+</section>
+<section id="evolutionary-search" class="level2">
+<h2 class="anchored" data-anchor-id="evolutionary-search">Evolutionary Search</h2>
+<ul>
+<li>Explores the massive search space of generated program sketches.</li>
+<li>Uses a boosting tree ensemble cost model based on features extracted from block signatures and bodies.</li>
+<li>Continuously validates mutated candidates to reject invalid programs caused by unmet hardware constraints.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="experimental-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
+<ul>
+<li>Implemented on top of the Apache TVM framework.</li>
+<li><strong>GPU Platform:</strong> NVIDIA RTX 3080 (Tensor Cores) using float16.</li>
+<li><strong>CPU Platform:</strong> AWS Graviton2 (ARM CPU) using 8-bit integer dot products (sdot).</li>
+<li><strong>Baselines:</strong> TVM, AMOS, PyTorch, CUTLASS, TensorRT, ARMComputeLib.</li>
+</ul>
+</section>
+<section id="single-operator-performance-gpu" class="level2">
+<h2 class="anchored" data-anchor-id="single-operator-performance-gpu">Single Operator Performance (GPU)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig7.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Evaluated on 1D/2D/3D Conv, Depthwise, Dilated, Group Conv, and GEMM.</li>
+<li>TensorIR outperforms existing ML compilers (TVM, AMOS) by up to 7.5x.</li>
+<li>Improvements stem from better abstraction and automatic scheduling of tensor compute intrinsics.</li>
+</ul>
+</section>
+<section id="comparison-to-vendor-libraries-gpu" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-to-vendor-libraries-gpu">Comparison to Vendor Libraries (GPU)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig8.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>TensorIR outperforms CUTLASS and TensorRT on several operators (up to 13.9x faster).</li>
+<li>Achieves &gt;75% throughput on heavily optimized operators like 3D Convolution and GEMM.</li>
+<li>Delivers competitive performance automatically, without requiring dedicated engineering teams.</li>
+</ul>
+</section>
+<section id="end-to-end-model-performance-gpu" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-model-performance-gpu">End-to-End Model Performance (GPU)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig9.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Evaluated on ResNet-50, MobileNet V2, BERT-large, and Vision Transformer (ViT).</li>
+<li>Outperforms PyTorch, TVM, and AMOS by 1.2x to 8.8x.</li>
+<li>Achieves 30% better performance on MobileNet V2 compared to TensorRT.</li>
+<li>Automatically supports emerging models (like ViT) that TensorRT did not yet support.</li>
+</ul>
+</section>
+<section id="tuning-efficiency" class="level2">
+<h2 class="anchored" data-anchor-id="tuning-efficiency">Tuning Efficiency</h2>
+<ul>
+<li>TensorIR tunes end-to-end models up to 2x faster than TVM.</li>
+<li>Auto-tensorization generates faster programs, reducing hardware profiling time.</li>
+<li>The divide-and-conquer abstraction significantly reduces the search space size.</li>
+</ul>
+</section>
+<section id="single-operator-performance-arm-cpu" class="level2">
+<h2 class="anchored" data-anchor-id="single-operator-performance-arm-cpu">Single Operator Performance (ARM CPU)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig10.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>TensorIR achieves up to 12.5x speedup over TVM by leveraging native hardware acceleration.</li>
+<li>Reaches 85% to 105% of the throughput of the hand-optimized ARMComputeLib.</li>
+<li>Demonstrates TensorIR’s ability to easily generalize to different hardware platforms.</li>
+</ul>
+</section>
+<section id="end-to-end-model-performance-arm-cpu" class="level2">
+<h2 class="anchored" data-anchor-id="end-to-end-model-performance-arm-cpu">End-to-End Model Performance (ARM CPU)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig11.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Outperforms PyTorch and TVM by 1.2x to 2.5x on end-to-end networks.</li>
+<li>Overcomes limitations in framework backends (e.g., PyTorch’s QNNPACK lacking sdot support).</li>
+<li>Reduces maintenance burdens by automating performance portability across diverse hardware.</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

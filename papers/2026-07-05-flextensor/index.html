@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Size Zheng, Yun Liang, Shuo Wang, Renze Chen, Kaiwen Sheng">
+<meta name="dcterms.date" content="2026-07-05">
+<meta name="description" content="FlexTensor automatically explores and optimizes tensor computation schedules for heterogeneous systems (CPU, GPU, FPGA) using heuristics and Q-learning.">
+
+<title>FlexTensor: An Automatic Schedule Exploration and Optimization Framework for Tensor Computation on Heterogeneous System – Weekly Paper Sharing</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-682875a729871aa7662bfe281d0a6aaf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Weekly Paper Sharing</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">All Papers</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">FlexTensor: An Automatic Schedule Exploration and Optimization Framework for Tensor Computation on Heterogeneous System</h1>
+<p class="subtitle lead">ASPLOS 2020</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">compiler</div>
+    <div class="quarto-category">tensor</div>
+    <div class="quarto-category">heterogeneous</div>
+    <div class="quarto-category">machine-learning</div>
+    <div class="quarto-category">optimization</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    FlexTensor automatically explores and optimizes tensor computation schedules for heterogeneous systems (CPU, GPU, FPGA) using heuristics and Q-learning.
+  </div>
+</div>
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Size Zheng, Yun Liang, Shuo Wang, Renze Chen, Kaiwen Sheng </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            (Peking University)
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 5, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="tensor-computations-in-modern-workloads" class="level2">
+<h2 class="anchored" data-anchor-id="tensor-computations-in-modern-workloads">Tensor Computations in Modern Workloads</h2>
+<ul>
+<li>Tensor computations (e.g., matrix multiplication, convolution) are the core of machine learning and data analytics.</li>
+<li>These operations consist of deeply-nested loops and are highly compute-intensive.</li>
+<li>They are ideal candidates for acceleration on heterogeneous hardware like GPUs, CPUs, and FPGAs.</li>
+</ul>
+</section>
+<section id="the-burden-of-manual-optimization" class="level2">
+<h2 class="anchored" data-anchor-id="the-burden-of-manual-optimization">The Burden of Manual Optimization</h2>
+<ul>
+<li>Traditional high-performance libraries (cuDNN, MKL) require manual, low-level kernel optimization.</li>
+<li>Programmers must manually manage compute, memory, interconnects, and data bit-widths.</li>
+<li>This process takes months or years, lagging behind the rapid evolution of new AI algorithms.</li>
+<li>Hand-tuned code is highly hardware-specific and lacks portability across different platforms.</li>
+</ul>
+</section>
+<section id="limitations-of-current-tensor-compilers" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-of-current-tensor-compilers">Limitations of Current Tensor Compilers</h2>
+<ul>
+<li>Modern frameworks (TVM, Halide) separate compute definitions from schedule optimizations.</li>
+<li>While they improve productivity, they still require programmers to manually design schedule templates.</li>
+<li>Designing a high-performance schedule template is as difficult as writing low-level code.</li>
+<li>Programmers must manually reason about complex performance trade-offs for millions of primitive combinations.</li>
+</ul>
+</section>
+<section id="performance-variability-across-schedules" class="level2">
+<h2 class="anchored" data-anchor-id="performance-variability-across-schedules">Performance Variability Across Schedules</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Different combinations of schedule primitives (split, fuse, reorder) drastically impact performance.</li>
+<li>Even minor changes, such as the order of primitives, can lead to significant speedups or slowdowns.</li>
+<li>The optimal schedule varies heavily depending on the specific input shape and workload size.</li>
+</ul>
+</section>
+<section id="hardware-heterogeneity-challenges" class="level2">
+<h2 class="anchored" data-anchor-id="hardware-heterogeneity-challenges">Hardware Heterogeneity Challenges</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Hardware platforms (CPU, GPU, FPGA) have vastly different architectures and optimization requirements.</li>
+<li>The performance trend for a single parameter (e.g., loop split factor) varies wildly across devices.</li>
+<li>A schedule that performs optimally on a GPU may perform poorly on a CPU or FPGA.</li>
+</ul>
+</section>
+<section id="flextensor-overview" class="level2">
+<h2 class="anchored" data-anchor-id="flextensor-overview">FlexTensor Overview</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>FlexTensor is a fully automatic, template-free schedule exploration and optimization framework.</li>
+<li>Users only provide high-level mathematical descriptions of tensor computations in Python.</li>
+<li>The <strong>Front-end</strong> statically analyzes the computation to generate and prune a hardware-specific schedule space.</li>
+<li>The <strong>Back-end</strong> uses a hybrid heuristic and machine learning approach to find the optimal schedule.</li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="front-end-static-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="front-end-static-analysis">Front-end: Static Analysis</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Represents tensor computations as a mini-graph of nested loops (nodes) and data dependencies (edges).</li>
+<li>Extracts statistical information: number of spatial loops, reduce loops, trip counts, and loop orders.</li>
+<li>Extracts structural information: number of nodes, input/output tensors, and consumer nodes.</li>
+</ul>
+</section>
+<section id="front-end-schedule-space-generation" class="level2">
+<h2 class="anchored" data-anchor-id="front-end-schedule-space-generation">Front-end: Schedule Space Generation</h2>
+<ul>
+<li>Enumerates combinations of schedule primitives (split, reorder, fuse, unroll, vectorize, parallelize).</li>
+<li>Encodes each schedule point as a vector, where values represent specific primitive choices or parameters.</li>
+<li>Prioritizes structural primitives (split, reorder, fuse) to group similar configurations together.</li>
+</ul>
+</section>
+<section id="front-end-space-pruning-rearrangement" class="level2">
+<h2 class="anchored" data-anchor-id="front-end-space-pruning-rearrangement">Front-end: Space Pruning &amp; Rearrangement</h2>
+<ul>
+<li>The raw schedule space is massive (often &gt; <span class="math inline">\(10^{11}\)</span> configurations).</li>
+<li><strong>Pruning</strong>: Limits primitive combination depth, restricts split factors to divisible choices, and fixes hardware-specific decisions.</li>
+<li><strong>Rearrangement</strong>: Converts the 1D list of schedules into a high-dimensional space based on structural similarity.</li>
+<li>Neighboring points in the rearranged space are highly likely to yield similar performance.</li>
+</ul>
+</section>
+<section id="back-end-exploration-strategy" class="level2">
+<h2 class="anchored" data-anchor-id="back-end-exploration-strategy">Back-end: Exploration Strategy</h2>
+<ul>
+<li>Exhaustive search of the pruned schedule space is still infeasible.</li>
+<li>FlexTensor combines a heuristic method (to select starting points) with a machine learning method (to choose search directions).</li>
+<li>Evaluates points either via real hardware measurement or fast analytical models.</li>
+</ul>
+</section>
+<section id="heuristic-search-simulated-annealing" class="level2">
+<h2 class="anchored" data-anchor-id="heuristic-search-simulated-annealing">Heuristic Search: Simulated Annealing</h2>
+<ul>
+<li>Maintains a set of evaluated schedule points and tracks the best-performing configuration.</li>
+<li>Uses simulated annealing to probabilistically select the next starting point from the evaluated set.</li>
+<li>Points with performance closer to the current best are more likely to be chosen as starting points.</li>
+</ul>
+</section>
+<section id="machine-learning-search-q-learning" class="level2">
+<h2 class="anchored" data-anchor-id="machine-learning-search-q-learning">Machine Learning Search: Q-Learning</h2>
+<ul>
+<li>Formulates the search for the best optimization direction as a reinforcement learning problem.</li>
+<li>Uses a Q-learning algorithm with a four-layer neural network to predict the “Q-value” of each possible direction.</li>
+<li>The reward function is based on the performance improvement achieved by moving to a neighboring schedule point.</li>
+<li>The neural network is trained online during the exploration process using collected performance data.</li>
+</ul>
+</section>
+<section id="performance-evaluation-methods" class="level2">
+<h2 class="anchored" data-anchor-id="performance-evaluation-methods">Performance Evaluation Methods</h2>
+<ul>
+<li><strong>CPUs &amp; GPUs</strong>: Uses real hardware measurement since compilation and execution overhead is small (<span class="math inline">\(\le 1s\)</span>).</li>
+<li><strong>FPGAs</strong>: Real measurement is impossible due to hours-long synthesis times.</li>
+<li>Uses an analytical performance model for FPGAs based on workload size, parallel processing elements, and pipeline stage delays.</li>
+</ul>
+</section>
+<section id="hardware-specific-schedule-generation" class="level2">
+<h2 class="anchored" data-anchor-id="hardware-specific-schedule-generation">Hardware-Specific Schedule Generation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
+</figure>
+</div>
+<ul>
+<li>FlexTensor translates the optimized schedule vector into low-level code using hardware-specific primitives.</li>
+<li>Uses a bottom-up traversal of the computation mini-graph to apply schedules to each node.</li>
+</ul>
+</section>
+<section id="schedule-implementation-cpu" class="level2">
+<h2 class="anchored" data-anchor-id="schedule-implementation-cpu">Schedule Implementation: CPU</h2>
+<ul>
+<li>Focuses heavily on register blocking and vectorization.</li>
+<li>Uses multi-level tiling to split spatial and reduce loops, ensuring data fits into CPU caches.</li>
+<li>Dynamically fuses outer loops for multi-threading and vectorizes the inner-most loop based on instruction set limits (e.g., AVX2).</li>
+</ul>
+</section>
+<section id="schedule-implementation-gpu" class="level2">
+<h2 class="anchored" data-anchor-id="schedule-implementation-gpu">Schedule Implementation: GPU</h2>
+<ul>
+<li>Prioritizes block/thread decomposition and shared memory configuration.</li>
+<li>Binds outer loops to thread blocks and inner loops to individual threads.</li>
+<li>Dynamically configures shared memory size based on the trip counts of inner loops tuned during exploration.</li>
+</ul>
+</section>
+<section id="schedule-implementation-fpga" class="level2">
+<h2 class="anchored" data-anchor-id="schedule-implementation-fpga">Schedule Implementation: FPGA</h2>
+<ul>
+<li>Leverages a three-stage coarse-grained pipeline architecture (data read, compute, data write).</li>
+<li>Configures read/write schedules based on DDR bandwidth and on-chip memory buffer limits.</li>
+<li>Optimizes the compute pipeline based on available DSP resources and BRAM capacities.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="experimental-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
+<ul>
+<li><strong>Hardware</strong>: NVIDIA V100/P100/Titan X GPUs, Intel Xeon E5 CPU, Xilinx VU9P FPGA.</li>
+<li><strong>Benchmarks</strong>: 12 diverse tensor operators (GEMM, Bilinear, 1D/2D/3D Convolutions, Group/Depthwise/Dilated Convolutions).</li>
+<li><strong>Baselines</strong>: PyTorch native, cuDNN, cuBlas, MKL-DNN, OpenCL baselines, and AutoTVM.</li>
+</ul>
+</section>
+<section id="overall-gpu-performance" class="level2">
+<h2 class="anchored" data-anchor-id="overall-gpu-performance">Overall GPU Performance</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
+</figure>
+</div>
+<ul>
+<li>FlexTensor outperforms both native PyTorch and cuDNN for the majority of operators.</li>
+<li>Achieves average speedups of 1.83x on V100, 1.68x on P100, and 1.71x on Titan X compared to cuDNN.</li>
+<li>Excels particularly on poorly-supported operators like Group and Dilated convolutions (up to 21.35x speedup).</li>
+</ul>
+</section>
+<section id="d-convolution-on-gpus" class="level2">
+<h2 class="anchored" data-anchor-id="d-convolution-on-gpus">2D Convolution on GPUs</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig7.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Evaluated across 15 distinct convolution layers from YOLO-v1.</li>
+<li>FlexTensor achieves a geometric mean speedup of 1.5x over cuDNN.</li>
+<li>Reaches an average throughput of 3519.71 GFLOPS by dynamically balancing inter-thread and intra-thread workloads.</li>
+</ul>
+</section>
+<section id="d-convolution-on-cpus" class="level2">
+<h2 class="anchored" data-anchor-id="d-convolution-on-cpus">2D Convolution on CPUs</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig8.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>FlexTensor exceeds PyTorch (MKL-DNN backend) for most YOLO-v1 layers.</li>
+<li>Achieves a 1.72x geometric mean speedup over the hand-tuned library.</li>
+<li>Automatically discovers the optimal vectorization length (8) for the Xeon E5’s AVX2 instructions.</li>
+</ul>
+</section>
+<section id="d-convolution-on-fpgas" class="level2">
+<h2 class="anchored" data-anchor-id="d-convolution-on-fpgas">2D Convolution on FPGAs</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig9.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Compared against hand-optimized OpenCL baselines.</li>
+<li>Achieves a 1.5x geometric mean speedup.</li>
+<li>Provides better scheduling strategies to overlap data communication and computation under strict resource constraints.</li>
+</ul>
+</section>
+<section id="comparison-to-state-of-the-art-autotvm" class="level2">
+<h2 class="anchored" data-anchor-id="comparison-to-state-of-the-art-autotvm">Comparison to State-of-the-Art (AutoTVM)</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig10.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>FlexTensor achieves an average 2.21x speedup over AutoTVM across various operators.</li>
+<li>Explores a schedule space roughly 2027x larger than AutoTVM’s template-restricted space.</li>
+<li>The Q-learning method (Q-method) takes only 52.9% of the time AutoTVM requires to reach similar performance.</li>
+</ul>
+</section>
+<section id="exploration-convergence-over-time" class="level2">
+<h2 class="anchored" data-anchor-id="exploration-convergence-over-time">Exploration Convergence Over Time</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig11.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:45.0%"></p>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig12.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:45.0%"></p>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig13.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:45.0%"></p>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig14.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:45.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Q-method consistently converges to high performance significantly faster than exhaustive search (P-method) and AutoTVM.</li>
+<li>Avoids getting stuck in local optima by effectively predicting the most promising optimization directions.</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kabu1204\.github\.io\/paper-deck\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Source on <a href="https://github.com/kabu1204/paper-deck">GitHub</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

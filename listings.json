@@ -2,6 +2,15 @@
   {
     "listing": "/index.html",
     "items": [
+      "/papers/2026-07-05-blockdepend/index.html",
+      "/papers/2026-07-05-blockwise-parallel-transformer/index.html",
+      "/papers/2026-07-05-flextensor/index.html",
+      "/papers/2026-07-05-ladder/index.html",
+      "/papers/2026-07-05-mirage/index.html",
+      "/papers/2026-07-05-mxfp4-llm-training/index.html",
+      "/papers/2026-07-05-roller-tensor-compiler/index.html",
+      "/papers/2026-07-05-tensorir/index.html",
+      "/papers/2026-07-05-triton-distributed/index.html",
       "/papers/2026-06-27-marlin/index.html",
       "/papers/2026-06-21-jenga/index.html",
       "/papers/2026-05-22-mooncake/index.html",
