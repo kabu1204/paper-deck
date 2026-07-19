@@ -10,7 +10,316 @@
 <atom:link href="https://kabu1204.github.io/paper-deck/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.9.38</generator>
-<lastBuildDate>Sun, 05 Jul 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 19 Jul 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>gShare: Efficient GPU Sharing with Aggressive Scheduling in Multi-tenant FaaS platform</title>
+  <dc:creator>Yanan Yang, Zhengxiong Jiang, Meiqi Zhu, Hongqiang Xu, Yujun Wang, Liang Li, Jiansong Zhang, Jie Wu</dc:creator>
+  <link>https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="background-motivation" class="level1">
+<h1>Background &amp; Motivation</h1>
+<section id="serverless-inference-gpu-functions" class="level2">
+<h2 class="anchored" data-anchor-id="serverless-inference-gpu-functions">Serverless Inference &amp; GPU Functions</h2>
+<ul>
+<li>Model serving is latency-critical and computation-intensive.</li>
+<li>Early CPU-only FaaS functions fall short of meeting low-latency requirements.</li>
+<li>FaaS platforms now offer GPU functions, charging by invocation count and resource consumption.</li>
+<li>GPUs significantly improve inference efficiency (e.g., ResNet50 drops from hundreds of ms to &lt;50ms).</li>
+</ul>
+</section>
+<section id="inefficiency-1-coarse-grained-gpu-allocation" class="level2">
+<h2 class="anchored" data-anchor-id="inefficiency-1-coarse-grained-gpu-allocation">Inefficiency 1: Coarse-grained GPU Allocation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Current FaaS platforms allocate GPUs coarsely (e.g., minimum 1GB of device memory).</li>
+<li>78.1% of popular models require &lt;4GB, and 66.4% require &lt;1GB.</li>
+<li>Coarse allocation leads to massive resource over-provisioning (up to 85% waste for small models).</li>
+<li>Existing proprietary vGPU solutions lack the flexibility needed for dynamic serverless environments.</li>
+</ul>
+</section>
+<section id="inefficiency-2-keep-alive-cost" class="level2">
+<h2 class="anchored" data-anchor-id="inefficiency-2-keep-alive-cost">Inefficiency 2: Keep-alive Cost</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Cold starts for GPU functions take seconds due to model, driver, and framework initialization.</li>
+<li>FaaS providers cache instances (keep-alive) for up to 15 minutes to mitigate cold starts.</li>
+<li>GPUs are ~14x more expensive than CPUs in the cloud.</li>
+<li>Caching idle GPU instances leads to 10x higher cloud costs and poor resource utilization during workload bursts.</li>
+</ul>
+</section>
+<section id="inefficiency-3-insufficient-over-selling" class="level2">
+<h2 class="anchored" data-anchor-id="inefficiency-3-insufficient-over-selling">Inefficiency 3: Insufficient Over-selling</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Prior systems use model swapping to reclaim idle GPUs, but rely on proxy-based control planes.</li>
+<li>Two-layer GPU management introduces overhead and performance uncertainty.</li>
+<li>Model swapping incurs non-negligible latency (e.g., ~1s for 1GB).</li>
+<li>Simple heuristic scheduling ignores function behavior, causing either low utilization or SLO violations.</li>
+</ul>
+</section>
+<section id="opportunity-for-aggressive-sharing" class="level2">
+<h2 class="anchored" data-anchor-id="opportunity-for-aggressive-sharing">Opportunity for Aggressive Sharing</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Cloud users have diverse latency requirements (e.g., strict interactive vs.&nbsp;lenient batch processing).</li>
+<li>Users opting for discounted idle billing are willing to accept slight latency increases.</li>
+<li>Carefully reordering request execution can reduce GPU usage by ~30% without violating latency SLOs.</li>
+</ul>
+</section>
+<section id="key-insights" class="level2">
+<h2 class="anchored" data-anchor-id="key-insights">Key Insights</h2>
+<ul>
+<li><strong>Fine-grained GPU allocation:</strong> Time-slicing with vGPU minimizes over-provisioning waste.</li>
+<li><strong>Resource decoupling:</strong> Decoupling GPUs from function memory enables flexible recycling and sharing.</li>
+<li><strong>Efficient GPU overselling:</strong> Co-designing vGPU allocation and SLO-aware scheduling balances cost and performance.</li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="gshare-system-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="gshare-system-architecture">gShare System Architecture</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>A server-level GPU overselling policy that minimizes GPU allocation while meeting latency SLOs.</li>
+<li>Divides physical GPUs into vGPU slices (e.g., 128MB memory, 10% compute quota).</li>
+<li>Dynamically maps vGPU instances to user functions based on workload changes.</li>
+<li>Operates as a back-end module on each server, transparent to the cluster-level load balancer.</li>
+</ul>
+</section>
+<section id="vm-passthrough-gpu-virtualization" class="level2">
+<h2 class="anchored" data-anchor-id="vm-passthrough-gpu-virtualization">VM-passthrough GPU Virtualization</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Uses kernel-space interception to virtualize GPUs, ensuring compatibility with custom VM images.</li>
+<li><strong>vGPU Manager:</strong> Runs in the host OS, exposing vGPU driver APIs to guest microVMs.</li>
+<li>Supports fine-grained creation of GPU functions in units of 128MB.</li>
+<li>Exposes user-space libraries for seamless integration with orchestration frameworks like Kubernetes.</li>
+</ul>
+</section>
+<section id="direct-io-and-vgpu-scheduling" class="level2">
+<h2 class="anchored" data-anchor-id="direct-io-and-vgpu-scheduling">Direct I/O and vGPU Scheduling</h2>
+<ul>
+<li>Leverages <code>vfio-mdev</code> for direct I/O access between hardware and virtual machines.</li>
+<li>Bypasses virtualization overhead by allowing guest processes to access device memory via standard system calls.</li>
+<li><strong>vGPU Scheduler:</strong> Enforces memory limits and temporal sharing of SM cores.</li>
+<li>Uses round-robin scheduling with non-preemptive time slices (e.g., 20ms) to execute kernels in FCFS order.</li>
+</ul>
+</section>
+<section id="function-memory-management" class="level2">
+<h2 class="anchored" data-anchor-id="function-memory-management">Function Memory Management</h2>
+<ul>
+<li>Recycling idle vGPU instances accommodates more tenant functions on the same hardware.</li>
+<li>Requires efficient mechanisms for vGPU hot-plugging and model swapping.</li>
+<li>Standard PCIe hot-plugging takes ~0.7s, which is too slow for dynamic reallocation.</li>
+</ul>
+</section>
+<section id="vgpu-hot-plugging" class="level2">
+<h2 class="anchored" data-anchor-id="vgpu-hot-plugging">vGPU Hot-Plugging</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig7.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Implements a “pseudo offloading” strategy to mitigate hot-plugging overhead.</li>
+<li>When unloading, only the hardware resource is released; the vGPU connection remains active but disabled.</li>
+<li>Upon resuming, the vGPU manager simply reactivates the GPU slice without instantiating a new device.</li>
+<li>Reduces vGPU hot-plugging time to less than 1ms.</li>
+</ul>
+</section>
+<section id="checkpoint-restore-cr" class="level2">
+<h2 class="anchored" data-anchor-id="checkpoint-restore-cr">Checkpoint &amp; Restore (C/R)</h2>
+<ul>
+<li>Avoids redundant model initialization for keep-alive functions.</li>
+<li>Uses CUDA checkpointing to create model snapshots directly within the microVM.</li>
+<li>Extends microVM sidecars to support direct model data management.</li>
+<li>Stores snapshots in a shared host memory pool instead of disk, enabling fast in-memory recovery.</li>
+</ul>
+</section>
+<section id="fast-model-swapping" class="level2">
+<h2 class="anchored" data-anchor-id="fast-model-swapping">Fast Model Swapping</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig8.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Traditional reallocation requires a slow swap-out and swap-in pair.</li>
+<li>Introduces a GPU memory “overwrite” mechanism based on snapshot caching.</li>
+<li>If a model is already cached in host memory, the swap-out operation is skipped entirely.</li>
+<li>Only a swap-in operation is performed, significantly reducing reallocation latency.</li>
+</ul>
+</section>
+<section id="slo-aware-request-scheduling-formulation" class="level2">
+<h2 class="anchored" data-anchor-id="slo-aware-request-scheduling-formulation">SLO-aware Request Scheduling Formulation</h2>
+<ul>
+<li>Modeled as an online bin packing problem with per-request deadline constraints.</li>
+<li><strong>Objective:</strong> Minimize the total GPU resource cost on active function instances.</li>
+<li><strong>Constraints:</strong> Requests cannot execute before arrival, strict execution order, no overlapping execution, and latency targets must be met.</li>
+<li>NP-hard problem requiring a fast, practical online algorithm.</li>
+</ul>
+</section>
+<section id="dual-queue-lazy-scheduling-algorithm" class="level2">
+<h2 class="anchored" data-anchor-id="dual-queue-lazy-scheduling-algorithm">Dual-Queue Lazy Scheduling Algorithm</h2>
+<ul>
+<li>Maintains incoming requests in a <code>shareQueue</code>, prioritized by deadline slack.</li>
+<li>Classifies requests: high-risk requests (likely to violate SLO) are moved to a <code>cacheQueue</code> for exclusive execution.</li>
+<li><strong>Lazy Scheduling:</strong> Requests in <code>shareQueue</code> are only scheduled when their deadline is near (slack = 0).</li>
+<li>Allows reprioritization and maximizes the reuse of already active GPU slices to reduce idle waste.</li>
+</ul>
+</section>
+</section>
+<section id="evaluation" class="level1">
+<h1>Evaluation</h1>
+<section id="experimental-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
+<ul>
+<li><strong>Testbed:</strong> 20 physical servers, 64 NVIDIA A100 GPUs (40GB).</li>
+<li><strong>Workloads:</strong> Real-world traces from production clusters (low, medium, and high concurrency).</li>
+<li><strong>Latency Target:</strong> Default set to 1.5x the 90th percentile (p90) execution time.</li>
+<li><strong>Baselines:</strong> Keepalive (AWS Lambda style), FaasCache, FaaSwap (state-of-the-art), NoCache, and FIFO.</li>
+</ul>
+</section>
+<section id="overall-performance-efficiency" class="level2">
+<h2 class="anchored" data-anchor-id="overall-performance-efficiency">Overall Performance &amp; Efficiency</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig10.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
+</figure>
+</div>
+<ul>
+<li>gShare reduces GPU usage by 43%–63% compared to the Keepalive baseline.</li>
+<li>Maintains function performance comparable to the baseline.</li>
+<li>Outperforms FaaSwap by reducing latency violations by up to 6x.</li>
+<li>Avoids the extreme scheduling behaviors of NoCache (frequent swaps) and FIFO (early scheduling waste).</li>
+</ul>
+</section>
+<section id="workload-agnosticism" class="level2">
+<h2 class="anchored" data-anchor-id="workload-agnosticism">Workload Agnosticism</h2>
+<ul>
+<li>Delivers consistent performance improvements across diverse workload scenarios.</li>
+<li>Adapts to variations in tenant count, request arrival intervals, and function concurrency.</li>
+<li>Server-level scheduling uses function profiling data to dynamically adapt to various ML scenarios.</li>
+</ul>
+</section>
+<section id="request-latency-distribution" class="level2">
+<h2 class="anchored" data-anchor-id="request-latency-distribution">Request Latency Distribution</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig17.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Lazy scheduling slightly increases request waiting time but has negligible impact on p50 latency.</li>
+<li>Performance gap narrows progressively from 60% at p90 to just 15% at p95 and p99 latency.</li>
+<li>Severe performance degradation is rare and mostly limited to initialization of single-invocation functions.</li>
+<li>Adding 40% redundancy to predicted execution times effectively mitigates prediction errors.</li>
+</ul>
+</section>
+<section id="pareto-optimality" class="level2">
+<h2 class="anchored" data-anchor-id="pareto-optimality">Pareto Optimality</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig19.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Achieves Pareto optimality between resource cost and function performance across 20 different configurations.</li>
+<li>Strikes a favorable balance, whereas Keepalive incurs high costs and FIFO causes numerous SLO violations.</li>
+</ul>
+</section>
+<section id="sensitivity-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="sensitivity-analysis">Sensitivity Analysis</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig21.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Performs exceptionally well under sparse workloads with lenient latency targets.</li>
+<li>Reduces resource usage by ~60% vs.&nbsp;Keepalive and ~50% vs.&nbsp;FaaSwap under sparse conditions.</li>
+<li>Model swapping time remains the primary cause of latency target violations across all methods.</li>
+<li>gShare’s scheduling wait time contributes &lt;1% to SLO violations.</li>
+</ul>
+</section>
+<section id="virtualization-overhead-resource-isolation" class="level2">
+<h2 class="anchored" data-anchor-id="virtualization-overhead-resource-isolation">Virtualization Overhead &amp; Resource Isolation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig25.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Overhead:</strong> Negligible performance degradation compared to full physical GPUs (zero-copy memory, native channel scheduling).</li>
+<li><strong>Isolation:</strong> Model throughput scales linearly with the allocated vGPU quota.</li>
+<li>Performance of each vGPU function remains stable even when processing concurrent requests from different tenants.</li>
+</ul>
+</section>
+<section id="cost-benefit-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="cost-benefit-analysis">Cost Benefit Analysis</h2>
+<ul>
+<li>Estimated using AWS EC2 pricing (p4d.24xlarge at $2.74/hour per GPU).</li>
+<li>Reduces GPU resource usage by up to 40% even in worst-case scenarios.</li>
+<li>For a typical 200-server FaaS cluster, gShare saves approximately $330,000 annually.</li>
+<li>Benefits both cloud providers (reduced procurement) and users (discounted idle billing).</li>
+</ul>
+</section>
+<section id="performance-roofline" class="level2">
+<h2 class="anchored" data-anchor-id="performance-roofline">Performance Roofline</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig27.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Compared against the optimal MINLP solution solved by Lingo.</li>
+<li>gShare’s online scheduling algorithm achieves 75% of the optimal cost-efficiency.</li>
+<li>Decision-making speed is 10x–100x faster than the solver, making it highly practical for production systems.</li>
+</ul>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>serverless</category>
+  <category>faas</category>
+  <category>gpu-sharing</category>
+  <category>scheduling</category>
+  <category>virtualization</category>
+  <guid>https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/</guid>
+  <pubDate>Sun, 19 Jul 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://kabu1204.github.io/paper-deck/papers/2026-07-19-gshare/assets/fig5.png" medium="image" type="image/png" height="91" width="144"/>
+</item>
 <item>
   <title>Optimizing Deep Learning Inference Efficiency through Block Dependency Analysis</title>
   <dc:creator>Zhanyuan Di, Ziyi Ren, Leping Wang, Feng Hua, Guangming Tan, En Shao, Lixian Ma, Ninghui Sun, Zhaojia Ma, Jie Zhao</dc:creator>
@@ -5075,274 +5384,6 @@
   <guid>https://kabu1204.github.io/paper-deck/papers/2026-01-30-ktrans/</guid>
   <pubDate>Fri, 30 Jan 2026 00:00:00 GMT</pubDate>
   <media:content url="https://kabu1204.github.io/paper-deck/papers/2026-01-30-ktrans/assets/image.png" medium="image" type="image/png" height="39" width="144"/>
-</item>
-<item>
-  <title>Rammer: Enabling Holistic Deep Learning Compiler Optimizations with rTasks</title>
-  <dc:creator>Lingxiao Ma, Zhiqiang Xie, Zhi Yang, Jilong Xue, Youshan Miao, Wei Cui, Wenxiang Hu, Fan Yang, Lintao Zhang, and Lidong Zhou</dc:creator>
-  <link>https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="background-motivation" class="level1">
-<h1>Background &amp; Motivation</h1>
-<section id="dnn-computation-model" class="level2">
-<h2 class="anchored" data-anchor-id="dnn-computation-model">DNN Computation Model</h2>
-<ul>
-<li>DNNs are modeled as Data Flow Graphs (DFG).</li>
-<li><strong>Two levels of parallelism:</strong>
-<ul>
-<li><strong>Inter-operator:</strong> Independent nodes in the DFG can run in parallel.</li>
-<li><strong>Intra-operator:</strong> A single operator (e.g., MatMul) has internal data parallelism.</li>
-</ul></li>
-</ul>
-</section>
-<section id="the-two-layered-scheduling-gap" class="level2">
-<h2 class="anchored" data-anchor-id="the-two-layered-scheduling-gap">The Two-Layered Scheduling Gap</h2>
-<ul>
-<li><strong>Layer 1: Inter-operator (Software)</strong>
-<ul>
-<li>Frameworks (TensorFlow, PyTorch) schedule operators based on dependencies.</li>
-</ul></li>
-<li><strong>Layer 2: Intra-operator (Hardware)</strong>
-<ul>
-<li>Opaque libraries (cuDNN) or hardware schedulers map operator kernels to execution units.</li>
-</ul></li>
-<li><strong>Problem:</strong> The two layers are decoupled. The framework treats operators as “black boxes.”</li>
-</ul>
-</section>
-<section id="inefficiency-1-low-hardware-utilization" class="level2">
-<h2 class="anchored" data-anchor-id="inefficiency-1-low-hardware-utilization">Inefficiency 1: Low Hardware Utilization</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ul>
-<li>Accelerators (GPUs) are massive parallel devices.</li>
-<li>Even with BS=16, a single operator still cannot saturate the device.</li>
-</ul>
-</section>
-<section id="inefficiency-2-high-scheduling-overhead" class="level2">
-<h2 class="anchored" data-anchor-id="inefficiency-2-high-scheduling-overhead">Inefficiency 2: High Scheduling Overhead</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-1.png" class="img-fluid figure-img"></p>
-<figcaption>“Kernel time” (grey) vs “Overhead” (white).</figcaption>
-</figure>
-</div>
-<ul>
-<li>Launching kernels involves significant CPU-side overhead (driver, context creation, PCIe).</li>
-<li>For small operators, the <strong>overhead exceeds the actual computation time</strong>.</li>
-</ul>
-</section>
-<section id="inefficiency-3-suboptimal-co-scheduling" class="level2">
-<h2 class="anchored" data-anchor-id="inefficiency-3-suboptimal-co-scheduling">Inefficiency 3: Suboptimal Co-scheduling</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-2.png" class="img-fluid figure-img"></p>
-<figcaption>(a) existing inefficient plan vs.&nbsp;(b) an optimized plan</figcaption>
-</figure>
-</div>
-<ul>
-<li><ol type="a">
-<li><strong>Existing:</strong> Operators run sequentially or rely on hardware multi-streaming (often inefficient).</li>
-</ol></li>
-<li><ol start="2" type="a">
-<li><strong>Ideal:</strong> Co-schedule independent operators to fill the device.</li>
-</ol></li>
-<li>Current frameworks lack the interplay between inter- and intra-operator scheduling.</li>
-</ul>
-</section>
-<section id="rammers-goal" class="level2">
-<h2 class="anchored" data-anchor-id="rammers-goal">Rammer’s Goal</h2>
-<ul>
-<li><strong>Holistic Optimization:</strong> Manage inter- and intra-operator parallelism together.</li>
-<li><strong>Compile-time Scheduling:</strong> Move scheduling decisions off the critical path.</li>
-<li><strong>White-box Approach:</strong> Expose hardware execution units to the compiler.</li>
-</ul>
-</section>
-</section>
-<section id="system-design" class="level1">
-<h1>System Design</h1>
-<section id="overview-rammer-vs.-existing-frameworks" class="level2">
-<h2 class="anchored" data-anchor-id="overview-rammer-vs.-existing-frameworks">Overview: Rammer vs.&nbsp;Existing Frameworks</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ul>
-<li><strong>Existing:</strong> Dynamic dispatch of opaque operators.</li>
-<li><strong>Rammer:</strong> Static mapping of fine-grained tasks (<code>rTasks</code>) to virtualized hardware (<code>vDevice</code>).</li>
-</ul>
-</section>
-<section id="abstraction-roperator-and-rtask" class="level2">
-<h2 class="anchored" data-anchor-id="abstraction-roperator-and-rtask">Abstraction: rOperator and rTask</h2>
-<ul>
-<li><strong>rTask:</strong> The minimum schedulable unit of computation (<strong>e.g., a tile of MatMul</strong>).</li>
-<li><strong>rOperator:</strong> A group of independent, homogeneous <code>rTasks</code> (<strong>e.g.&nbsp;a whole MatMul</strong>).</li>
-<li>Breaks the “black box” boundary of traditional operators.</li>
-</ul>
-</section>
-<section id="abstraction-virtualized-parallel-device-vdevice" class="level2">
-<h2 class="anchored" data-anchor-id="abstraction-virtualized-parallel-device-vdevice">Abstraction: Virtualized Parallel Device (vDevice)</h2>
-<ul>
-<li><strong>vDevice:</strong> Abstracts the accelerator hardware.</li>
-<li><strong>vEU (Virtual Execution Unit):</strong>
-<ul>
-<li>Represents a physical CU (e.g., GPU SM).</li>
-<li>Executes a sequence of <code>rTasks</code>.</li>
-</ul></li>
-<li><strong>Mechanism:</strong>
-<ul>
-<li>Allows the compiler to assign specific <code>rTasks</code> to specific <code>vEUs</code> explicitly.</li>
-<li>Bypasses the non-deterministic hardware scheduler.</li>
-</ul></li>
-</ul>
-</section>
-<section id="the-rtask-aware-dfg-compiler" class="level2">
-<h2 class="anchored" data-anchor-id="the-rtask-aware-dfg-compiler">The rTask-aware DFG Compiler</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-4.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ul>
-<li><strong>Input:</strong> DFG of <code>rOperators</code>.</li>
-<li><strong>Profiling:</strong> Measures execution time of individual <code>rTasks</code>.</li>
-<li><strong>Scheduling:</strong> Generates a static execution plan (<code>rProgram</code>).</li>
-<li><strong>Output:</strong> A single fused kernel (or few kernels) containing the entire schedule.</li>
-</ul>
-</section>
-<section id="scheduling-policy" class="level2">
-<h2 class="anchored" data-anchor-id="scheduling-policy">Scheduling Policy</h2>
-<ul>
-<li><strong>Wavefront Scheduling:</strong>
-<ul>
-<li>Identifies independent operators (wavefront).</li>
-<li>Packs <code>rTasks</code> from these operators onto available <code>vEUs</code>.</li>
-</ul></li>
-<li><strong>Holistic Decision:</strong>
-<ul>
-<li>Can choose a “slower” kernel implementation if it uses fewer resources, allowing other operators to run in parallel.</li>
-<li>The optimization goal is to achieve lowest end-to-end latency.</li>
-</ul></li>
-</ul>
-</section>
-<section id="runtime-persistent-thread-blocks" class="level2">
-<h2 class="anchored" data-anchor-id="runtime-persistent-thread-blocks">Runtime: Persistent Thread Blocks</h2>
-<ul>
-<li><strong>Persistent Thread Blocks (PTBs):</strong>
-<ul>
-<li>Rammer launches long-running thread blocks that stay resident on the GPU.</li>
-<li>These PTBs act as <code>vEUs</code>.</li>
-</ul></li>
-<li><strong>Logic:</strong>
-<ul>
-<li>They fetch <code>rTasks</code> from the pre-compiled static plan.</li>
-<li>Eliminates repeated kernel launch overhead.</li>
-</ul></li>
-</ul>
-</section>
-<section id="fine-grained-synchronization" class="level2">
-<h2 class="anchored" data-anchor-id="fine-grained-synchronization">Fine-grained Synchronization</h2>
-<ul>
-<li><strong>Barrier-rTask:</strong>
-<ul>
-<li>A lightweight synchronization primitive based on counter.</li>
-<li>Ensures dependencies are met between <code>rTasks</code> on different <code>vEUs</code>.</li>
-<li>Avoids global device synchronization (like <code>cudaDeviceSynchronize</code>).</li>
-</ul></li>
-</ul>
-</section>
-</section>
-<section id="evaluation" class="level1">
-<h1>Evaluation</h1>
-<section id="environment-setup" class="level2">
-<h2 class="anchored" data-anchor-id="environment-setup">Environment Setup</h2>
-<ul>
-<li><strong>Hardware:</strong>
-<ul>
-<li>NVIDIA Tesla V100</li>
-<li>AMD Radeon Instinct MI50</li>
-<li>Graphcore IPU</li>
-</ul></li>
-<li><strong>Baselines:</strong>
-<ul>
-<li>TensorFlow (TF)</li>
-<li>TensorFlow-XLA (Compiler)</li>
-<li>Apache TVM (Compiler)</li>
-<li>TensorRT (Vendor Optimized Library)</li>
-<li>RammerBase (Still 2-layered scheduling)</li>
-<li>Rammer</li>
-</ul></li>
-</ul>
-</section>
-<section id="end-to-end-performance-batch-size-1" class="level2">
-<h2 class="anchored" data-anchor-id="end-to-end-performance-batch-size-1">End-to-End Performance (Batch Size = 1)</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-5.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ul>
-<li><strong>Rammer vs.&nbsp;TF:</strong> Up to 33.9x speedup.</li>
-<li><strong>Rammer vs.&nbsp;TVM:</strong> Up to 6.4x speedup.</li>
-<li><strong>Rammer vs.&nbsp;TensorRT:</strong> Outperforms vendor-optimized library on all benchmarks.</li>
-</ul>
-</section>
-<section id="performance-with-larger-batch-sizes" class="level2">
-<h2 class="anchored" data-anchor-id="performance-with-larger-batch-sizes">Performance with Larger Batch Sizes</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-6.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ul>
-<li>Even with larger batches (BS=16), Rammer maintains advantage.</li>
-<li>Outperforms TF by 2.25x on ResNeXt.</li>
-<li>Outperforms TVM by 1.25x on ResNeXt.</li>
-</ul>
-</section>
-<section id="gpu-utilization" class="level2">
-<h2 class="anchored" data-anchor-id="gpu-utilization">GPU Utilization</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-7.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ul>
-<li>Rammer significantly improves hardware utilization compared to TF and TensorRT.</li>
-<li>Achieved by effectively packing <code>rTasks</code> from different operators onto the GPU simultaneously.</li>
-</ul>
-</section>
-<section id="cross-platform-generality-amd-gpus" class="level2">
-<h2 class="anchored" data-anchor-id="cross-platform-generality-amd-gpus">Cross-Platform Generality: AMD GPUs</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image-8.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ul>
-<li>Rammer abstractions work on AMD ROCm platform.</li>
-<li>Up to <strong>41x</strong> speedup over TensorFlow on LSTM-TC.</li>
-</ul>
-
-
-</section>
-</section>
-
- ]]></description>
-  <category>gpu</category>
-  <category>systems</category>
-  <category>training</category>
-  <category>serving</category>
-  <category>compilation</category>
-  <guid>https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/</guid>
-  <pubDate>Fri, 28 Nov 2025 00:00:00 GMT</pubDate>
-  <media:content url="https://kabu1204.github.io/paper-deck/papers/2025-11-28-rammer/assets/image.png" medium="image" type="image/png" height="54" width="144"/>
 </item>
 </channel>
 </rss>

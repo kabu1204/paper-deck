@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/papers/2026-07-19-gshare/index.html",
       "/papers/2026-07-05-blockdepend/index.html",
       "/papers/2026-07-05-blockwise-parallel-transformer/index.html",
       "/papers/2026-07-05-flextensor/index.html",

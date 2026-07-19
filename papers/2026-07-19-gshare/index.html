@@ -6,11 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Hao Wu, Yue Yu, Junxiao Deng, Shadi Ibrahim, Song Wu, Hao Fan, Ziyue Cheng, Hai Jin">
-<meta name="dcterms.date" content="2026-03-06">
-<meta name="description" content="StreamBox: A Lightweight GPU SandBox for Serverless Inference Workflow">
+<meta name="author" content="Yanan Yang, Zhengxiong Jiang, Meiqi Zhu, Hongqiang Xu, Yujun Wang, Liang Li, Jiansong Zhang, Jie Wu">
+<meta name="dcterms.date" content="2026-07-19">
+<meta name="description" content="A fine-grained GPU virtualization and aggressive scheduling policy for FaaS, reducing GPU costs by up to 63% while meeting latency SLOs.">
 
-<title>StreamBox: A Lightweight GPU SandBox for Serverless Inference Workflow – Weekly Paper Sharing</title>
+<title>gShare: Efficient GPU Sharing with Aggressive Scheduling in Multi-tenant FaaS platform – Weekly Paper Sharing</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -74,35 +74,6 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -145,20 +116,20 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><p>StreamBox: A Lightweight GPU SandBox for Serverless Inference Workflow</p></h1>
-<p class="subtitle lead">USENIX ATC ’24</p>
+<h1 class="title">gShare: Efficient GPU Sharing with Aggressive Scheduling in Multi-tenant FaaS platform</h1>
+<p class="subtitle lead">ASPLOS 2026</p>
   <div class="quarto-categories">
-    <div class="quarto-category">gpu</div>
-    <div class="quarto-category">llm</div>
-    <div class="quarto-category">memory</div>
-    <div class="quarto-category">systems</div>
-    <div class="quarto-category">networking</div>
+    <div class="quarto-category">serverless</div>
+    <div class="quarto-category">faas</div>
+    <div class="quarto-category">gpu-sharing</div>
+    <div class="quarto-category">scheduling</div>
+    <div class="quarto-category">virtualization</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    <p>StreamBox: A Lightweight GPU SandBox for Serverless Inference Workflow</p>
+    A fine-grained GPU virtualization and aggressive scheduling policy for FaaS, reducing GPU costs by up to 63% while meeting latency SLOs.
   </div>
 </div>
 
@@ -167,11 +138,11 @@ window.Quarto = {
   <div class="quarto-title-meta-heading">Affiliation</div>
   
     <div class="quarto-title-meta-contents">
-    <p class="author">Hao Wu, Yue Yu, Junxiao Deng, Shadi Ibrahim, Song Wu, Hao Fan, Ziyue Cheng, Hai Jin </p>
+    <p class="author">Yanan Yang, Zhengxiong Jiang, Meiqi Zhu, Hongqiang Xu, Yujun Wang, Liang Li, Jiansong Zhang, Jie Wu </p>
   </div>
   <div class="quarto-title-meta-contents">
         <p class="affiliation">
-            (Huazhong University of Science and Technology &amp; Inria)
+            (China Telecom, Temple University)
           </p>
       </div>
   </div>
@@ -182,7 +153,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 6, 2026</p>
+      <p class="date">July 19, 2026</p>
     </div>
   </div>
   
@@ -196,246 +167,288 @@ window.Quarto = {
 
 <section id="background-motivation" class="level1">
 <h1>Background &amp; Motivation</h1>
-<section id="serverless-inference-workflows" class="level2">
-<h2 class="anchored" data-anchor-id="serverless-inference-workflows">Serverless Inference Workflows</h2>
+<section id="serverless-inference-gpu-functions" class="level2">
+<h2 class="anchored" data-anchor-id="serverless-inference-gpu-functions">Serverless Inference &amp; GPU Functions</h2>
 <ul>
-<li>DNN inference is moving to serverless computing for <strong>high elasticity and pay-as-you-go cost efficiency.</strong></li>
-<li>Modern AI applications are usually implemented as workflows <strong>consisting of multiple DNN models.</strong></li>
-<li>Example: Traffic monitoring (Object detection <span class="math inline">\(\rightarrow\)</span> Face recognition &amp; Car recognition).</li>
+<li>Model serving is latency-critical and computation-intensive.</li>
+<li>Early CPU-only FaaS functions fall short of meeting low-latency requirements.</li>
+<li>FaaS platforms now offer GPU functions, charging by invocation count and resource consumption.</li>
+<li>GPUs significantly improve inference efficiency (e.g., ResNet50 drops from hundreds of ms to &lt;50ms).</li>
 </ul>
 </section>
-<section id="existing-serverless-gpu-systems" class="level2">
-<h2 class="anchored" data-anchor-id="existing-serverless-gpu-systems">Existing Serverless GPU Systems</h2>
+<section id="inefficiency-1-coarse-grained-gpu-allocation" class="level2">
+<h2 class="anchored" data-anchor-id="inefficiency-1-coarse-grained-gpu-allocation">Inefficiency 1: Coarse-grained GPU Allocation</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image.png" class="img-fluid figure-img"></p>
-<figcaption>Left: One GPU runtime per function (state-of-the-art)</figcaption>
+<p><img src="assets/fig1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
 </figure>
 </div>
 <ul>
-<li>GPUs are spatially partitioned (e.g., via NVIDIA MPS) to serve multiple co-located functions.</li>
-<li><strong>Monolithic Isolation:</strong> Each function (container) is assigned a separate, monolithic GPU runtime (e.g., CUDA context).</li>
+<li>Current FaaS platforms allocate GPUs coarsely (e.g., minimum 1GB of device memory).</li>
+<li>78.1% of popular models require &lt;4GB, and 66.4% require &lt;1GB.</li>
+<li>Coarse allocation leads to massive resource over-provisioning (up to 85% waste for small models).</li>
+<li>Existing proprietary vGPU solutions lack the flexibility needed for dynamic serverless environments.</li>
 </ul>
 </section>
-<section id="limitation-1-excessive-memory-footprint" class="level2">
-<h2 class="anchored" data-anchor-id="limitation-1-excessive-memory-footprint">Limitation 1: Excessive Memory Footprint</h2>
+<section id="inefficiency-2-keep-alive-cost" class="level2">
+<h2 class="anchored" data-anchor-id="inefficiency-2-keep-alive-cost">Inefficiency 2: Keep-alive Cost</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-3.png" class="img-fluid figure-img"></p>
-<figcaption>Breakdown of the GPU memory footprint of functions</figcaption>
+<p><img src="assets/fig2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Isolating functions with separate GPU runtimes causes over 90% data redundancy in GPU memory.</li>
-<li>The GPU runtime (context and ML libraries) occupies up to 95% of the memory footprint.</li>
-<li>Results in low deployment density and wasted expensive GPU memory.</li>
+<li>Cold starts for GPU functions take seconds due to model, driver, and framework initialization.</li>
+<li>FaaS providers cache instances (keep-alive) for up to 15 minutes to mitigate cold starts.</li>
+<li>GPUs are ~14x more expensive than CPUs in the cloud.</li>
+<li>Caching idle GPU instances leads to 10x higher cloud costs and poor resource utilization during workload bursts.</li>
 </ul>
 </section>
-<section id="limitation-2-unacceptable-cold-start" class="level2">
-<h2 class="anchored" data-anchor-id="limitation-2-unacceptable-cold-start">Limitation 2: Unacceptable Cold Start</h2>
+<section id="inefficiency-3-insufficient-over-selling" class="level2">
+<h2 class="anchored" data-anchor-id="inefficiency-3-insufficient-over-selling">Inefficiency 3: Insufficient Over-selling</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-2.png" class="img-fluid figure-img"></p>
-<figcaption>Breakdown of function cold start latency</figcaption>
+<p><img src="assets/fig3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
 </figure>
 </div>
 <ul>
-<li>The cold start latency of initializing a new GPU runtime is over 5 seconds.</li>
-<li>Unacceptable for latency-sensitive DNN inference.</li>
-<li>Traditional “warm-up” methods (keeping functions alive) are ineffective on GPUs because they hoard scarce memory resources.</li>
+<li>Prior systems use model swapping to reclaim idle GPUs, but rely on proxy-based control planes.</li>
+<li>Two-layer GPU management introduces overhead and performance uncertainty.</li>
+<li>Model swapping incurs non-negligible latency (e.g., ~1s for 1GB).</li>
+<li>Simple heuristic scheduling ignores function behavior, causing either low utilization or SLO violations.</li>
 </ul>
 </section>
-<section id="limitation-3-inefficient-communication" class="level2">
-<h2 class="anchored" data-anchor-id="limitation-3-inefficient-communication">Limitation 3: Inefficient Communication</h2>
+<section id="opportunity-for-aggressive-sharing" class="level2">
+<h2 class="anchored" data-anchor-id="opportunity-for-aggressive-sharing">Opportunity for Aggressive Sharing</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-4.png" class="img-fluid figure-img"></p>
-<figcaption>Existing communication methods in serverless inference systems</figcaption>
+<p><img src="assets/fig4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Communication between functions on the same GPU suffers from redundant data copies.</li>
-<li>Data must be copied from the GPU to CPU memory, and then back to the GPU, due to the strict isolation between GPU runtimes.</li>
+<li>Cloud users have diverse latency requirements (e.g., strict interactive vs.&nbsp;lenient batch processing).</li>
+<li>Users opting for discounted idle billing are willing to accept slight latency increases.</li>
+<li>Carefully reordering request execution can reduce GPU usage by ~30% without violating latency SLOs.</li>
 </ul>
 </section>
-<section id="the-opportunity-gpu-streams" class="level2">
-<h2 class="anchored" data-anchor-id="the-opportunity-gpu-streams">The Opportunity: GPU Streams</h2>
+<section id="key-insights" class="level2">
+<h2 class="anchored" data-anchor-id="key-insights">Key Insights</h2>
+<ul>
+<li><strong>Fine-grained GPU allocation:</strong> Time-slicing with vGPU minimizes over-provisioning waste.</li>
+<li><strong>Resource decoupling:</strong> Decoupling GPUs from function memory enables flexible recycling and sharing.</li>
+<li><strong>Efficient GPU overselling:</strong> Co-designing vGPU allocation and SLO-aware scheduling balances cost and performance.</li>
+</ul>
+</section>
+</section>
+<section id="design" class="level1">
+<h1>Design</h1>
+<section id="gshare-system-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="gshare-system-architecture">gShare System Architecture</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image.png" class="img-fluid figure-img"></p>
-<figcaption>Right: One GPU runtime per inference workflow</figcaption>
+<p><img src="assets/fig5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
 </figure>
 </div>
 <ul>
-<li><strong>Idea:</strong> Use GPU streams as lightweight sandboxes instead of monolithic runtimes.</li>
-<li>Functions within a workflow share a single GPU runtime.</li>
-<li><strong>Benefits:</strong>
-<ul>
-<li>Fast startup (no context initialization)</li>
-<li>Small memory footprint (eliminates redundancy)</li>
-<li>Zero-copy data passing (shared address space)</li>
-</ul></li>
+<li>A server-level GPU overselling policy that minimizes GPU allocation while meeting latency SLOs.</li>
+<li>Divides physical GPUs into vGPU slices (e.g., 128MB memory, 10% compute quota).</li>
+<li>Dynamically maps vGPU instances to user functions based on workload changes.</li>
+<li>Operates as a back-end module on each server, transparent to the cluster-level load balancer.</li>
 </ul>
 </section>
-</section>
-<section id="system-design" class="level1">
-<h1>System Design</h1>
-<section id="streambox-architecture" class="level2">
-<h2 class="anchored" data-anchor-id="streambox-architecture">StreamBox Architecture</h2>
+<section id="vm-passthrough-gpu-virtualization" class="level2">
+<h2 class="anchored" data-anchor-id="vm-passthrough-gpu-virtualization">VM-passthrough GPU Virtualization</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-5.png" class="img-fluid figure-img"></p>
-<figcaption>Architecture of StreamBox</figcaption>
+<p><img src="assets/fig6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Hooks GPU APIs from containers and forwards them to an API Proxy.</li>
-<li><strong>Three core components:</strong>
-<ul>
-<li>Auto-scaling Memory Pool</li>
-<li>Unified Communication Framework</li>
-<li>IO Daemon for PCIe sharing</li>
-</ul></li>
+<li>Uses kernel-space interception to virtualize GPUs, ensuring compatibility with custom VM images.</li>
+<li><strong>vGPU Manager:</strong> Runs in the host OS, exposing vGPU driver APIs to guest microVMs.</li>
+<li>Supports fine-grained creation of GPU functions in units of 128MB.</li>
+<li>Exposes user-space libraries for seamless integration with orchestration frameworks like Kubernetes.</li>
 </ul>
 </section>
-<section id="auto-scaling-memory-pool" class="level2">
-<h2 class="anchored" data-anchor-id="auto-scaling-memory-pool">Auto-scaling Memory Pool</h2>
+<section id="direct-io-and-vgpu-scheduling" class="level2">
+<h2 class="anchored" data-anchor-id="direct-io-and-vgpu-scheduling">Direct I/O and vGPU Scheduling</h2>
+<ul>
+<li>Leverages <code>vfio-mdev</code> for direct I/O access between hardware and virtual machines.</li>
+<li>Bypasses virtualization overhead by allowing guest processes to access device memory via standard system calls.</li>
+<li><strong>vGPU Scheduler:</strong> Enforces memory limits and temporal sharing of SM cores.</li>
+<li>Uses round-robin scheduling with non-preemptive time slices (e.g., 20ms) to execute kernels in FCFS order.</li>
+</ul>
+</section>
+<section id="function-memory-management" class="level2">
+<h2 class="anchored" data-anchor-id="function-memory-management">Function Memory Management</h2>
+<ul>
+<li>Recycling idle vGPU instances accommodates more tenant functions on the same hardware.</li>
+<li>Requires efficient mechanisms for vGPU hot-plugging and model swapping.</li>
+<li>Standard PCIe hot-plugging takes ~0.7s, which is too slow for dynamic reallocation.</li>
+</ul>
+</section>
+<section id="vgpu-hot-plugging" class="level2">
+<h2 class="anchored" data-anchor-id="vgpu-hot-plugging">vGPU Hot-Plugging</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-6.png" class="img-fluid figure-img"></p>
-<figcaption>Fine-grained memory management in StreamBox</figcaption>
+<p><img src="assets/fig7.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li><strong>Fine-grained Management:</strong> Allocates and recycles memory at the DNN <em>layer</em> granularity.</li>
-<li><strong>Lazy Allocation:</strong> Physical addresses are allocated only when a variable is first accessed.</li>
-<li><strong>Eager Recycling:</strong> Intermediate layer results are freed immediately when the next layer’s computation starts.</li>
+<li>Implements a “pseudo offloading” strategy to mitigate hot-plugging overhead.</li>
+<li>When unloading, only the hardware resource is released; the vGPU connection remains active but disabled.</li>
+<li>Upon resuming, the vGPU manager simply reactivates the GPU slice without instantiating a new device.</li>
+<li>Reduces vGPU hot-plugging time to less than 1ms.</li>
 </ul>
 </section>
-<section id="resilient-memory-scaling" class="level2">
-<h2 class="anchored" data-anchor-id="resilient-memory-scaling">Resilient Memory Scaling</h2>
+<section id="checkpoint-restore-cr" class="level2">
+<h2 class="anchored" data-anchor-id="checkpoint-restore-cr">Checkpoint &amp; Restore (C/R)</h2>
 <ul>
-<li><strong>Offline Profiling:</strong> Pre-runs models to build exact memory usage profiles for different batch sizes.</li>
-<li><strong>Real-time Scaling:</strong> Periodically adjusts the memory pool size based on predicted future intervals.</li>
-<li>Prevents memory hoarding and aligns with the serverless pay-as-you-go billing model.</li>
+<li>Avoids redundant model initialization for keep-alive functions.</li>
+<li>Uses CUDA checkpointing to create model snapshots directly within the microVM.</li>
+<li>Extends microVM sidecars to support direct model data management.</li>
+<li>Stores snapshots in a shared host memory pool instead of disk, enabling fast in-memory recovery.</li>
 </ul>
 </section>
-<section id="user-transparent-communication-framework" class="level2">
-<h2 class="anchored" data-anchor-id="user-transparent-communication-framework">User-transparent Communication Framework</h2>
+<section id="fast-model-swapping" class="level2">
+<h2 class="anchored" data-anchor-id="fast-model-swapping">Fast Model Swapping</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-7.png" class="img-fluid figure-img"></p>
-<figcaption>Unified communication framework in StreamBox</figcaption>
+<p><img src="assets/fig8.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Provides simple <code>PUT</code> and <code>GET</code> APIs for developers.</li>
-<li>Adaptively switches communication methods (Intra-GPU, NVLink P2P, RPC) based on function placement.</li>
-<li><strong>Elastic Communication Store:</strong> Caches intermediate data directly in idle GPU memory for zero-copy access.</li>
+<li>Traditional reallocation requires a slow swap-out and swap-in pair.</li>
+<li>Introduces a GPU memory “overwrite” mechanism based on snapshot caching.</li>
+<li>If a model is already cached in host memory, the swap-out operation is skipped entirely.</li>
+<li>Only a swap-in operation is performed, significantly reducing reallocation latency.</li>
 </ul>
 </section>
-<section id="adaptive-inter-gpu-movement" class="level2">
-<h2 class="anchored" data-anchor-id="adaptive-inter-gpu-movement">Adaptive Inter-GPU Movement</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/image-8.png" class="img-fluid figure-img"></p>
-<figcaption>An example of adaptive inter-GPU movement</figcaption>
-</figure>
-</div>
+<section id="slo-aware-request-scheduling-formulation" class="level2">
+<h2 class="anchored" data-anchor-id="slo-aware-request-scheduling-formulation">SLO-aware Request Scheduling Formulation</h2>
 <ul>
-<li>Monitors GPU memory pressure in real-time.</li>
-<li>If idle memory is insufficient, StreamBox preemptively moves intermediate data to neighboring GPUs (via high-speed NVLink) or CPU memory.</li>
-<li>Avoids interfering with currently running inference functions.</li>
+<li>Modeled as an online bin packing problem with per-request deadline constraints.</li>
+<li><strong>Objective:</strong> Minimize the total GPU resource cost on active function instances.</li>
+<li><strong>Constraints:</strong> Requests cannot execute before arrival, strict execution order, no overlapping execution, and latency targets must be met.</li>
+<li>NP-hard problem requiring a fast, practical online algorithm.</li>
 </ul>
 </section>
-<section id="fine-grained-pcie-bandwidth-sharing" class="level2">
-<h2 class="anchored" data-anchor-id="fine-grained-pcie-bandwidth-sharing">Fine-grained PCIe Bandwidth Sharing</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/image-9.png" class="img-fluid figure-img"></p>
-<figcaption>Fine-grained I/O scheduling in StreamBox</figcaption>
-</figure>
-</div>
+<section id="dual-queue-lazy-scheduling-algorithm" class="level2">
+<h2 class="anchored" data-anchor-id="dual-queue-lazy-scheduling-algorithm">Dual-Queue Lazy Scheduling Algorithm</h2>
 <ul>
-<li><strong>Challenge:</strong> A single stream monopolizes the PCIe bus, blocking concurrent functions.</li>
-<li><strong>Data Blocks:</strong> Partitions large data transfers into optimal 2MB blocks.</li>
-<li><strong>Preemptive Batch Transfer:</strong> An I/O daemon globally schedules and interleaves these blocks across different streams.</li>
-<li><strong>Rebuilt Synchronization:</strong> Asynchronously injects event synchronizations at the block level to ensure correct execution order.</li>
+<li>Maintains incoming requests in a <code>shareQueue</code>, prioritized by deadline slack.</li>
+<li>Classifies requests: high-risk requests (likely to violate SLO) are moved to a <code>cacheQueue</code> for exclusive execution.</li>
+<li><strong>Lazy Scheduling:</strong> Requests in <code>shareQueue</code> are only scheduled when their deadline is near (slack = 0).</li>
+<li>Allows reprioritization and maximizes the reuse of already active GPU slices to reduce idle waste.</li>
 </ul>
 </section>
 </section>
 <section id="evaluation" class="level1">
 <h1>Evaluation</h1>
-<section id="environment-setup" class="level2">
-<h2 class="anchored" data-anchor-id="environment-setup">Environment Setup</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/image-10.png" class="img-fluid figure-img"></p>
-<figcaption>Three inference workflows used in evaluation</figcaption>
-</figure>
-</div>
+<section id="experimental-setup" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-setup">Experimental Setup</h2>
 <ul>
-<li><strong>Hardware:</strong> NVIDIA V100 GPUs (16GB), Intel Xeon CPUs.</li>
-<li><strong>Workloads:</strong> Azure cloud traces (sporadic, periodic, bursty).</li>
-<li><strong>Baselines:</strong>
-<ul>
-<li><strong>INFless:</strong> State-of-the-art (MPS, CUDA IPC)</li>
-<li><strong>Astraea:</strong> QoS-aware system (MPS, CUDA IPC)</li>
-<li><strong>Stream-only:</strong> Naive stream implementation without optimizations</li>
-</ul></li>
+<li><strong>Testbed:</strong> 20 physical servers, 64 NVIDIA A100 GPUs (40GB).</li>
+<li><strong>Workloads:</strong> Real-world traces from production clusters (low, medium, and high concurrency).</li>
+<li><strong>Latency Target:</strong> Default set to 1.5x the 90th percentile (p90) execution time.</li>
+<li><strong>Baselines:</strong> Keepalive (AWS Lambda style), FaasCache, FaaSwap (state-of-the-art), NoCache, and FIFO.</li>
 </ul>
 </section>
-<section id="less-memory-footprint" class="level2">
-<h2 class="anchored" data-anchor-id="less-memory-footprint">Less Memory Footprint</h2>
+<section id="overall-performance-efficiency" class="level2">
+<h2 class="anchored" data-anchor-id="overall-performance-efficiency">Overall Performance &amp; Efficiency</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-11.png" class="img-fluid figure-img"></p>
-<figcaption>Memory usage under real-world trace &amp; ML workloads</figcaption>
+<p><img src="assets/fig10.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
 </figure>
 </div>
 <ul>
-<li>StreamBox reduces GPU memory usage by up to <strong>82%</strong> compared to INFless and Astraea.</li>
-<li>Eliminates redundant GPU runtimes, allowing much higher deployment density.</li>
+<li>gShare reduces GPU usage by 43%–63% compared to the Keepalive baseline.</li>
+<li>Maintains function performance comparable to the baseline.</li>
+<li>Outperforms FaaSwap by reducing latency violations by up to 6x.</li>
+<li>Avoids the extreme scheduling behaviors of NoCache (frequent swaps) and FIFO (early scheduling waste).</li>
 </ul>
 </section>
-<section id="high-throughput" class="level2">
-<h2 class="anchored" data-anchor-id="high-throughput">High Throughput</h2>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="assets/image-12.png" class="img-fluid figure-img"></p>
-<figcaption>Comparison of throughput</figcaption>
-</figure>
-</div>
+<section id="workload-agnosticism" class="level2">
+<h2 class="anchored" data-anchor-id="workload-agnosticism">Workload Agnosticism</h2>
 <ul>
-<li>StreamBox improves system throughput by <strong>5.3X to 6.7X</strong> compared to state-of-the-art systems.</li>
-<li>Outperforms Stream-only by 1.46X due to efficient memory management and communication.</li>
+<li>Delivers consistent performance improvements across diverse workload scenarios.</li>
+<li>Adapts to variations in tenant count, request arrival intervals, and function concurrency.</li>
+<li>Server-level scheduling uses function profiling data to dynamically adapt to various ML scenarios.</li>
 </ul>
 </section>
-<section id="low-latency-slo-guarantee" class="level2">
-<h2 class="anchored" data-anchor-id="low-latency-slo-guarantee">Low Latency &amp; SLO Guarantee</h2>
+<section id="request-latency-distribution" class="level2">
+<h2 class="anchored" data-anchor-id="request-latency-distribution">Request Latency Distribution</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-14.png" class="img-fluid figure-img"></p>
-<figcaption>End-to-end latency</figcaption>
+<p><img src="assets/fig17.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
 </figure>
 </div>
 <ul>
-<li>Reduces end-to-end latency by up to <strong>98%</strong>.</li>
-<li>Startup latency is reduced from ~5.8 seconds to just <strong>5 milliseconds</strong>.</li>
-<li>Significantly lowers SLO violations, especially under bursty workloads.</li>
+<li>Lazy scheduling slightly increases request waiting time but has negligible impact on p50 latency.</li>
+<li>Performance gap narrows progressively from 60% at p90 to just 15% at p95 and p99 latency.</li>
+<li>Severe performance degradation is rare and mostly limited to initialization of single-invocation functions.</li>
+<li>Adding 40% redundancy to predicted execution times effectively mitigates prediction errors.</li>
 </ul>
 </section>
-<section id="communication-io-efficiency" class="level2">
-<h2 class="anchored" data-anchor-id="communication-io-efficiency">Communication &amp; I/O Efficiency</h2>
+<section id="pareto-optimality" class="level2">
+<h2 class="anchored" data-anchor-id="pareto-optimality">Pareto Optimality</h2>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="assets/image-15.png" class="img-fluid figure-img"></p>
-<figcaption>Comparison of communication latency</figcaption>
+<p><img src="assets/fig19.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
 </figure>
 </div>
 <ul>
-<li><strong>Communication:</strong> Reduces overhead by 94% compared to INFless (Function-IPC) by keeping data in the GPU elastic store.</li>
-<li><strong>I/O Scheduling:</strong> Reduces model loading latency by 91% compared to Stream-only by preventing PCIe monopolization.</li>
+<li>Achieves Pareto optimality between resource cost and function performance across 20 different configurations.</li>
+<li>Strikes a favorable balance, whereas Keepalive incurs high costs and FIFO causes numerous SLO violations.</li>
+</ul>
+</section>
+<section id="sensitivity-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="sensitivity-analysis">Sensitivity Analysis</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig21.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Performs exceptionally well under sparse workloads with lenient latency targets.</li>
+<li>Reduces resource usage by ~60% vs.&nbsp;Keepalive and ~50% vs.&nbsp;FaaSwap under sparse conditions.</li>
+<li>Model swapping time remains the primary cause of latency target violations across all methods.</li>
+<li>gShare’s scheduling wait time contributes &lt;1% to SLO violations.</li>
+</ul>
+</section>
+<section id="virtualization-overhead-resource-isolation" class="level2">
+<h2 class="anchored" data-anchor-id="virtualization-overhead-resource-isolation">Virtualization Overhead &amp; Resource Isolation</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig25.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li><strong>Overhead:</strong> Negligible performance degradation compared to full physical GPUs (zero-copy memory, native channel scheduling).</li>
+<li><strong>Isolation:</strong> Model throughput scales linearly with the allocated vGPU quota.</li>
+<li>Performance of each vGPU function remains stable even when processing concurrent requests from different tenants.</li>
+</ul>
+</section>
+<section id="cost-benefit-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="cost-benefit-analysis">Cost Benefit Analysis</h2>
+<ul>
+<li>Estimated using AWS EC2 pricing (p4d.24xlarge at $2.74/hour per GPU).</li>
+<li>Reduces GPU resource usage by up to 40% even in worst-case scenarios.</li>
+<li>For a typical 200-server FaaS cluster, gShare saves approximately $330,000 annually.</li>
+<li>Benefits both cloud providers (reduced procurement) and users (discounted idle billing).</li>
+</ul>
+</section>
+<section id="performance-roofline" class="level2">
+<h2 class="anchored" data-anchor-id="performance-roofline">Performance Roofline</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="assets/fig27.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<ul>
+<li>Compared against the optimal MINLP solution solved by Lingo.</li>
+<li>gShare’s online scheduling algorithm achieves 75% of the optimal cost-efficiency.</li>
+<li>Decision-making speed is 10x–100x faster than the solver, making it highly practical for production systems.</li>
 </ul>
 
 
